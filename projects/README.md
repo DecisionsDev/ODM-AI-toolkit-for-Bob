@@ -132,7 +132,3 @@ Check the error message - common issues:
 - Missing XOM classes → Ensure XOM compiled first
 - UUID mismatches → Check .ruleproject and .dop files match
 - BAL syntax errors → Review rule files for correct syntax
-
-## More Information
-
-See [REBUILD_INSTRUCTIONS.md](REBUILD_INSTRUCTIONS.md) for detailed rebuild procedures and manual build steps.
