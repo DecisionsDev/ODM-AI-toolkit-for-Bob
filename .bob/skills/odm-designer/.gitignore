@@ -1,0 +1,9 @@
+# Optional: Exclude rules-compiler.jar from version control
+# Uncomment the line below if you want to keep the JAR local only
+# tools/rules-compiler.jar
+
+# The JAR is ~52MB and may be too large for some repositories
+# Users can obtain it from ODM installation or Docker image
+# See tools/README.md for instructions
+
+# Made with Bob
