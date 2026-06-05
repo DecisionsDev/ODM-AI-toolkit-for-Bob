@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>customer-risk-scoring</name>
+  <uuid>c4d5e6f7-a8b9-0c1d-2e3f-4a5b6c7d8e9f</uuid>
+  <documentation><![CDATA[Rules for customer risk scoring and assessment]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

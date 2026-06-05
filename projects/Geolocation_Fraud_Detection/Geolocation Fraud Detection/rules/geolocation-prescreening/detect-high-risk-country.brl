@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-high-risk-country</name>
+
+  <uuid>c9d0e1f2-a3b4-4c5d-b345-6c7d8e9f0a1b</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect High Risk Country
+    Package: geolocation-prescreening
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Cross-references the merchant transaction country code against a list of
+    high-risk and OFAC-sanctioned countries. The list includes countries with elevated
+    fraud rates, active sanctions, or known financial crime corridors.
+    High-risk country codes (FATF blacklist + OFAC sanctions as of 2024):
+    KP (North Korea), IR (Iran), MM (Myanmar), RU (Russia), BY (Belarus),
+    SY (Syria), CU (Cuba), SD (Sudan), SS (South Sudan), YE (Yemen),
+    LY (Libya), SO (Somalia), ZW (Zimbabwe), VE (Venezuela), HT (Haiti),
+    NI (Nicaragua), ML (Mali), BF (Burkina Faso), GN (Guinea), GW (Guinea-Bissau)
+    Risk Signal: HIGH_RISK_COUNTRY
+    Tags: geolocation, high-risk-country, sanctions, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the merchant location of 'the transaction' is not null
+    and the country code of the merchant location of 'the transaction' is one of { "KP" , "IR" , "MM" , "RU" , "BY" , "SY" , "CU" , "SD" , "SS" , "YE" , "LY" , "SO" , "ZW" , "VE" , "HT" , "NI" , "ML" , "BF" , "GN" , "GW" }
+
+  then
+    make it true that the risk score of 'the transaction' has high risk country detected ;
+    add risk factor "Transaction originates from a high-risk or sanctioned country" to the risk score of 'the transaction' ;
+    add audit message "HIGH_RISK_COUNTRY detected - merchant country is on the high-risk list" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

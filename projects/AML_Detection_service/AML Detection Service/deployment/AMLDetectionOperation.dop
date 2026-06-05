@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.ibm.rules.studio.model.decisionservice:Operation xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore" xmlns:ilog.rules.studio.model.query.extractor="http://ilog.rules.studio/model/query/extractor.ecore" rulesetName="AML_Detection_Ruleset" usingRuleflow="true" ruleflowName="aml-detection-ruleflow" targetRuleProjectName="AML Detection Service">
+  <name>AMLDetectionOperation</name>
+  <uuid>b8f3c2d1-9a4e-4f5b-8c7d-6e5f4a3b2c1d</uuid>
+  <referencedVariables variableName="request" variableSetName="AMLDetectionParameters" direction="IN_OUT">
+    <variableSet href="../rules/AMLDetectionParameters.var#f1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c"/>
+  </referencedVariables>
+  <ruleflow href="../rules/aml-detection-ruleflow.rfl#b5c6d7e8-f9a0-1b2c-3d4e-5f6a7b8c9d0e"/>
+  <extractor xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor" name="AMLDetectionOperation_extractor" validator="Default Validator"/>
+  <targetRuleProject href="../../AML%20Detection%20Service#a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d"/>
+</com.ibm.rules.studio.model.decisionservice:Operation>

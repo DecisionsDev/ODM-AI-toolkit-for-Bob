@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>emissions-limits</name>
+  <uuid>E3FAFD1D-C372-4750-AA61-F368A16AC252</uuid>
+  <documentation><![CDATA[Rules for emissions limits compliance]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

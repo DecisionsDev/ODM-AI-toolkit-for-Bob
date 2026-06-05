@@ -1,0 +1,109 @@
+property loadGetterSetterAsProperties "true"
+property origin "xom:/AML Detection Service/aml-detection-xom"
+property uuid "c1d2e3f4-a5b6-7c8d-9e0f-1a2b3c4d5e6f"
+package com.banking.aml;
+
+public class Transaction
+{
+    public string transactionId;
+    public string customerId;
+    public string accountId;
+    public double amount;
+    public string currency;
+    public java.util.Date timestamp;
+    public string transactionType;
+    public string counterpartyAccountId;
+    public string counterpartyJurisdiction;
+    public boolean crossBorder;
+    public boolean roundNumber;
+    public readonly boolean amountRoundNumber
+                property "factory.ignore" "true";
+    public Transaction(string transactionId, string customerId, string accountId, double amount, string currency, java.util.Date timestamp)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Transaction();
+}
+
+public class Customer
+{
+    public string customerId;
+    public string name;
+    public string industry;
+    public string geographicLocation;
+    public double riskScore;
+    public boolean kycComplete;
+    public java.util.Date kycLastUpdated;
+    public boolean priorCrossBorderActivity;
+    public readonly java.util.List linkedAccountIds domain 0,* class string;
+    public readonly boolean highRisk
+                property "factory.ignore" "true";
+    public readonly boolean mediumRisk
+                property "factory.ignore" "true";
+    public readonly boolean kycOutdated
+                property "factory.ignore" "true";
+    public Customer(string customerId, string name, double riskScore)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Customer();
+    public void addLinkedAccount(string arg);
+}
+
+public class Account
+{
+    public string accountId;
+    public string customerId;
+    public java.util.Date lastActivityDate;
+    public boolean dormant;
+    public int daysSinceLastActivity;
+    public java.util.Date reactivationDate;
+    public readonly boolean dormantAccount
+                property "factory.ignore" "true";
+    public readonly boolean recentlyReactivated
+                property "factory.ignore" "true";
+    public Account(string accountId, string customerId, java.util.Date lastActivityDate)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Account();
+}
+
+public class Alert
+{
+    public string alertId;
+    public string ruleTriggered;
+    public string severity;
+    public string description;
+    public string transactionId;
+    public string customerId;
+    public string accountId;
+    public java.util.Date alertTimestamp;
+    public boolean escalated;
+    public Alert(string ruleTriggered, string severity, string description)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Alert();
+}
+
+public class AMLRequest
+{
+    public com.banking.aml.Transaction currentTransaction;
+    public com.banking.aml.Customer customer;
+    public com.banking.aml.Account account;
+    public readonly java.util.List recentTransactions domain 0,* class com.banking.aml.Transaction;
+    public readonly java.util.List alerts domain 0,* class com.banking.aml.Alert;
+    public readonly java.util.Set highRiskJurisdictions domain 0,* class string;
+    public int ruleTriggeredCount;
+    public boolean requiresManualReview;
+    public boolean escalateToCompliance;
+    public string overallRiskLevel;
+    public readonly double totalRecentTransactionAmount
+                property "factory.ignore" "true";
+    public readonly int recentTransactionCount
+                property "factory.ignore" "true";
+    public readonly boolean multipleRulesTriggered
+                property "factory.ignore" "true";
+    public AMLRequest(com.banking.aml.Transaction currentTransaction, com.banking.aml.Customer customer, com.banking.aml.Account account)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public AMLRequest();
+    public void addAlert(com.banking.aml.Alert arg);
+    public void addRecentTransaction(com.banking.aml.Transaction arg);
+    public void addHighRiskJurisdiction(string arg);
+    public void incrementRuleCount();
+    public boolean isHighRiskJurisdiction(string arg);
+    public void createAndAddAlert(string arg1, string arg2, string arg3);
+}

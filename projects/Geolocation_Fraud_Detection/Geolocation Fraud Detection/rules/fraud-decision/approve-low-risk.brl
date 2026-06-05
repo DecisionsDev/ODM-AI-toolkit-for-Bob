@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>approve-low-risk</name>
+
+  <uuid>b6c7d8e9-f0a1-4b2c-a012-3b4c5d6e7f8a</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Approve - Low Risk Score
+    Package: fraud-decision
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Confirms the APPROVE decision for transactions with a low geolocation
+    risk score (below 25 points). These transactions show no significant geolocation
+    anomalies and can be authorized without further review. The confidence level is set
+    to HIGH for clean transactions to indicate strong confidence in the approval.
+    Decision: APPROVE
+    Reason Code: GEO-301-LOW-RISK-APPROVED
+    Recommended Action: AUTHORIZE
+    Tags: fraud-decision, approve, low-risk
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the fraud decision of 'the transaction' is "APPROVE"
+    and the total score of the risk score of 'the transaction' is less than 25
+
+  then
+    set the decision reason code of 'the transaction' to "GEO-301-LOW-RISK-APPROVED" ;
+    set the recommended action of 'the transaction' to "AUTHORIZE" ;
+    set the confidence level of the risk score of 'the transaction' to "HIGH" ;
+    add audit message "DECISION: APPROVE - Low geolocation risk score, transaction authorized" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

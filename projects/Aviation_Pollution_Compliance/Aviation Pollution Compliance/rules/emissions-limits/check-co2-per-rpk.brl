@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>check-co2-per-rpk</name>
+  <uuid>DAFD47E0-6E54-49BA-A608-4DB3B63BEE87</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the flight of 'the request' is not null
+    and the aircraft of 'the request' is not null
+    and the aircraft of 'the request' is certified after 2025
+    and the CO2 per RPK of the flight of 'the request' is more than 85
+then
+    add "Section 2.1: CO2 per RPK exceeds 85 grams limit for aircraft certified after 2025" to the violations of the flight of 'the request' ;
+    add "EMISSIONS_LIMIT_VIOLATION" to the overall violations of 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

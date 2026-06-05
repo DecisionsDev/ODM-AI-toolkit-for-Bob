@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule3-Carbonate</name>
+  <uuid>0d1e2f3a-4b5c-6d7e-8f9a-0b1c2d3e4f5a</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    'the specimen' reacts with acid
+    and 'the specimen' produces effervescence
+then
+    set the mineral class of 'the specimen' to "Carbonate" ;
+    add "Rule 3: Classified as Carbonate - reacts with dilute hydrochloric acid producing effervescence" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

@@ -1,0 +1,59 @@
+# Vocabulary Properties
+uuid = d1e2f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f6a
+
+# com.loan.compliance.Address
+com.loan.compliance.Address#concept.label = address
+com.loan.compliance.Address.country#phrase.navigation = {country} of {this}
+com.loan.compliance.Address.country#phrase.action = set the country of {this} to {country}
+com.loan.compliance.Address.state#phrase.navigation = {state} of {this}
+com.loan.compliance.Address.state#phrase.action = set the state of {this} to {state}
+com.loan.compliance.Address.city#phrase.navigation = {city} of {this}
+com.loan.compliance.Address.city#phrase.action = set the city of {this} to {city}
+com.loan.compliance.Address.zipCode#phrase.navigation = {zip code} of {this}
+com.loan.compliance.Address.zipCode#phrase.action = set the zip code of {this} to {zip code}
+
+# com.loan.compliance.Applicant
+com.loan.compliance.Applicant#concept.label = applicant
+com.loan.compliance.Applicant.birthDate#phrase.navigation = {birth date} of {this}
+com.loan.compliance.Applicant.birthDate#phrase.action = set the birth date of {this} to {birth date}
+com.loan.compliance.Applicant.address#phrase.navigation = {address} of {this}
+com.loan.compliance.Applicant.address#phrase.action = set the address of {this} to {address}
+com.loan.compliance.Applicant.creditScore#phrase.navigation = {credit score} of {this}
+com.loan.compliance.Applicant.creditScore#phrase.action = set the credit score of {this} to {credit score}
+com.loan.compliance.Applicant.annualIncome#phrase.navigation = {annual income} of {this}
+com.loan.compliance.Applicant.annualIncome#phrase.action = set the annual income of {this} to {annual income}
+com.loan.compliance.Applicant.incomeDocument#phrase.navigation = {income document} of {this}
+com.loan.compliance.Applicant.incomeDocument#phrase.action = set the income document of {this} to {income document}
+com.loan.compliance.Applicant.employmentStatus#phrase.navigation = {employment status} of {this}
+com.loan.compliance.Applicant.employmentStatus#phrase.action = set the employment status of {this} to {employment status}
+com.loan.compliance.Applicant.financialRecordPresent#phrase.navigation = {this} has financial record
+com.loan.compliance.Applicant.financialRecordPresent#phrase.action = make it {financial record present} that {this} has financial record
+com.loan.compliance.Applicant.monthlyDebtAmount#phrase.navigation = {monthly debt amount} of {this}
+com.loan.compliance.Applicant.monthlyDebtAmount#phrase.action = set the monthly debt amount of {this} to {monthly debt amount}
+com.loan.compliance.Applicant.monthlyGrossIncome#phrase.navigation = {monthly gross income} of {this}
+com.loan.compliance.Applicant.monthlyGrossIncome#phrase.action = set the monthly gross income of {this} to {monthly gross income}
+com.loan.compliance.Applicant.age#phrase.navigation = {age} of {this}
+com.loan.compliance.Applicant.debtToIncomeRatio#phrase.navigation = {debt to income ratio} of {this}
+
+# com.loan.compliance.LoanRequest
+com.loan.compliance.LoanRequest#concept.label = loan request
+com.loan.compliance.LoanRequest.applicant#phrase.navigation = {applicant} of {this}
+com.loan.compliance.LoanRequest.applicant#phrase.action = set the applicant of {this} to {applicant}
+com.loan.compliance.LoanRequest.coSigner#phrase.navigation = {co-signer} of {this}
+com.loan.compliance.LoanRequest.coSigner#phrase.action = set the co-signer of {this} to {co-signer}
+com.loan.compliance.LoanRequest.loanAmount#phrase.navigation = {loan amount} of {this}
+com.loan.compliance.LoanRequest.loanAmount#phrase.action = set the loan amount of {this} to {loan amount}
+com.loan.compliance.LoanRequest.eligible#phrase.navigation = {this} is eligible
+com.loan.compliance.LoanRequest.eligible#phrase.action = make it {eligible} that {this} is eligible
+com.loan.compliance.LoanRequest.interestRate#phrase.navigation = {interest rate} of {this}
+com.loan.compliance.LoanRequest.interestRate#phrase.action = set the interest rate of {this} to {interest rate}
+com.loan.compliance.LoanRequest.reason#phrase.navigation = {reason} of {this}
+com.loan.compliance.LoanRequest.reason#phrase.action = set the reason of {this} to {reason}
+com.loan.compliance.LoanRequest.messages#phrase.navigation = {messages} of {this}
+com.loan.compliance.LoanRequest.violations#phrase.navigation = {violations} of {this}
+com.loan.compliance.LoanRequest.hasCoSigner#phrase.navigation = {this} has co-signer
+com.loan.compliance.LoanRequest.combinedCreditScore#phrase.navigation = {combined credit score} of {this}
+com.loan.compliance.LoanRequest.combinedAnnualIncome#phrase.navigation = {combined annual income} of {this}
+com.loan.compliance.LoanRequest.loanToIncomeRatio#phrase.navigation = {loan to income ratio} of {this}
+com.loan.compliance.LoanRequest.addMessage(java.lang.String)#phrase.action = add {0} to the messages of {this}
+com.loan.compliance.LoanRequest.addViolation(java.lang.String)#phrase.action = add {0} to the violations of {this}

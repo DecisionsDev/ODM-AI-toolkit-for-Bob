@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>check-sports-equipment-packing</name>
+  <uuid>c095569b-674d-446f-8676-fbb4b46140b8</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[definitions
+    set 'bag' to a baggage item in the luggages of 'the request' ;
+if
+    the special item type of 'bag' is SPORTS_EQUIPMENT
+    and it is not true that 'bag' is properly packed
+then
+    add violation "Sports equipment must be properly packed in protective cases" to 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

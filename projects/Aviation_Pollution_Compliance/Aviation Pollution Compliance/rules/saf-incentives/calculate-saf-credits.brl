@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>calculate-saf-credits</name>
+  <uuid>59264CD5-BAB5-4BF3-9217-B961CE882B92</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the flight of 'the request' is not null
+    and the airline operator of 'the request' is not null
+    and the SAF blend percentage of the flight of 'the request' is at least 10
+    and the flight of 'the request' has certified SAF
+    and the SAF lifecycle reduction percentage of the flight of 'the request' is at least 80
+then
+    set the SAF credits earned of the airline operator of 'the request' to ( the SAF credits earned of the airline operator of 'the request' + ( the fuel volume in kg of the flight of 'the request' * 2.5 ) ) ;
+    add "Section 4.2: SAF credit earned - 2.5 kg CO2-eq per liter for lifecycle reduction >= 80%" to the messages of the flight of 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

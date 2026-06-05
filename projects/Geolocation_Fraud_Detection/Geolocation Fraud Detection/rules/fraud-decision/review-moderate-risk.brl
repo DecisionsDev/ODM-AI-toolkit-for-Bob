@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>review-moderate-risk</name>
+
+  <uuid>f4a5b6c7-d8e9-4f0a-e890-1f2a3b4c5d6e</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Review - Moderate Risk Score
+    Package: fraud-decision
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Flags transactions for manual review when the risk score is in the moderate
+    range (25-49 points). These transactions have one or two geolocation anomalies that
+    warrant human review but do not meet the threshold for automatic decline. A fraud analyst
+    should review the transaction details and contact the customer if necessary.
+    Decision: REVIEW
+    Reason Code: GEO-201-MODERATE-RISK
+    Recommended Action: MANUAL_REVIEW
+    Tags: fraud-decision, review, moderate-risk
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the fraud decision of 'the transaction' is "APPROVE"
+    and the total score of the risk score of 'the transaction' is at least 25
+    and the total score of the risk score of 'the transaction' is less than 50
+
+  then
+    set the fraud decision of 'the transaction' to "REVIEW" ;
+    set the decision reason code of 'the transaction' to "GEO-201-MODERATE-RISK" ;
+    set the recommended action of 'the transaction' to "MANUAL_REVIEW" ;
+    add audit message "DECISION: REVIEW - Moderate geolocation risk score requires analyst review" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

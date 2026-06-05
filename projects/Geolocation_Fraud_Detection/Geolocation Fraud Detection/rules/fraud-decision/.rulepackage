@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+
+  <name>fraud-decision</name>
+
+  <uuid>d4e5f6a7-b8c9-4d0e-c890-1d2e3f4a5b6c</uuid>
+
+  <documentation><![CDATA[Final fraud decision rules that evaluate the accumulated risk score
+and set the fraud decision (APPROVE, REVIEW, or DECLINE), the decision reason code,
+the recommended action, and the confidence level.
+Executed last in Fastpath mode to ensure a single deterministic decision is produced.]]></documentation>
+
+</ilog.rules.studio.model.base:RulePackage>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>check-apu-usage</name>
+  <uuid>7DF304F5-D810-4267-8C63-F8639A116643</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the flight of 'the request' is not null
+    and the flight of 'the request' used APU
+    and the flight of 'the request' had FEGP available
+then
+    add "Section 5.1: APU used when FEGP was available - violation unless operational emergency" to the violations of the flight of 'the request' ;
+    add "GROUND_OPERATIONS_VIOLATION" to the overall violations of 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

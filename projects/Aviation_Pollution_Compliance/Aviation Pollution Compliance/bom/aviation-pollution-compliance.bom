@@ -1,0 +1,105 @@
+property loadGetterSetterAsProperties "true"
+property origin "xom:/Aviation Pollution Compliance/aviation-compliance-xom"
+property uuid "D529A0F5-936B-46AF-8E41-AC929E86EB9A"
+
+package com.aviation.compliance;
+
+
+public class Aircraft
+{
+    public string aircraftId;
+    public string aircraftModel;
+    public java.util.Date certificationDate;
+    public double ratedThrustKn;
+    public double certifiedNoxGramsPerKn;
+    public double certifiedCo2PerRpk;
+    public boolean meetsGaea2025Standard;
+    public boolean requiresRetrofit;
+    public java.util.Date retrofitDeadline;
+    public java.util.Date phaseOutDate;
+    public readonly boolean certifiedAfter2025
+                property "factory.ignore" "true";
+    public Aircraft(string aircraftId, string aircraftModel)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Aircraft();
+}
+
+public class ComplianceRequest
+{
+    public com.aviation.compliance.Flight flight;
+    public com.aviation.compliance.Aircraft aircraft;
+    public com.aviation.compliance.Operator airlineOperator;
+    public readonly java.util.Collection overallViolations domain 0,* class string;
+    public readonly java.util.Collection overallMessages domain 0,* class string;
+    public string overallComplianceStatus;
+    public double totalPenaltyAmount;
+    public ComplianceRequest(com.aviation.compliance.Flight flight, com.aviation.compliance.Aircraft aircraft, com.aviation.compliance.Operator airlineOperator)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public ComplianceRequest();
+    public void addOverallViolation(string arg);
+    public void addOverallMessage(string arg);
+    public void addToPenalty(double arg);
+}
+
+public class Flight
+{
+    public string aircraftId;
+    public string flightNumber;
+    public string departureAirport;
+    public string arrivalAirport;
+    public java.util.Date flightDate;
+    public double flightTimeHours;
+    public string fuelType;
+    public double fuelVolumeKg;
+    public double co2EmissionsKg;
+    public double noxEmissionsGrams;
+    public double particulateMatterMg;
+    public double safBlendPercentage;
+    public boolean safCertified;
+    public double safLifecycleReduction;
+    public boolean apuUsed;
+    public boolean fegpAvailable;
+    public int passengerCount;
+    public double distanceKm;
+    public readonly java.util.Collection violations domain 0,* class string;
+    public readonly java.util.Collection messages domain 0,* class string;
+    public string complianceStatus;
+    public readonly double co2PerRpk
+                property "factory.ignore" "true";
+    public readonly double pmPerKgFuel
+                property "factory.ignore" "true";
+    public readonly boolean compliant
+                property "factory.ignore" "true";
+    public Flight(string aircraftId, string flightNumber)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Flight();
+    public void addViolation(string arg);
+    public void addMessage(string arg);
+}
+
+public class Operator
+{
+    public string operatorId;
+    public string operatorName;
+    public double annualCo2EmissionsMetricTons;
+    public double baselineEmissions2019_2020;
+    public double offsetCreditsRequired;
+    public double offsetCreditsPurchased;
+    public double safCreditsEarned;
+    public readonly java.util.Collection violations domain 0,* class string;
+    public readonly java.util.Collection messages domain 0,* class string;
+    public double penaltyAmount;
+    public boolean routeRightsSuspended;
+    public readonly double excessEmissions
+                property "factory.ignore" "true";
+    public readonly double netOffsetObligation
+                property "factory.ignore" "true";
+    public readonly double offsetDeficit
+                property "factory.ignore" "true";
+    public Operator(string operatorId, string operatorName)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Operator();
+    public void addViolation(string arg);
+    public void addMessage(string arg);
+    public void addPenalty(double arg);
+}

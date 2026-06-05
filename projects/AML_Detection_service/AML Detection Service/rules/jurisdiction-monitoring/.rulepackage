@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>jurisdiction-monitoring</name>
+  <uuid>b3c4d5e6-f7a8-9b0c-1d2e-3f4a5b6c7d8e</uuid>
+  <documentation><![CDATA[Rules for monitoring high-risk jurisdictions]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>check-nox-emissions</name>
+  <uuid>2F6B3CCB-11A4-45B6-B405-0DCDC815B93D</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the flight of 'the request' is not null
+    and the aircraft of 'the request' is not null
+    and the rated thrust in kN of the aircraft of 'the request' is more than 0
+    and the NOx emissions in grams of the flight of 'the request' is more than ( the rated thrust in kN of the aircraft of 'the request' * 15 )
+then
+    add "Section 2.2: NOx emissions exceed 15 grams per kN limit during LTO cycle" to the violations of the flight of 'the request' ;
+    add "EMISSIONS_LIMIT_VIOLATION" to the overall violations of 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>flag-first-cross-border-transaction</name>
+  <uuid>c0d1e2f3-a4b5-6c7d-8e9f-0a1b2c3d4e5f</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the customer of 'the request' is not null
+    and the current transaction of 'the request' is not null
+    and it is not true that the customer of 'the request' has prior cross border activity
+    and the current transaction of 'the request' is cross border
+    and the amount of the current transaction of 'the request' is at least 5000
+then
+    set the overall risk level of 'the request' to "MEDIUM" ;
+    increment rule count of 'the request' ;
+    create alert on 'the request' with rule "RULE_3_FIRST_CROSS_BORDER" severity "MEDIUM" and description "First cross-border transaction >= $5,000 USD" ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

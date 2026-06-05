@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>check-first-checked-count</name>
+  <uuid>42c231ca-f819-4dde-bce5-bdb973be05eb</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the passenger of 'the request' is first class
+    and the checked baggage count of 'the request' is more than 3
+then
+    add violation "First class passengers are allowed 3 checked bags" to 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

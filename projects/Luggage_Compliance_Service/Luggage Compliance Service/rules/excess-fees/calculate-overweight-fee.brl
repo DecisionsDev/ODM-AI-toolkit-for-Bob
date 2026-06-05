@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>calculate-overweight-fee</name>
+  <uuid>0a0429f0-ad41-4296-8c69-77e5d4fa1579</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[definitions
+    set 'bag' to a baggage item in the luggages of 'the request' ;
+if
+    'bag' is overweight for economy
+    and the weight of 'bag' is at most 32
+then
+    add fee 75 to 'the request' ;
+    add message "Overweight fee of $75 applied to bag " + the item ID of 'bag' to 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

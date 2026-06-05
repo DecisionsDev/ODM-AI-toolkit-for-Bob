@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>set-confidence-level</name>
+
+  <uuid>c1d2e3f4-a5b6-4c7d-b567-8c9d0e1f2a3b</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Set Confidence Level - High Confidence
+    Package: risk-scoring
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Sets the confidence level of the fraud assessment based on the number
+    of distinct geolocation signals triggered. Multiple corroborating signals increase
+    confidence in the fraud determination.
+    Confidence levels:
+    - HIGH: 3 or more distinct fraud signals triggered (multiple corroborating evidence)
+    - MEDIUM: 2 distinct fraud signals triggered (moderate corroboration)
+    - LOW: 1 or fewer fraud signals triggered (single signal, lower certainty)
+    Tags: risk-scoring, confidence-level, scoring
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the total score of the risk score of 'the transaction' is at least 60
+
+  then
+    set the confidence level of the risk score of 'the transaction' to "HIGH" ;
+    add audit message "Confidence level set to HIGH - total risk score >= 60" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

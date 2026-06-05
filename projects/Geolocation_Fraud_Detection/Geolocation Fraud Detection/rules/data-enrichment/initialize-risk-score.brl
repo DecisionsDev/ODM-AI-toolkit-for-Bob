@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>initialize-risk-score</name>
+  <uuid>e5f6a7b8-c9d0-4e1f-d901-2e3f4a5b6c7d</uuid>
+  <documentation><![CDATA[
+    Rule: Initialize Risk Score
+    Package: data-enrichment
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Confirms the risk score object is initialized and sets the initial
+    fraud decision to PENDING. The Transaction constructor always initializes a RiskScore,
+    so this rule serves as a data-enrichment entry point that logs the start of analysis.
+    This rule must execute first in the data-enrichment phase.
+    Tags: initialization, data-enrichment, risk-score
+  ]]></documentation>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the fraud decision of 'the transaction' is "PENDING"
+
+  then
+    add audit message "Geolocation fraud analysis started - risk score initialized" to 'the transaction' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

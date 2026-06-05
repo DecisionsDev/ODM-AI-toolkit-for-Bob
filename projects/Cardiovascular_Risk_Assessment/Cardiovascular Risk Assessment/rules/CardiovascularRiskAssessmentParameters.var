@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:VariableSet xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>CardiovascularRiskAssessmentParameters</name>
+  <uuid>e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b</uuid>
+  <documentation><![CDATA[Variables for Cardiovascular Risk Assessment]]></documentation>
+  <variables name="patient" type="com.healthcare.cvd.Patient" initialValue="" verbalization="the patient"/>
+</ilog.rules.studio.model.base:VariableSet>

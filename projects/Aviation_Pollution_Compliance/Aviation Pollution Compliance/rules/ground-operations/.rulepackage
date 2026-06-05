@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>ground-operations</name>
+  <uuid>E0D5C0A3-00FE-4333-BAE9-17DB571F1A1C</uuid>
+  <documentation><![CDATA[Rules for ground operations compliance]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

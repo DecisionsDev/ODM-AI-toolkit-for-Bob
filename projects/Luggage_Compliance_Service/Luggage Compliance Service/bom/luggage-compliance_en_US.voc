@@ -1,0 +1,89 @@
+# Vocabulary Properties
+uuid = d1f0de94-9231-4d73-b386-f776db3cd301
+
+# com.skywings.luggage.AgeCategory
+com.skywings.luggage.AgeCategory.ADULT#instance.label = ADULT
+com.skywings.luggage.AgeCategory.CHILD#instance.label = CHILD
+com.skywings.luggage.AgeCategory.INFANT#instance.label = INFANT
+
+# com.skywings.luggage.BaggageItem
+com.skywings.luggage.BaggageItem#concept.label = baggage item
+com.skywings.luggage.BaggageItem.baggageType#phrase.action = set the baggage type of {this} to {baggage type}
+com.skywings.luggage.BaggageItem.baggageType#phrase.navigation = {baggage type} of {this}
+com.skywings.luggage.BaggageItem.exceedsMaximumLimits#phrase.navigation = {this} exceeds maximum limits
+com.skywings.luggage.BaggageItem.heightCm#phrase.action = set the height of {this} to {height cm} cm
+com.skywings.luggage.BaggageItem.heightCm#phrase.navigation = {height} of {this}
+com.skywings.luggage.BaggageItem.itemId#phrase.action = set the item ID of {this} to {item id}
+com.skywings.luggage.BaggageItem.itemId#phrase.navigation = {item ID} of {this}
+com.skywings.luggage.BaggageItem.lengthCm#phrase.action = set the length of {this} to {length cm} cm
+com.skywings.luggage.BaggageItem.lengthCm#phrase.navigation = {length} of {this}
+com.skywings.luggage.BaggageItem.oversized#phrase.navigation = {this} is oversized
+com.skywings.luggage.BaggageItem.overweightEconomy#phrase.navigation = {this} is overweight for economy
+com.skywings.luggage.BaggageItem.properlyPacked#phrase.action = make it {properly packed} that {this} is properly packed
+com.skywings.luggage.BaggageItem.properlyPacked#phrase.navigation = {this} is properly packed
+com.skywings.luggage.BaggageItem.specialItemType#phrase.action = set the special item type of {this} to {special item type}
+com.skywings.luggage.BaggageItem.specialItemType#phrase.navigation = {special item type} of {this}
+com.skywings.luggage.BaggageItem.totalDimensionsCm#phrase.navigation = {total dimensions} of {this}
+com.skywings.luggage.BaggageItem.weightKg#phrase.action = set the weight of {this} to {weight kg} kg
+com.skywings.luggage.BaggageItem.weightKg#phrase.navigation = {weight} of {this}
+com.skywings.luggage.BaggageItem.widthCm#phrase.action = set the width of {this} to {width cm} cm
+com.skywings.luggage.BaggageItem.widthCm#phrase.navigation = {width} of {this}
+
+# com.skywings.luggage.BaggageType
+com.skywings.luggage.BaggageType.CARRY_ON#instance.label = CARRY_ON
+com.skywings.luggage.BaggageType.CHECKED#instance.label = CHECKED
+com.skywings.luggage.BaggageType.SPECIAL_ITEM#instance.label = SPECIAL_ITEM
+
+# com.skywings.luggage.LuggageRequest
+com.skywings.luggage.LuggageRequest#concept.label = luggage request
+com.skywings.luggage.LuggageRequest.addBaggageItem(com.skywings.luggage.BaggageItem)#phrase.action = add {0} to {this}
+com.skywings.luggage.LuggageRequest.addFee(double)#phrase.action = add fee {0} to {this}
+com.skywings.luggage.LuggageRequest.addMessage(java.lang.String)#phrase.action = add message {0} to {this}
+com.skywings.luggage.LuggageRequest.addViolation(java.lang.String)#phrase.action = add violation {0} to {this}
+com.skywings.luggage.LuggageRequest.baggageItems#phrase.navigation = {luggage} of {this}
+com.skywings.luggage.LuggageRequest.carryOnCount#phrase.navigation = {carry-on count} of {this}
+com.skywings.luggage.LuggageRequest.checkedBaggageCount#phrase.navigation = {checked baggage count} of {this}
+com.skywings.luggage.LuggageRequest.compliant#phrase.navigation = {this} is compliant
+com.skywings.luggage.LuggageRequest.domesticFlight#phrase.action = make it {domestic flight} that {this} is a domestic flight
+com.skywings.luggage.LuggageRequest.domesticFlight#phrase.navigation = {this} is a domestic flight
+com.skywings.luggage.LuggageRequest.messages#phrase.navigation = {messages} of {this}
+com.skywings.luggage.LuggageRequest.passenger#phrase.action = set the passenger of {this} to {passenger}
+com.skywings.luggage.LuggageRequest.passenger#phrase.navigation = {passenger} of {this}
+com.skywings.luggage.LuggageRequest.requestId#phrase.action = set the request ID of {this} to {request id}
+com.skywings.luggage.LuggageRequest.requestId#phrase.navigation = {request ID} of {this}
+com.skywings.luggage.LuggageRequest.status#phrase.action = set the status of {this} to {status}
+com.skywings.luggage.LuggageRequest.status#phrase.navigation = {status} of {this}
+com.skywings.luggage.LuggageRequest.totalCarryOnWeightKg#phrase.navigation = {total carry-on weight} of {this}
+com.skywings.luggage.LuggageRequest.totalFees#phrase.action = set the total fees of {this} to {total fees}
+com.skywings.luggage.LuggageRequest.totalFees#phrase.navigation = {total fees} of {this}
+com.skywings.luggage.LuggageRequest.violations#phrase.navigation = {violations} of {this}
+
+# com.skywings.luggage.Passenger
+com.skywings.luggage.Passenger#concept.label = passenger
+com.skywings.luggage.Passenger.ageCategory#phrase.action = set the age category of {this} to {age category}
+com.skywings.luggage.Passenger.ageCategory#phrase.navigation = {age category} of {this}
+com.skywings.luggage.Passenger.businessClass#phrase.navigation = {this} is business class
+com.skywings.luggage.Passenger.economyClass#phrase.navigation = {this} is economy class
+com.skywings.luggage.Passenger.disability#phrase.action = make it {disability} that {this} has a disability
+com.skywings.luggage.Passenger.disability#phrase.navigation = {this} has a disability
+com.skywings.luggage.Passenger.firstClass#phrase.navigation = {this} is first class
+com.skywings.luggage.Passenger.name#phrase.action = set the name of {this} to {name}
+com.skywings.luggage.Passenger.name#phrase.navigation = {name} of {this}
+com.skywings.luggage.Passenger.passengerId#phrase.action = set the passenger ID of {this} to {passenger id}
+com.skywings.luggage.Passenger.passengerId#phrase.navigation = {passenger ID} of {this}
+com.skywings.luggage.Passenger.premiumClass#phrase.navigation = {this} is premium class
+com.skywings.luggage.Passenger.travelClass#phrase.action = set the travel class of {this} to {travel class}
+com.skywings.luggage.Passenger.travelClass#phrase.navigation = {travel class} of {this}
+
+# com.skywings.luggage.SpecialItemType
+com.skywings.luggage.SpecialItemType.FRAGILE_ITEM#instance.label = FRAGILE_ITEM
+com.skywings.luggage.SpecialItemType.MOBILITY_AID#instance.label = MOBILITY_AID
+com.skywings.luggage.SpecialItemType.MUSICAL_INSTRUMENT#instance.label = MUSICAL_INSTRUMENT
+com.skywings.luggage.SpecialItemType.NONE#instance.label = NONE
+com.skywings.luggage.SpecialItemType.SPORTS_EQUIPMENT#instance.label = SPORTS_EQUIPMENT
+com.skywings.luggage.SpecialItemType.STROLLER#instance.label = STROLLER
+
+# com.skywings.luggage.TravelClass
+com.skywings.luggage.TravelClass.BUSINESS#instance.label = BUSINESS
+com.skywings.luggage.TravelClass.ECONOMY#instance.label = ECONOMY
+com.skywings.luggage.TravelClass.FIRST#instance.label = FIRST

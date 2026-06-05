@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>corsia</name>
+  <uuid>879D95F6-EF22-4510-B065-DB6E2049B65E</uuid>
+  <documentation><![CDATA[Rules for CORSIA carbon offsetting compliance]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

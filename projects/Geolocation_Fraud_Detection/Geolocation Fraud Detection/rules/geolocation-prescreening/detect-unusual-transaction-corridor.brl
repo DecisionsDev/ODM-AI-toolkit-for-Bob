@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-unusual-transaction-corridor</name>
+
+  <uuid>f2a3b4c5-d6e7-4f8a-e678-9f0a1b2c3d4e</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect Unusual Transaction Corridor
+    Package: geolocation-prescreening
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Identifies transactions occurring in geographic regions where the customer
+    has no prior transaction history and no active travel notification. A transaction in
+    an unknown country corridor is a strong fraud signal, especially for customers with
+    established transaction patterns in specific regions.
+    The rule checks both the customer's known transaction countries list and any active
+    travel notifications filed by the customer before the trip.
+    Risk Signal: UNUSUAL_CORRIDOR
+    Tags: geolocation, corridor, transaction-history, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the customer of 'the transaction' is not null
+    and the merchant location of 'the transaction' is not null
+    and it is not true that 'the transaction' is whitelisted
+
+  then
+    make it true that the risk score of 'the transaction' has unusual corridor detected ;
+    add risk factor "Transaction in country with no prior transaction history and no travel notification" to the risk score of 'the transaction' ;
+    add audit message "UNUSUAL_CORRIDOR detected - transaction country not in customer history" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

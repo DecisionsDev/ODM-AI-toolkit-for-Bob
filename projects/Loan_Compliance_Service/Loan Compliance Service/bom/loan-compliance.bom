@@ -1,0 +1,52 @@
+property loadGetterSetterAsProperties "true"
+property origin "xom:/Loan Compliance Service/loan-compliance-xom"
+property uuid "c1d2e3f4-a5b6-7c8d-9e0f-1a2b3c4d5e6f"
+package com.loan.compliance;
+
+public class Address
+{
+    public string country;
+    public string state;
+    public string city;
+    public string zipCode;
+    public Address(string country)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Address();
+}
+
+public class Applicant
+{
+    public java.util.Date birthDate;
+    public com.loan.compliance.Address address;
+    public int creditScore;
+    public double annualIncome;
+    public string incomeDocument;
+    public string employmentStatus;
+    public boolean financialRecordPresent;
+    public double monthlyDebtAmount;
+    public double monthlyGrossIncome;
+    public readonly int age
+                property "factory.ignore" "true";
+    public readonly double debtToIncomeRatio
+                property "factory.ignore" "true";
+    public Applicant(java.util.Date birthDate, com.loan.compliance.Address address, int creditScore, double annualIncome)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Applicant();
+}
+
+public class LoanRequest
+{
+    public com.loan.compliance.Applicant applicant;
+    public com.loan.compliance.Applicant coSigner;
+    public double loanAmount;
+    public boolean eligible;
+    public double interestRate;
+    public string reason;
+    public readonly java.util.Collection messages domain 0,* class string;
+    public readonly java.util.Collection violations domain 0,* class string;
+    public LoanRequest(com.loan.compliance.Applicant applicant, double loanAmount)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public LoanRequest();
+    public void addMessage(string arg);
+    public void addViolation(string arg);
+}

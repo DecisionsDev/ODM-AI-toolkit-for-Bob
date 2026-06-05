@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.ibm.rules.studio.model.decisionservice:Deployment xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore" ruleAppName="MineralClassification" managingXom="true">
+  <eAnnotations source="ilog.rules.custom_properties">
+    <details key="Dep_Groups" value="rtsAdministrator,rtsConfigManager"/>
+    <details key="Dep_SnapshotCreationKind" value="ALWAYS"/>
+  </eAnnotations>
+  <name>deployment</name>
+  <uuid>3e4f5a6b-7c8d-9e0f-1a2b-3c4d5e6f7a8b</uuid>
+  <targets label="Decision Service Execution"/>
+  <operations operationName="MineralClassificationOperation">
+    <operation href="MineralClassificationOperation.dop#8f3a2b1c-4d5e-6f7a-8b9c-0d1e2f3a4b5c"/>
+    <properties key="ruleset.version">
+      <value><![CDATA[1.0]]></value>
+    </properties>
+    <properties key="com.ibm.rules.engine.bytecode.generation">
+      <value><![CDATA[true]]></value>
+    </properties>
+    <properties key="ruleset.trace.enabled">
+      <value><![CDATA[false]]></value>
+    </properties>
+    <properties key="ruleset.debug.enabled">
+      <value><![CDATA[false]]></value>
+    </properties>
+    <properties key="ruleset.status">
+      <value><![CDATA[enabled]]></value>
+    </properties>
+  </operations>
+  <versionPolicies label="Increment minor version numbers" ruleset="INCREMENT_MINOR" default="true" recurrent="true">
+    <description><![CDATA[Increment minor version numbers]]></description>
+  </versionPolicies>
+  <versionPolicies label="Use the base version numbers" recurrent="true">
+    <description><![CDATA[Use the base version numbers]]></description>
+  </versionPolicies>
+  <versionPolicies label="The user can define the version numbers" ruleset="MANUAL" recurrent="true">
+    <description><![CDATA[The user can define the version numbers]]></description>
+  </versionPolicies>
+</com.ibm.rules.studio.model.decisionservice:Deployment>

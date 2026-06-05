@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>finalization</name>
+  <uuid>6efea4b5-00f9-4545-884a-1c464db15109</uuid>
+  <documentation><![CDATA[Rules for finalizing the luggage compliance request]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

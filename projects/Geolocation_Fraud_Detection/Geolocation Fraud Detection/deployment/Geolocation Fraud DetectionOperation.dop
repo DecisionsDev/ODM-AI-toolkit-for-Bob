@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.ibm.rules.studio.model.decisionservice:Operation xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore"
+    xmlns:ilog.rules.studio.model.query.extractor="http://ilog.rules.studio/model/query/extractor.ecore"
+    rulesetName="Geolocation_Fraud_Detection_Ruleset"
+    usingRuleflow="true"
+    ruleflowName="geolocation-fraud-flow"
+    targetRuleProjectName="Geolocation Fraud Detection">
+
+  <name>Geolocation Fraud DetectionOperation</name>
+
+  <uuid>b7e2f4a1-3c8d-4e9f-a012-5b6c7d8e9f01</uuid>
+
+  <documentation><![CDATA[Decision Service Operation for Geolocation-Based Fraud Detection.
+Accepts a Transaction object containing merchant location, customer profile, device info,
+and velocity metrics. Returns the transaction with fraud decision (APPROVE/REVIEW/DECLINE),
+risk score, confidence level, triggered rule names, decision reason code, and recommended action.
+
+REST Endpoint: POST /DecisionService/rest/v1/Geolocation_Fraud_Detection_Ruleset/execute
+Input: JSON Transaction payload
+Output: JSON Transaction with fraudDecision, riskScore, decisionReasonCode, recommendedAction, auditMessages]]></documentation>
+
+  <referencedVariables
+      variableName="transaction"
+      variableSetName="Geolocation Fraud DetectionParameters"
+      direction="IN_OUT">
+    <variableSet href="../rules/Geolocation%20Fraud%20DetectionParameters.var#f7b8c9d0-1e2f-4a3b-e456-7f8a9b0c1d2e"/>
+  </referencedVariables>
+
+  <ruleflow href="../rules/geolocation-fraud-flow.rfl#c7d8e9f0-a1b2-4c3d-b123-4c5d6e7f8a9b"/>
+
+  <extractor
+      xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor"
+      name="Geolocation Fraud DetectionOperation_extractor"
+      validator="Default Validator"/>
+
+  <targetRuleProject href="../../Geolocation%20Fraud%20Detection#a3f1e2d4-7b8c-4a9e-b012-3c4d5e6f7a8b"/>
+
+</com.ibm.rules.studio.model.decisionservice:Operation>

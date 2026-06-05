@@ -1,0 +1,115 @@
+property loadGetterSetterAsProperties "true"
+property origin "xom:/Luggage Compliance Service/luggage-compliance-xom"
+property uuid "c521b749-67dc-47c3-80f2-f3017d26f3e1"
+
+package com.skywings.luggage;
+
+
+public final class AgeCategory
+        extends java.lang.Enum
+{
+    domain {static ADULT, static CHILD, static INFANT}
+    public static final readonly com.skywings.luggage.AgeCategory ADULT;
+    public static final readonly com.skywings.luggage.AgeCategory CHILD;
+    public static final readonly com.skywings.luggage.AgeCategory INFANT;
+}
+
+public class BaggageItem
+{
+    public BaggageItem(string itemId, com.skywings.luggage.BaggageType baggageType, double weightKg, int lengthCm, int widthCm, int heightCm)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public BaggageItem();
+    public com.skywings.luggage.BaggageType baggageType;
+    public readonly boolean exceedsMaximumLimits
+                property "factory.ignore" "true";
+    public int heightCm;
+    public string itemId;
+    public readonly boolean oversized
+                property "factory.ignore" "true";
+    public readonly boolean overweightEconomy
+                property "factory.ignore" "true";
+    public boolean properlyPacked;
+    public com.skywings.luggage.SpecialItemType specialItemType;
+    public readonly int totalDimensionsCm
+                property "factory.ignore" "true";
+    public int lengthCm;
+    public double weightKg;
+    public int widthCm;
+}
+
+public final class BaggageType
+        extends java.lang.Enum
+{
+    domain {static CARRY_ON, static CHECKED, static SPECIAL_ITEM}
+    public static final readonly com.skywings.luggage.BaggageType CARRY_ON;
+    public static final readonly com.skywings.luggage.BaggageType CHECKED;
+    public static final readonly com.skywings.luggage.BaggageType SPECIAL_ITEM;
+}
+
+public class LuggageRequest
+{
+    public LuggageRequest(string requestId, com.skywings.luggage.Passenger passenger, boolean isDomesticFlight)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public LuggageRequest();
+    public readonly java.util.Collection baggageItems domain 0,* class com.skywings.luggage.BaggageItem;
+    public readonly int carryOnCount
+                property "factory.ignore" "true";
+    public readonly int checkedBaggageCount
+                property "factory.ignore" "true";
+    public readonly boolean compliant
+                property "factory.ignore" "true";
+    public boolean domesticFlight;
+    public readonly java.util.Collection messages domain 0,* class string;
+    public com.skywings.luggage.Passenger passenger;
+    public string requestId;
+    public string status;
+    public double totalFees;
+    public readonly double totalCarryOnWeightKg
+                property "factory.ignore" "true";
+    public readonly java.util.Collection violations domain 0,* class string;
+    public void addBaggageItem(com.skywings.luggage.BaggageItem item);
+    public void addFee(double fee);
+    public void addMessage(string message);
+    public void addViolation(string violation);
+}
+
+public class Passenger
+{
+    public Passenger(string passengerId, string name, com.skywings.luggage.TravelClass travelClass, com.skywings.luggage.AgeCategory ageCategory)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Passenger();
+    public com.skywings.luggage.AgeCategory ageCategory;
+    public boolean disability;
+    public string name;
+    public string passengerId;
+    public com.skywings.luggage.TravelClass travelClass;
+    public readonly boolean businessClass
+                property "factory.ignore" "true";
+    public readonly boolean economyClass
+                property "factory.ignore" "true";
+    public readonly boolean firstClass
+                property "factory.ignore" "true";
+    public readonly boolean premiumClass
+                property "factory.ignore" "true";
+}
+
+public final class SpecialItemType
+        extends java.lang.Enum
+{
+    domain {static SPORTS_EQUIPMENT, static MUSICAL_INSTRUMENT, static FRAGILE_ITEM, static MOBILITY_AID, static STROLLER, static NONE}
+    public static final readonly com.skywings.luggage.SpecialItemType FRAGILE_ITEM;
+    public static final readonly com.skywings.luggage.SpecialItemType MOBILITY_AID;
+    public static final readonly com.skywings.luggage.SpecialItemType MUSICAL_INSTRUMENT;
+    public static final readonly com.skywings.luggage.SpecialItemType NONE;
+    public static final readonly com.skywings.luggage.SpecialItemType SPORTS_EQUIPMENT;
+    public static final readonly com.skywings.luggage.SpecialItemType STROLLER;
+}
+
+public final class TravelClass
+        extends java.lang.Enum
+{
+    domain {static ECONOMY, static BUSINESS, static FIRST}
+    public static final readonly com.skywings.luggage.TravelClass BUSINESS;
+    public static final readonly com.skywings.luggage.TravelClass ECONOMY;
+    public static final readonly com.skywings.luggage.TravelClass FIRST;
+}

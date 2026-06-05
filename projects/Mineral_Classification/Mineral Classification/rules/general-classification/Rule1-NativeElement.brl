@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule1-NativeElement</name>
+  <uuid>8b9c0d1e-2f3a-4b5c-6d7e-8f9a0b1c2d3e</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    'the specimen' consists of a single element
+then
+    set the mineral class of 'the specimen' to "Native Element" ;
+    add "Rule 1: Classified as Native Element - consists of a single chemical element" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

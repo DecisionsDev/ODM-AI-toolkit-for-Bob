@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+
+  <name>geolocation-prescreening</name>
+
+  <uuid>b2c3d4e5-f6a7-4b8c-a678-9b0c1d2e3f4a</uuid>
+
+  <documentation><![CDATA[Geolocation pre-screening rules that detect impossible travel,
+high-risk countries, IP-to-merchant location mismatches, unusual transaction corridors,
+velocity anomalies across countries, and card-present vs card-not-present location anomalies.
+Executed in RetePlus mode for parallel pattern matching across all geolocation signals.]]></documentation>
+
+</ilog.rules.studio.model.base:RulePackage>

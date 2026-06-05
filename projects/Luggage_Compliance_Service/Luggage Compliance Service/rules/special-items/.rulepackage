@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>special-items</name>
+  <uuid>f750c17c-e01f-438e-bc03-9f734d1c7e19</uuid>
+  <documentation><![CDATA[Rules for handling special items (sports equipment, musical instruments, mobility aids)]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

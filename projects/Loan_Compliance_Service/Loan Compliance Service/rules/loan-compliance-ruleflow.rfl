@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.ruleflow:RuleFlow xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.ruleflow="http://ilog.rules.studio/model/ruleflow.ecore">
+  <name>loan-compliance-ruleflow</name>
+  <uuid>b9c0d1e2-f3a4-5b6c-7d8e-9f0a1b2c3d4e</uuid>
+  <locale>en_US</locale>
+  <categories>any</categories>
+  <rfModel>
+<Ruleflow xmlns="http://schemas.ilog.com/Rules/7.0/Ruleflow">
+  <Body>
+    <TaskList>
+      <StartTask Identifier="task_0"/>
+      <RuleTask ExecutionMode="Fastpath" ExitCriteria="None" Identifier="task_1" Ordering="Default">
+        <RuleList>
+          <Package Name="validation"/>
+        </RuleList>
+      </RuleTask>
+      <RuleTask ExecutionMode="RetePlus" ExitCriteria="None" Identifier="task_2" Ordering="Default">
+        <RuleList>
+          <Package Name="pricing"/>
+        </RuleList>
+      </RuleTask>
+      <StopTask Identifier="task_3"/>
+    </TaskList>
+    <NodeList>
+      <TaskNode Identifier="node_0" Task="task_0"/>
+      <TaskNode Identifier="node_1" Task="task_1"/>
+      <TaskNode Identifier="node_2" Task="task_2"/>
+      <TaskNode Identifier="node_3" Task="task_3"/>
+    </NodeList>
+    <TransitionList>
+      <Transition Identifier="transition_0" Source="node_0" Target="node_1"/>
+      <Transition Identifier="transition_1" Source="node_1" Target="node_2"/>
+      <Transition Identifier="transition_2" Source="node_2" Target="node_3"/>
+    </TransitionList>
+  </Body>
+  <Resources>
+    <ResourceSet Locale="en_US">
+      <Data Name="transition_3#label">Not Eligible</Data>
+      <Data Name="node_2#label">Pricing</Data>
+      <Data Name="node_3#y">275.0</Data>
+      <Data Name="transition_1#label">Eligible</Data>
+      <Data Name="node_0#x">49.985</Data>
+      <Data Name="node_1#label">Validation</Data>
+      <Data Name="node_0#y">15.0</Data>
+      <Data Name="node_1#x">49.985</Data>
+      <Data Name="node_1#y">100.0</Data>
+      <Data Name="node_2#x">49.985</Data>
+      <Data Name="node_2#y">190.0</Data>
+      <Data Name="node_3#x">49.985</Data>
+    </ResourceSet>
+  </Resources>
+  <Properties>
+    <imports><![CDATA[use com.loan.compliance;
+]]></imports>
+  </Properties>
+</Ruleflow>
+</rfModel>
+</ilog.rules.studio.model.ruleflow:RuleFlow>

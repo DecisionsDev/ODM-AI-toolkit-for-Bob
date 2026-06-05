@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule8-Phosphate</name>
+  <uuid>5c6d7e8f-9a0b-1c2d-3e4f-5a6b7c8d9e0f</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    'the specimen' contains phosphorus
+    and the crystal habit of 'the specimen' is one of { "hexagonal", "prismatic" }
+    and it is not true that 'the specimen' reacts with acid
+then
+    set the mineral class of 'the specimen' to "Phosphate" ;
+    add "Rule 8: Classified as Phosphate - contains phosphorus (PO4 group), exhibits hexagonal or prismatic crystal habit, and does not react with acid" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>review-high-risk-country-single</name>
+
+  <uuid>a5b6c7d8-e9f0-4a1b-f901-2a3b4c5d6e7f</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Review - High Risk Country Single Signal
+    Package: fraud-decision
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Flags for manual review when a high-risk country is detected as the only
+    fraud signal (score 30-49). A single high-risk country signal without corroborating
+    evidence may represent a legitimate transaction by a customer traveling to a high-risk
+    region. A fraud analyst should verify the transaction with the customer.
+    Decision: REVIEW
+    Reason Code: GEO-202-HIGH-RISK-COUNTRY-SINGLE
+    Recommended Action: CONTACT_CUSTOMER
+    Tags: fraud-decision, review, high-risk-country, single-signal
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the fraud decision of 'the transaction' is "APPROVE"
+    and the risk score of 'the transaction' has high risk country detected
+    and the total score of the risk score of 'the transaction' is at least 30
+    and the total score of the risk score of 'the transaction' is less than 50
+
+  then
+    set the fraud decision of 'the transaction' to "REVIEW" ;
+    set the decision reason code of 'the transaction' to "GEO-202-HIGH-RISK-COUNTRY-SINGLE" ;
+    set the recommended action of 'the transaction' to "CONTACT_CUSTOMER" ;
+    add audit message "DECISION: REVIEW - High-risk country detected as single signal" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

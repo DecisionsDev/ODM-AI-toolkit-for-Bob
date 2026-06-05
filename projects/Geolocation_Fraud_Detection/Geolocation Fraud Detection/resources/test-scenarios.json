@@ -1,0 +1,747 @@
+{
+  "testSuite": {
+    "name": "Geolocation Fraud Detection - Complete Test Suite",
+    "version": "1.0",
+    "description": "Complete test scenarios for the Geolocation Fraud Detection decision service covering true positive fraud cases, true negative legitimate transactions, edge cases, and regression tests.",
+    "decisionService": "Geolocation_Fraud_Detection_Ruleset",
+    "testCases": [
+
+      {
+        "id": "TC-001",
+        "category": "TRUE_POSITIVE_FRAUD",
+        "name": "Impossible Travel - New York to London in 30 minutes",
+        "description": "Card used in New York at 10:00, then in London at 10:30. Required speed ~11,000 km/h - physically impossible.",
+        "tags": ["impossible-travel", "regression"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC001",
+            "amount": 250.00,
+            "currency": "GBP",
+            "cardType": "VISA",
+            "cardPresent": false,
+            "merchantName": "London Harrods",
+            "merchantCategory": "RETAIL",
+            "transactionTimestampMs": 1700000000000,
+            "previousTransactionTimestampMs": 1699998200000,
+            "merchantLocation": {
+              "latitude": 51.4994,
+              "longitude": -0.1632,
+              "country": "United Kingdom",
+              "countryCode": "GB",
+              "city": "London"
+            },
+            "previousTransactionLocation": {
+              "latitude": 40.7128,
+              "longitude": -74.0060,
+              "country": "United States",
+              "countryCode": "US",
+              "city": "New York"
+            },
+            "deviceInfo": {
+              "deviceFingerprint": "fp-abc123",
+              "ipAddress": "185.220.101.1",
+              "deviceType": "MOBILE",
+              "knownDevice": false,
+              "vpnDetected": false,
+              "proxyDetected": false,
+              "torDetected": false,
+              "ipGeolocation": {
+                "latitude": 51.5074,
+                "longitude": -0.1278,
+                "country": "United Kingdom",
+                "countryCode": "GB",
+                "city": "London"
+              }
+            },
+            "customer": {
+              "customerId": "CUST-001",
+              "homeCountry": "United States",
+              "homeCountryCode": "US",
+              "accountAgeDays": 730,
+              "highValueCustomer": false,
+              "knownTransactionCountries": ["US"],
+              "travelNotifications": [],
+              "totalTransactionCount": 150,
+              "averageTransactionAmount": 85.00
+            },
+            "transactionCountLast1Hour": 2,
+            "transactionCountLast24Hours": 3,
+            "distinctCountriesLast24Hours": 2,
+            "distinctCountriesLast7Days": 2,
+            "totalAmountLast1Hour": 335.00,
+            "totalAmountLast24Hours": 335.00
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "DECLINE",
+          "decisionReasonCode": "GEO-101-IMPOSSIBLE-TRAVEL",
+          "recommendedAction": "BLOCK_AND_ALERT",
+          "riskScore": {
+            "impossibleTravelDetected": true,
+            "minExpectedTotalScore": 40
+          }
+        }
+      },
+
+      {
+        "id": "TC-002",
+        "category": "TRUE_POSITIVE_FRAUD",
+        "name": "High-Risk Country with IP Mismatch - Iran transaction with US IP",
+        "description": "Card-not-present transaction in Iran with IP geolocated in USA. Two combined fraud signals.",
+        "tags": ["high-risk-country", "ip-mismatch", "regression"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC002",
+            "amount": 1500.00,
+            "currency": "USD",
+            "cardType": "MASTERCARD",
+            "cardPresent": false,
+            "merchantName": "Tehran Electronics",
+            "merchantCategory": "ELECTRONICS",
+            "transactionTimestampMs": 1700100000000,
+            "previousTransactionTimestampMs": 1699900000000,
+            "merchantLocation": {
+              "latitude": 35.6892,
+              "longitude": 51.3890,
+              "country": "Iran",
+              "countryCode": "IR",
+              "city": "Tehran"
+            },
+            "previousTransactionLocation": {
+              "latitude": 40.7128,
+              "longitude": -74.0060,
+              "country": "United States",
+              "countryCode": "US",
+              "city": "New York"
+            },
+            "deviceInfo": {
+              "deviceFingerprint": "fp-xyz789",
+              "ipAddress": "192.168.1.100",
+              "deviceType": "DESKTOP",
+              "knownDevice": false,
+              "vpnDetected": false,
+              "proxyDetected": false,
+              "torDetected": false,
+              "ipGeolocation": {
+                "latitude": 37.7749,
+                "longitude": -122.4194,
+                "country": "United States",
+                "countryCode": "US",
+                "city": "San Francisco"
+              }
+            },
+            "customer": {
+              "customerId": "CUST-002",
+              "homeCountry": "United States",
+              "homeCountryCode": "US",
+              "accountAgeDays": 1095,
+              "highValueCustomer": false,
+              "knownTransactionCountries": ["US", "CA", "MX"],
+              "travelNotifications": [],
+              "totalTransactionCount": 320,
+              "averageTransactionAmount": 120.00
+            },
+            "transactionCountLast1Hour": 1,
+            "transactionCountLast24Hours": 2,
+            "distinctCountriesLast24Hours": 2,
+            "distinctCountriesLast7Days": 2,
+            "totalAmountLast1Hour": 1500.00,
+            "totalAmountLast24Hours": 1620.00
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "DECLINE",
+          "decisionReasonCode": "GEO-102-HIGH-RISK-COUNTRY-COMBINED",
+          "recommendedAction": "BLOCK_AND_ALERT",
+          "riskScore": {
+            "highRiskCountryDetected": true,
+            "ipLocationMismatchDetected": true,
+            "minExpectedTotalScore": 55
+          }
+        }
+      },
+
+      {
+        "id": "TC-003",
+        "category": "TRUE_POSITIVE_FRAUD",
+        "name": "Multi-Country Velocity - 4 countries in 24 hours",
+        "description": "Transactions detected in France, Germany, Spain, and Italy within 24 hours. Velocity anomaly.",
+        "tags": ["velocity", "multi-country", "regression"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC003",
+            "amount": 89.00,
+            "currency": "EUR",
+            "cardType": "VISA",
+            "cardPresent": false,
+            "merchantName": "Rome Boutique",
+            "merchantCategory": "RETAIL",
+            "transactionTimestampMs": 1700200000000,
+            "previousTransactionTimestampMs": 1700190000000,
+            "merchantLocation": {
+              "latitude": 41.9028,
+              "longitude": 12.4964,
+              "country": "Italy",
+              "countryCode": "IT",
+              "city": "Rome"
+            },
+            "previousTransactionLocation": {
+              "latitude": 40.4168,
+              "longitude": -3.7038,
+              "country": "Spain",
+              "countryCode": "ES",
+              "city": "Madrid"
+            },
+            "deviceInfo": {
+              "deviceFingerprint": "fp-vel001",
+              "ipAddress": "10.0.0.1",
+              "deviceType": "MOBILE",
+              "knownDevice": true,
+              "vpnDetected": false,
+              "proxyDetected": false,
+              "torDetected": false,
+              "ipGeolocation": {
+                "latitude": 41.9028,
+                "longitude": 12.4964,
+                "country": "Italy",
+                "countryCode": "IT",
+                "city": "Rome"
+              }
+            },
+            "customer": {
+              "customerId": "CUST-003",
+              "homeCountry": "United Kingdom",
+              "homeCountryCode": "GB",
+              "accountAgeDays": 365,
+              "highValueCustomer": false,
+              "knownTransactionCountries": ["GB"],
+              "travelNotifications": [],
+              "totalTransactionCount": 80,
+              "averageTransactionAmount": 65.00
+            },
+            "transactionCountLast1Hour": 3,
+            "transactionCountLast24Hours": 8,
+            "distinctCountriesLast24Hours": 4,
+            "distinctCountriesLast7Days": 4,
+            "totalAmountLast1Hour": 267.00,
+            "totalAmountLast24Hours": 520.00
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "REVIEW",
+          "riskScore": {
+            "velocityAnomalyDetected": true,
+            "unusualCorridorDetected": true,
+            "minExpectedTotalScore": 40
+          }
+        }
+      },
+
+      {
+        "id": "TC-004",
+        "category": "TRUE_POSITIVE_FRAUD",
+        "name": "Card-Present with Tor Exit Node",
+        "description": "Card-present transaction but IP is a Tor exit node - card cloning indicator.",
+        "tags": ["card-present", "tor", "ip-mismatch", "regression"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC004",
+            "amount": 3200.00,
+            "currency": "USD",
+            "cardType": "AMEX",
+            "cardPresent": true,
+            "merchantName": "Miami Electronics Store",
+            "merchantCategory": "ELECTRONICS",
+            "transactionTimestampMs": 1700300000000,
+            "previousTransactionTimestampMs": 1700290000000,
+            "merchantLocation": {
+              "latitude": 25.7617,
+              "longitude": -80.1918,
+              "country": "United States",
+              "countryCode": "US",
+              "city": "Miami"
+            },
+            "previousTransactionLocation": {
+              "latitude": 25.7617,
+              "longitude": -80.1918,
+              "country": "United States",
+              "countryCode": "US",
+              "city": "Miami"
+            },
+            "deviceInfo": {
+              "deviceFingerprint": "fp-tor001",
+              "ipAddress": "185.220.101.45",
+              "deviceType": "UNKNOWN",
+              "knownDevice": false,
+              "vpnDetected": false,
+              "proxyDetected": false,
+              "torDetected": true,
+              "ipGeolocation": {
+                "latitude": 52.5200,
+                "longitude": 13.4050,
+                "country": "Germany",
+                "countryCode": "DE",
+                "city": "Berlin"
+              }
+            },
+            "customer": {
+              "customerId": "CUST-004",
+              "homeCountry": "United States",
+              "homeCountryCode": "US",
+              "accountAgeDays": 2190,
+              "highValueCustomer": true,
+              "knownTransactionCountries": ["US"],
+              "travelNotifications": [],
+              "totalTransactionCount": 890,
+              "averageTransactionAmount": 200.00
+            },
+            "transactionCountLast1Hour": 1,
+            "transactionCountLast24Hours": 2,
+            "distinctCountriesLast24Hours": 1,
+            "distinctCountriesLast7Days": 1,
+            "totalAmountLast1Hour": 3200.00,
+            "totalAmountLast24Hours": 3400.00
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "REVIEW",
+          "riskScore": {
+            "ipLocationMismatchDetected": true,
+            "cardPresenceMismatchDetected": true,
+            "minExpectedTotalScore": 40
+          }
+        }
+      },
+
+      {
+        "id": "TC-005",
+        "category": "TRUE_NEGATIVE_LEGITIMATE",
+        "name": "Domestic Transaction - Known Customer in Home Country",
+        "description": "Standard domestic transaction with matching IP, known device, home country. Should APPROVE.",
+        "tags": ["legitimate", "domestic", "regression"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC005",
+            "amount": 45.99,
+            "currency": "USD",
+            "cardType": "VISA",
+            "cardPresent": true,
+            "merchantName": "Whole Foods Market",
+            "merchantCategory": "GROCERY",
+            "transactionTimestampMs": 1700400000000,
+            "previousTransactionTimestampMs": 1700350000000,
+            "merchantLocation": {
+              "latitude": 37.7749,
+              "longitude": -122.4194,
+              "country": "United States",
+              "countryCode": "US",
+              "city": "San Francisco"
+            },
+            "previousTransactionLocation": {
+              "latitude": 37.7749,
+              "longitude": -122.4194,
+              "country": "United States",
+              "countryCode": "US",
+              "city": "San Francisco"
+            },
+            "deviceInfo": {
+              "deviceFingerprint": "fp-known001",
+              "ipAddress": "73.162.100.50",
+              "deviceType": "MOBILE",
+              "knownDevice": true,
+              "vpnDetected": false,
+              "proxyDetected": false,
+              "torDetected": false,
+              "ipGeolocation": {
+                "latitude": 37.7749,
+                "longitude": -122.4194,
+                "country": "United States",
+                "countryCode": "US",
+                "city": "San Francisco"
+              }
+            },
+            "customer": {
+              "customerId": "CUST-005",
+              "homeCountry": "United States",
+              "homeCountryCode": "US",
+              "accountAgeDays": 1825,
+              "highValueCustomer": false,
+              "knownTransactionCountries": ["US"],
+              "travelNotifications": [],
+              "totalTransactionCount": 450,
+              "averageTransactionAmount": 55.00
+            },
+            "transactionCountLast1Hour": 1,
+            "transactionCountLast24Hours": 3,
+            "distinctCountriesLast24Hours": 1,
+            "distinctCountriesLast7Days": 1,
+            "totalAmountLast1Hour": 45.99,
+            "totalAmountLast24Hours": 145.99
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "APPROVE",
+          "decisionReasonCode": "GEO-301-LOW-RISK-APPROVED",
+          "recommendedAction": "AUTHORIZE",
+          "riskScore": {
+            "impossibleTravelDetected": false,
+            "highRiskCountryDetected": false,
+            "ipLocationMismatchDetected": false,
+            "velocityAnomalyDetected": false,
+            "maxExpectedTotalScore": 24
+          }
+        }
+      },
+
+      {
+        "id": "TC-006",
+        "category": "TRUE_NEGATIVE_LEGITIMATE",
+        "name": "International Travel with Notification - Customer in France",
+        "description": "Customer from US traveling in France with travel notification filed. Should APPROVE.",
+        "tags": ["legitimate", "international", "travel-notification", "regression"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC006",
+            "amount": 120.00,
+            "currency": "EUR",
+            "cardType": "MASTERCARD",
+            "cardPresent": true,
+            "merchantName": "Paris Cafe",
+            "merchantCategory": "RESTAURANT",
+            "transactionTimestampMs": 1700500000000,
+            "previousTransactionTimestampMs": 1700400000000,
+            "merchantLocation": {
+              "latitude": 48.8566,
+              "longitude": 2.3522,
+              "country": "France",
+              "countryCode": "FR",
+              "city": "Paris"
+            },
+            "previousTransactionLocation": {
+              "latitude": 48.8566,
+              "longitude": 2.3522,
+              "country": "France",
+              "countryCode": "FR",
+              "city": "Paris"
+            },
+            "deviceInfo": {
+              "deviceFingerprint": "fp-travel001",
+              "ipAddress": "90.100.200.50",
+              "deviceType": "MOBILE",
+              "knownDevice": true,
+              "vpnDetected": false,
+              "proxyDetected": false,
+              "torDetected": false,
+              "ipGeolocation": {
+                "latitude": 48.8566,
+                "longitude": 2.3522,
+                "country": "France",
+                "countryCode": "FR",
+                "city": "Paris"
+              }
+            },
+            "customer": {
+              "customerId": "CUST-006",
+              "homeCountry": "United States",
+              "homeCountryCode": "US",
+              "accountAgeDays": 2555,
+              "highValueCustomer": true,
+              "knownTransactionCountries": ["US", "GB", "FR", "DE"],
+              "travelNotifications": ["FR"],
+              "totalTransactionCount": 1200,
+              "averageTransactionAmount": 150.00
+            },
+            "transactionCountLast1Hour": 1,
+            "transactionCountLast24Hours": 4,
+            "distinctCountriesLast24Hours": 1,
+            "distinctCountriesLast7Days": 2,
+            "totalAmountLast1Hour": 120.00,
+            "totalAmountLast24Hours": 480.00
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "APPROVE",
+          "decisionReasonCode": "GEO-301-LOW-RISK-APPROVED",
+          "recommendedAction": "AUTHORIZE",
+          "riskScore": {
+            "unusualCorridorDetected": false,
+            "maxExpectedTotalScore": 24
+          }
+        }
+      },
+
+      {
+        "id": "TC-007",
+        "category": "EDGE_CASE",
+        "name": "Border Crossing - France to Germany (Strasbourg area)",
+        "description": "Customer crosses France-Germany border. Short distance, legitimate travel. Should APPROVE.",
+        "tags": ["edge-case", "border-crossing", "regression"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC007",
+            "amount": 35.00,
+            "currency": "EUR",
+            "cardType": "VISA",
+            "cardPresent": true,
+            "merchantName": "Freiburg Bakery",
+            "merchantCategory": "FOOD",
+            "transactionTimestampMs": 1700600000000,
+            "previousTransactionTimestampMs": 1700596800000,
+            "merchantLocation": {
+              "latitude": 47.9990,
+              "longitude": 7.8421,
+              "country": "Germany",
+              "countryCode": "DE",
+              "city": "Freiburg"
+            },
+            "previousTransactionLocation": {
+              "latitude": 48.5734,
+              "longitude": 7.7521,
+              "country": "France",
+              "countryCode": "FR",
+              "city": "Strasbourg"
+            },
+            "deviceInfo": {
+              "deviceFingerprint": "fp-border001",
+              "ipAddress": "80.100.50.25",
+              "deviceType": "MOBILE",
+              "knownDevice": true,
+              "vpnDetected": false,
+              "proxyDetected": false,
+              "torDetected": false,
+              "ipGeolocation": {
+                "latitude": 47.9990,
+                "longitude": 7.8421,
+                "country": "Germany",
+                "countryCode": "DE",
+                "city": "Freiburg"
+              }
+            },
+            "customer": {
+              "customerId": "CUST-007",
+              "homeCountry": "France",
+              "homeCountryCode": "FR",
+              "accountAgeDays": 1460,
+              "highValueCustomer": false,
+              "knownTransactionCountries": ["FR", "DE", "CH"],
+              "travelNotifications": [],
+              "totalTransactionCount": 600,
+              "averageTransactionAmount": 45.00
+            },
+            "transactionCountLast1Hour": 1,
+            "transactionCountLast24Hours": 5,
+            "distinctCountriesLast24Hours": 2,
+            "distinctCountriesLast7Days": 3,
+            "totalAmountLast1Hour": 35.00,
+            "totalAmountLast24Hours": 225.00
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "APPROVE",
+          "riskScore": {
+            "impossibleTravelDetected": false,
+            "maxExpectedTotalScore": 24
+          }
+        }
+      },
+
+      {
+        "id": "TC-008",
+        "category": "EDGE_CASE",
+        "name": "Missing Merchant Location - Incomplete Data",
+        "description": "Transaction with no merchant location data. Should trigger REVIEW with GEO-001 reason code.",
+        "tags": ["edge-case", "missing-data", "validation"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC008",
+            "amount": 200.00,
+            "currency": "USD",
+            "cardType": "VISA",
+            "cardPresent": false,
+            "merchantName": "Unknown Merchant",
+            "merchantCategory": "ONLINE",
+            "transactionTimestampMs": 1700700000000,
+            "previousTransactionTimestampMs": 0,
+            "customer": {
+              "customerId": "CUST-008",
+              "homeCountry": "United States",
+              "homeCountryCode": "US",
+              "accountAgeDays": 90,
+              "highValueCustomer": false,
+              "knownTransactionCountries": ["US"],
+              "travelNotifications": [],
+              "totalTransactionCount": 10,
+              "averageTransactionAmount": 50.00
+            },
+            "transactionCountLast1Hour": 1,
+            "transactionCountLast24Hours": 1,
+            "distinctCountriesLast24Hours": 0,
+            "distinctCountriesLast7Days": 0,
+            "totalAmountLast1Hour": 200.00,
+            "totalAmountLast24Hours": 200.00
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "REVIEW",
+          "decisionReasonCode": "GEO-001-MISSING-MERCHANT-LOCATION",
+          "recommendedAction": "MANUAL_REVIEW"
+        }
+      },
+
+      {
+        "id": "TC-009",
+        "category": "EDGE_CASE",
+        "name": "North Korea Transaction - Sanctioned Country Single Signal",
+        "description": "Transaction in North Korea (KP) - sanctioned country. Single signal should trigger REVIEW.",
+        "tags": ["edge-case", "sanctioned-country", "single-signal"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC009",
+            "amount": 500.00,
+            "currency": "USD",
+            "cardType": "MASTERCARD",
+            "cardPresent": false,
+            "merchantName": "Pyongyang Store",
+            "merchantCategory": "RETAIL",
+            "transactionTimestampMs": 1700800000000,
+            "previousTransactionTimestampMs": 1700700000000,
+            "merchantLocation": {
+              "latitude": 39.0392,
+              "longitude": 125.7625,
+              "country": "North Korea",
+              "countryCode": "KP",
+              "city": "Pyongyang"
+            },
+            "previousTransactionLocation": {
+              "latitude": 39.0392,
+              "longitude": 125.7625,
+              "country": "North Korea",
+              "countryCode": "KP",
+              "city": "Pyongyang"
+            },
+            "deviceInfo": {
+              "deviceFingerprint": "fp-kp001",
+              "ipAddress": "175.45.176.1",
+              "deviceType": "DESKTOP",
+              "knownDevice": false,
+              "vpnDetected": false,
+              "proxyDetected": false,
+              "torDetected": false,
+              "ipGeolocation": {
+                "latitude": 39.0392,
+                "longitude": 125.7625,
+                "country": "North Korea",
+                "countryCode": "KP",
+                "city": "Pyongyang"
+              }
+            },
+            "customer": {
+              "customerId": "CUST-009",
+              "homeCountry": "South Korea",
+              "homeCountryCode": "KR",
+              "accountAgeDays": 730,
+              "highValueCustomer": false,
+              "knownTransactionCountries": ["KR", "JP"],
+              "travelNotifications": [],
+              "totalTransactionCount": 200,
+              "averageTransactionAmount": 80.00
+            },
+            "transactionCountLast1Hour": 1,
+            "transactionCountLast24Hours": 2,
+            "distinctCountriesLast24Hours": 1,
+            "distinctCountriesLast7Days": 1,
+            "totalAmountLast1Hour": 500.00,
+            "totalAmountLast24Hours": 580.00
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "REVIEW",
+          "decisionReasonCode": "GEO-202-HIGH-RISK-COUNTRY-SINGLE",
+          "recommendedAction": "CONTACT_CUSTOMER",
+          "riskScore": {
+            "highRiskCountryDetected": true
+          }
+        }
+      },
+
+      {
+        "id": "TC-010",
+        "category": "REGRESSION",
+        "name": "VPN Usage with Unusual Corridor - Combined Moderate Risk",
+        "description": "Customer using VPN in a country with no transaction history. Combined moderate risk signals.",
+        "tags": ["regression", "vpn", "unusual-corridor"],
+        "input": {
+          "transaction": {
+            "transactionId": "TXN-TC010",
+            "amount": 750.00,
+            "currency": "BRL",
+            "cardType": "VISA",
+            "cardPresent": false,
+            "merchantName": "Sao Paulo Electronics",
+            "merchantCategory": "ELECTRONICS",
+            "transactionTimestampMs": 1700900000000,
+            "previousTransactionTimestampMs": 1700800000000,
+            "merchantLocation": {
+              "latitude": -23.5505,
+              "longitude": -46.6333,
+              "country": "Brazil",
+              "countryCode": "BR",
+              "city": "Sao Paulo"
+            },
+            "previousTransactionLocation": {
+              "latitude": -23.5505,
+              "longitude": -46.6333,
+              "country": "Brazil",
+              "countryCode": "BR",
+              "city": "Sao Paulo"
+            },
+            "deviceInfo": {
+              "deviceFingerprint": "fp-vpn001",
+              "ipAddress": "104.28.100.50",
+              "deviceType": "DESKTOP",
+              "knownDevice": false,
+              "vpnDetected": true,
+              "proxyDetected": false,
+              "torDetected": false,
+              "ipGeolocation": {
+                "latitude": 37.7749,
+                "longitude": -122.4194,
+                "country": "United States",
+                "countryCode": "US",
+                "city": "San Francisco"
+              }
+            },
+            "customer": {
+              "customerId": "CUST-010",
+              "homeCountry": "Germany",
+              "homeCountryCode": "DE",
+              "accountAgeDays": 548,
+              "highValueCustomer": false,
+              "knownTransactionCountries": ["DE", "FR", "AT"],
+              "travelNotifications": [],
+              "totalTransactionCount": 180,
+              "averageTransactionAmount": 95.00
+            },
+            "transactionCountLast1Hour": 1,
+            "transactionCountLast24Hours": 2,
+            "distinctCountriesLast24Hours": 1,
+            "distinctCountriesLast7Days": 2,
+            "totalAmountLast1Hour": 750.00,
+            "totalAmountLast24Hours": 845.00
+          }
+        },
+        "expectedOutput": {
+          "fraudDecision": "REVIEW",
+          "decisionReasonCode": "GEO-201-MODERATE-RISK",
+          "recommendedAction": "MANUAL_REVIEW",
+          "riskScore": {
+            "ipLocationMismatchDetected": true,
+            "unusualCorridorDetected": true,
+            "minExpectedTotalScore": 25
+          }
+        }
+      }
+
+    ]
+  }
+}

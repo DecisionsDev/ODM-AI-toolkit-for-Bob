@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule9-Silicate</name>
+  <uuid>6d7e8f9a-0b1c-2d3e-4f5a-6b7c8d9e0f1a</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the Mohs hardness of 'the specimen' is more than 5.0
+    and the luster of 'the specimen' is "vitreous"
+    and it is not true that 'the specimen' reacts with acid
+    and 'the specimen' contains silicon oxygen tetrahedra
+then
+    set the mineral class of 'the specimen' to "Silicate" ;
+    add "Rule 9: Classified as Silicate - hard (Mohs > 5), displays vitreous luster, shows no acid reactivity, and is composed of silicon-oxygen tetrahedra" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

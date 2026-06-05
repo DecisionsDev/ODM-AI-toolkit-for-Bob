@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>monitoring</name>
+  <uuid>0F5F1845-A74F-4270-925D-AE13DEE58803</uuid>
+  <documentation><![CDATA[Rules for emissions monitoring validation]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

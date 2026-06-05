@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.ibm.rules.studio.model.decisionservice:Operation xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore" xmlns:ilog.rules.studio.model.query.extractor="http://ilog.rules.studio/model/query/extractor.ecore" rulesetName="Loan_Compliance_Service_Ruleset" usingRuleflow="true" ruleflowName="loan-compliance-ruleflow" targetRuleProjectName="Loan Compliance Service">
+  <name>LoanComplianceOperation</name>
+  <uuid>b8f3c2d1-9a7e-4f5b-8c6d-1e2f3a4b5c6d</uuid>
+  <referencedVariables variableName="request" variableSetName="LoanComplianceParameters" direction="IN_OUT">
+    <variableSet href="../rules/LoanComplianceParameters.var#f1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c"/>
+  </referencedVariables>
+  <ruleflow href="../rules/loan-compliance-ruleflow.rfl#b9c0d1e2-f3a4-5b6c-7d8e-9f0a1b2c3d4e"/>
+  <extractor xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor" name="LoanComplianceOperation_extractor" validator="Default Validator"/>
+  <targetRuleProject href="../../Loan%20Compliance%20Service#a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d"/>
+</com.ibm.rules.studio.model.decisionservice:Operation>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>score-unusual-corridor</name>
+
+  <uuid>f8a9b0c1-d2e3-4f4a-e234-5f6a7b8c9d0e</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Score Unusual Corridor
+    Package: risk-scoring
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Assigns a risk score of 20 points when an unusual transaction corridor
+    is detected. A transaction in a country with no prior history and no travel notification
+    is a moderate fraud signal. The score is lower than impossible travel or high-risk country
+    because some customers do legitimately travel to new destinations without filing notifications.
+    Score: 20 points (out of 100 maximum)
+    Tags: risk-scoring, unusual-corridor, transaction-history, scoring
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has unusual corridor detected
+
+  then
+    record score 20 on the risk score of 'the transaction' ;
+    record triggered rule "UNUSUAL_CORRIDOR" on the risk score of 'the transaction' ;
+    add audit message "Risk score +20: Unusual transaction corridor detected" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

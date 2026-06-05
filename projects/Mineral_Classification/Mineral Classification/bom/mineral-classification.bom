@@ -1,0 +1,42 @@
+property loadGetterSetterAsProperties "true"
+property origin "xom:/Mineral Classification/mineral-classification-xom"
+property uuid "2b3c4d5e-6f7a-8b9c-0d1e-2f3a4b5c6d7e"
+package com.mineral.classification;
+
+public class MineralSpecimen
+{
+    public string specimenId;
+    public string specimenName;
+    public boolean singleElement;
+    public boolean containsSulfur;
+    public boolean containsOxygen;
+    public boolean containsPhosphorus;
+    public boolean containsSiliconOxygenTetrahedra;
+    public boolean containsOrganicMolecules;
+    public boolean metalBondedWithOxygen;
+    public string luster;
+    public double mohsHardness;
+    public double specificGravity;
+    public string taste;
+    public boolean dissolvesInWater;
+    public string color;
+    public string crystalHabit;
+    public string cleavage;
+    public string fracture;
+    public boolean reactsWithAcid;
+    public boolean producesEffervescence;
+    public boolean producesHydrogenSulfideOdor;
+    public string environment;
+    public string silicateStructure;
+    public boolean isolatedTetrahedra;
+    public boolean sheetStructure;
+    public boolean chainStructure;
+    public boolean frameworkStructure;
+    public string mineralClass;
+    public string silicateSubclass;
+    public readonly java.util.Collection messages domain 0,* class string;
+    public MineralSpecimen(string specimenId, string specimenName)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public MineralSpecimen();
+    public void addMessage(string arg);
+}

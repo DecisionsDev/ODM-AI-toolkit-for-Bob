@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>carry-on-validation</name>
+  <uuid>ef20dd1e-c1df-4882-904f-bebe02d378c8</uuid>
+  <documentation><![CDATA[Rules for validating carry-on baggage allowances]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>waive-mobility-aid-fees</name>
+  <uuid>93c1e06e-8604-4f2b-af8a-45af8a91006f</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[definitions
+    set 'bag' to a baggage item in the luggages of 'the request' ;
+if
+    the special item type of 'bag' is MOBILITY_AID
+    and the passenger of 'the request' has  a disability 
+then
+    add message "Mobility aid transported free of charge for passenger with disability" to 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.ruleflow:RuleFlow xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.ruleflow="http://ilog.rules.studio/model/ruleflow.ecore">
+  <name>aml-detection-ruleflow</name>
+  <uuid>b5c6d7e8-f9a0-1b2c-3d4e-5f6a7b8c9d0e</uuid>
+  <locale>en_US</locale>
+  <categories>any</categories>
+  <rfModel>
+<Ruleflow xmlns="http://schemas.ilog.com/Rules/7.0/Ruleflow">
+  <Body>
+    <TaskList>
+      <StartTask Identifier="task_0"/>
+      <RuleTask ExecutionMode="RetePlus" ExitCriteria="None" Identifier="task_1" Ordering="Default">
+        <RuleList>
+          <Package Name="high-value-transactions"/>
+        </RuleList>
+      </RuleTask>
+      <RuleTask ExecutionMode="RetePlus" ExitCriteria="None" Identifier="task_2" Ordering="Default">
+        <RuleList>
+          <Package Name="jurisdiction-monitoring"/>
+        </RuleList>
+      </RuleTask>
+      <RuleTask ExecutionMode="RetePlus" ExitCriteria="None" Identifier="task_3" Ordering="Default">
+        <RuleList>
+          <Package Name="customer-risk-scoring"/>
+        </RuleList>
+      </RuleTask>
+      <RuleTask ExecutionMode="RetePlus" ExitCriteria="None" Identifier="task_4" Ordering="Default">
+        <RuleList>
+          <Package Name="account-monitoring"/>
+        </RuleList>
+      </RuleTask>
+      <RuleTask ExecutionMode="Fastpath" ExitCriteria="None" Identifier="task_5" Ordering="Default">
+        <RuleList>
+          <Package Name="escalation"/>
+        </RuleList>
+      </RuleTask>
+      <StopTask Identifier="task_6"/>
+    </TaskList>
+    <NodeList>
+      <TaskNode Identifier="node_0" Task="task_0"/>
+      <TaskNode Identifier="node_1" Task="task_1"/>
+      <TaskNode Identifier="node_2" Task="task_2"/>
+      <TaskNode Identifier="node_3" Task="task_3"/>
+      <TaskNode Identifier="node_4" Task="task_4"/>
+      <TaskNode Identifier="node_5" Task="task_5"/>
+      <TaskNode Identifier="node_6" Task="task_6"/>
+    </NodeList>
+    <TransitionList>
+      <Transition Identifier="transition_0" Source="node_0" Target="node_1"/>
+      <Transition Identifier="transition_1" Source="node_1" Target="node_2"/>
+      <Transition Identifier="transition_2" Source="node_2" Target="node_3"/>
+      <Transition Identifier="transition_3" Source="node_3" Target="node_4"/>
+      <Transition Identifier="transition_4" Source="node_4" Target="node_5"/>
+      <Transition Identifier="transition_5" Source="node_5" Target="node_6"/>
+    </TransitionList>
+  </Body>
+  <Resources>
+    <ResourceSet Locale="en_US">
+      <Data Name="node_2#label">Jurisdiction Monitoring</Data>
+      <Data Name="node_5#label">Escalation</Data>
+      <Data Name="node_1#label">High Value Transactions</Data>
+      <Data Name="node_3#label">Customer Risk Scoring</Data>
+      <Data Name="node_4#label">Account Monitoring</Data>
+      <Data Name="node_3#y">280.0</Data>
+      <Data Name="node_4#x">93.088</Data>
+      <Data Name="node_4#y">370.0</Data>
+      <Data Name="node_5#x">93.088</Data>
+      <Data Name="node_5#y">460.0</Data>
+      <Data Name="node_6#x">93.088</Data>
+      <Data Name="node_6#y">545.0</Data>
+      <Data Name="node_0#x">93.088</Data>
+      <Data Name="node_0#y">15.0</Data>
+      <Data Name="node_1#x">93.088</Data>
+      <Data Name="node_1#y">100.0</Data>
+      <Data Name="node_2#x">93.088</Data>
+      <Data Name="node_2#y">190.0</Data>
+      <Data Name="node_3#x">93.088</Data>
+    </ResourceSet>
+  </Resources>
+  <Properties>
+    <imports><![CDATA[use com.banking.aml;
+]]></imports>
+  </Properties>
+</Ruleflow>
+</rfModel>
+</ilog.rules.studio.model.ruleflow:RuleFlow>

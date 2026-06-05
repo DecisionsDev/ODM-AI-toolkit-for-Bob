@@ -1,0 +1,61 @@
+Cross-Border Transaction Fraud Detection & Compliance Policy
+Objective: Detect potentially fraudulent or non-compliant card transactions involving transborder activities, high-risk jurisdictions, or regulatory violations.
+
+1. Cross-Border Transaction Risk Indicators
+Rule 1.1: Inconsistent Geo-IP and Issuing Country
+If a transaction is initiated from a country other than the card’s issuing country, and the user has not previously transacted in that region, assign a moderate risk score and verify the transaction context.
+
+Rule 1.2: Transborder Spending Surge
+If the user performs 3 or more cross-border transactions within 24 hours, across multiple currency zones, and the total spend exceeds €1,000, escalate for review unless travel was declared or supported by location data.
+
+Rule 1.3: Currency Risk Profiling
+If the transaction is in a rarely used or exotic currency (e.g., KZT, XOF), and it is not linked to known travel or business behavior, assign a high transaction risk score.
+
+2. Jurisdictional Red Flags
+Rule 2.1: Sanctioned or Watchlisted Countries
+If the transaction involves a merchant or IP address in a jurisdiction under OFAC, EU, or UN sanctions, automatically block and escalate to compliance.
+
+Rule 2.2: High-Risk AML Jurisdictions
+If the transaction originates from or is routed through high-risk jurisdictions (as defined by FATF lists), flag for manual compliance review, especially if amount > €200.
+
+Rule 2.3: Offshore Service Providers
+If the recipient is registered in a known offshore finance center (e.g., BVI, Seychelles, Cayman Islands), and the cardholder is a retail user with no business profile, trigger enhanced due diligence (EDD).
+
+3. Regulatory Mismatches & Identity Gaps
+Rule 3.1: KYC Profile Incomplete
+If a cross-border transaction is attempted from a user missing key KYC fields (e.g., verified address, ID document), deny or hold the transaction and request re-verification.
+
+Rule 3.2: Inconsistent Nationality and Usage
+If a cardholder declared residence in Country A, but is transacting repeatedly from Country B (especially for high-value items), and Country B enforces stricter capital controls or reporting, flag and request justification.
+
+4. Payment Channel and Merchant Profiling
+Rule 4.1: Cross-Border Online Merchants in Grey Zones
+If the merchant is cross-border and belongs to a category often linked to laundering or synthetic ID fraud (e.g., digital goods resale, gift cards, shell e-commerce), apply a risk multiplier to the transaction score.
+
+Rule 4.2: Repeated Payments to Unregulated Foreign Entities
+If the cardholder sends recurring payments to an unlicensed financial service or crypto exchange registered abroad, and the platform is not in your regulated whitelist, flag for AML review.
+
+5. Legal and Compliance Overrides
+Rule 5.1: Mandatory Escalation Rules
+Any cross-border transaction over €10,000 must be logged and subject to reporting thresholds (e.g., under EU AMLD5 or FinCEN CTR rules).
+
+Rule 5.2: Intra-Region Compliance Exceptions
+Exempt low-value cross-border transactions within the EEA, US-Canada, or SEPA zone from enhanced scrutiny, unless other risk signals apply.
+
+6. Risk Scoring & Escalation
+Assign each rule a weighted risk score based on regulatory sensitivity and historical fraud correlation.
+
+Composite score thresholds:
+0–30: Accept with monitoring
+31–60: Flag for compliance review
+>60: Block transaction and initiate EDD / SAR process
+
+Use country-specific policies to override generic rules (e.g., tighter scrutiny for cards issued in high-fraud regions).
+
+7. Logs and Audit Trail
+Ensure every flagged cross-border transaction includes:
+Geo-IP location
+Merchant jurisdiction
+Currency conversion path
+AML/KYC status of user
+Sanctions or watchlist match flags

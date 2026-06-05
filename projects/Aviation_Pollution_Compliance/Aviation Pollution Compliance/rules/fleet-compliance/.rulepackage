@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>fleet-compliance</name>
+  <uuid>CA5C63D3-2166-41CA-959D-69E9C39D794A</uuid>
+  <documentation><![CDATA[Rules for fleet compliance and aircraft certification]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

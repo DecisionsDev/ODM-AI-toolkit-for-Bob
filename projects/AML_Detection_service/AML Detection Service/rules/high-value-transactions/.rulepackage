@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>high-value-transactions</name>
+  <uuid>a2b3c4d5-e6f7-8a9b-0c1d-2e3f4a5b6c7d</uuid>
+  <documentation><![CDATA[Rules for detecting high-value transactions]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

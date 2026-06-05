@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.ibm.rules.studio.model.decisionservice:Operation xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore" xmlns:ilog.rules.studio.model.query.extractor="http://ilog.rules.studio/model/query/extractor.ecore" rulesetName="Luggage_Compliance_Ruleset" usingRuleflow="true" ruleflowName="luggage-compliance-ruleflow" targetRuleProjectName="Luggage Compliance Service">
+  <name>LuggageComplianceOperation</name>
+  <uuid>d6d23401-d5ee-4dd1-b45a-3473b87cb93b</uuid>
+  <referencedVariables variableName="request" variableSetName="LuggageComplianceParameters" direction="IN_OUT">
+    <variableSet href="../rules/LuggageComplianceParameters.var#96e4dac6-b265-4a36-9c5d-154590e7d663"/>
+  </referencedVariables>
+  <ruleflow href="../rules/luggage-compliance-ruleflow.rfl#55d02bc0-5834-4f4f-9205-ff0a40f6fbb8"/>
+  <extractor xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor" name="LuggageComplianceOperation_extractor" validator="Default Validator"/>
+  <targetRuleProject href="../../Luggage%20Compliance%20Service#d0f70290-40a0-488f-958f-d2edb9b439b7"/>
+</com.ibm.rules.studio.model.decisionservice:Operation>

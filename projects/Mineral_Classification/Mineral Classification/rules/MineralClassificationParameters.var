@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:VariableSet xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>MineralClassificationParameters</name>
+  <uuid>5e6f7a8b-9c0d-1e2f-3a4b-5c6d7e8f9a0b</uuid>
+  <documentation><![CDATA[Variables for Mineral Classification Decision Service]]></documentation>
+  <variables name="specimen" type="com.mineral.classification.MineralSpecimen" initialValue="" verbalization="the specimen"/>
+</ilog.rules.studio.model.base:VariableSet>

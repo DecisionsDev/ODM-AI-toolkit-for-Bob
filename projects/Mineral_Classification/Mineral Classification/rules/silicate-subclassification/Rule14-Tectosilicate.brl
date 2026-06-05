@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule14-Tectosilicate</name>
+  <uuid>1c2d3e4f-5a6b-7c8d-9e0f-1a2b3c4d5e6f</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the mineral class of 'the specimen' is "Silicate"
+    and 'the specimen' has framework structure
+    and the cleavage of 'the specimen' is "none"
+    and the fracture of 'the specimen' is "conchoidal"
+then
+    set the silicate subclass of 'the specimen' to "Tectosilicate" ;
+    add "Rule 14: Classified as Tectosilicate - forms three-dimensional network of SiO4 tetrahedra with no cleavage and conchoidal fracture" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

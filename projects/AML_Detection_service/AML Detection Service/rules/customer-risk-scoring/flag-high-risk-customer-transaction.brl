@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>flag-high-risk-customer-transaction</name>
+  <uuid>d1e2f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f6a</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the customer of 'the request' is not null
+    and the customer of 'the request' is high risk customer
+then
+    set the overall risk level of 'the request' to "CRITICAL" ;
+    increment rule count of 'the request' ;
+    create alert on 'the request' with rule "RULE_5_HIGH_RISK_CUSTOMER" severity "CRITICAL" and description "Transaction by high-risk customer (risk score >= 0.8)" ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

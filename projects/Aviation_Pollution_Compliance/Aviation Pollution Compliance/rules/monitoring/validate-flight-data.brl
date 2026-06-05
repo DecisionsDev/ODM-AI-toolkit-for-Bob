@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>validate-flight-data</name>
+  <uuid>694E7F30-746B-4555-A45D-36C5D3AEE7C9</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the flight of 'the request' is not null
+    and the aircraft ID of the flight of 'the request' is null
+then
+    add "Section 1.2: Missing aircraft ID in flight data" to the violations of the flight of 'the request' ;
+    add "MONITORING_VIOLATION" to the overall violations of 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

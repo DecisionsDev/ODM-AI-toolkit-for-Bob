@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>penalties</name>
+  <uuid>019BD19F-B55E-445E-AA7C-169A357AAB4A</uuid>
+  <documentation><![CDATA[Rules for calculating penalties and determining compliance status]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

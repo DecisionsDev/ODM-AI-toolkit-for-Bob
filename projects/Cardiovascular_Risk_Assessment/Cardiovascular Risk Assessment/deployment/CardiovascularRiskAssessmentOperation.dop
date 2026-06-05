@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.ibm.rules.studio.model.decisionservice:Operation xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore" xmlns:ilog.rules.studio.model.query.extractor="http://ilog.rules.studio/model/query/extractor.ecore" rulesetName="Cardiovascular_Risk_Assessment_Ruleset" usingRuleflow="true" ruleflowName="cardiovascular-risk-ruleflow" targetRuleProjectName="Cardiovascular Risk Assessment">
+  <name>CardiovascularRiskAssessmentOperation</name>
+  <uuid>f8a3c2d1-4b5e-6a7f-8c9d-0e1f2a3b4c5d</uuid>
+  <referencedVariables variableName="patient" variableSetName="CardiovascularRiskAssessmentParameters" direction="IN_OUT">
+    <variableSet href="../rules/CardiovascularRiskAssessmentParameters.var#e5f6a7b8-c9d0-1e2f-3a4b-5c6d7e8f9a0b"/>
+  </referencedVariables>
+  <ruleflow href="../rules/cardiovascular-risk-ruleflow.rfl#d2e3f4a5-b6c7-8d9e-0f1a-2b3c4d5e6f7a"/>
+  <extractor xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor" name="CardiovascularRiskAssessmentOperation_extractor" validator="Default Validator"/>
+  <targetRuleProject href="../../Cardiovascular%20Risk%20Assessment#a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d"/>
+</com.ibm.rules.studio.model.decisionservice:Operation>

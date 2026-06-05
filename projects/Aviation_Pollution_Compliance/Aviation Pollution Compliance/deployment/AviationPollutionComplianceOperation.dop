@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.ibm.rules.studio.model.decisionservice:Operation xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore" xmlns:ilog.rules.studio.model.query.extractor="http://ilog.rules.studio/model/query/extractor.ecore" rulesetName="Aviation_Pollution_Compliance_Ruleset" usingRuleflow="true" ruleflowName="aviation-compliance-ruleflow" targetRuleProjectName="Aviation Pollution Compliance">
+  <name>AviationPollutionComplianceOperation</name>
+  <uuid>4BFCC9D4-1320-4659-9B45-9CC3DFAB8A47</uuid>
+  <referencedVariables variableName="request" variableSetName="AviationPollutionComplianceParameters" direction="IN_OUT">
+    <variableSet href="../rules/AviationPollutionComplianceParameters.var#DD8B27A5-26AF-4B1C-9A88-1A19ABE6158A"/>
+  </referencedVariables>
+  <ruleflow href="../rules/aviation-compliance-ruleflow.rfl#5E83FB72-0DA0-4212-9E3A-0B336C6EE09F"/>
+  <extractor xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor" name="AviationPollutionComplianceOperation_extractor" validator="Default Validator"/>
+  <targetRuleProject href="../../Aviation%20Pollution%20Compliance#C00282B1-32EA-4B36-8514-683A18799D62"/>
+</com.ibm.rules.studio.model.decisionservice:Operation>

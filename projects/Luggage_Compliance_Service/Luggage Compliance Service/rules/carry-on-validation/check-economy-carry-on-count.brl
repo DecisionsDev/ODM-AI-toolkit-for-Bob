@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>check-economy-carry-on-count</name>
+  <uuid>e599ac95-cbe1-4f5b-8c36-df9d3b8b1023</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the passenger of 'the request' is economy class
+    and the carry-on count of 'the request' is more than 1
+then
+    add violation "Economy class passengers are allowed only 1 carry-on bag plus 1 personal item" to 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

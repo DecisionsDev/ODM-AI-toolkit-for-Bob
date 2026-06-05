@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>reject-maximum-limits</name>
+  <uuid>6a6d2f23-73fc-4c5e-b611-01cc75ee729b</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[definitions
+    set 'bag' to a baggage item in the luggages of 'the request' ;
+if
+    'bag' exceeds maximum limits
+then
+    add violation "Bag " + the item ID of 'bag' + " exceeds maximum limits (32 kg or 203 cm) - must be shipped as cargo" to 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

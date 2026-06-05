@@ -1,0 +1,119 @@
+property loadGetterSetterAsProperties "true"
+property origin "xom:/Geolocation Fraud Detection/geolocation-fraud-xom"
+property uuid "c4e5f6a7-8b9c-4d0e-b123-4c5d6e7f8a9b"
+package com.fraud.geolocation;
+
+
+public class Customer
+{
+    public int accountAgeDays;
+    public double averageTransactionAmount;
+    public string customerId;
+    public string firstName;
+    public boolean highValueCustomer;
+    public string homeCountry;
+    public string homeCountryCode;
+    public com.fraud.geolocation.Location homeLocation;
+    public readonly java.util.List knownTransactionCountries domain 0,* class string;
+    public string lastName;
+    public int totalTransactionCount;
+    public readonly java.util.List travelNotifications domain 0,* class string;
+    public Customer(string customerId, string homeCountry, string homeCountryCode)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Customer();
+    public void addKnownTransactionCountry(string countryCode);
+    public void addTravelNotification(string countryCode);
+    public boolean hasTransactionHistoryIn(string countryCode);
+    public boolean hasTravelNotificationFor(string countryCode);
+}
+
+public class DeviceInfo
+{
+    public string deviceFingerprint;
+    public string deviceType;
+    public string ipAddress;
+    public com.fraud.geolocation.Location ipGeolocation;
+    public boolean knownDevice;
+    public boolean proxyDetected;
+    public boolean torDetected;
+    public string userAgent;
+    public boolean vpnDetected;
+    public DeviceInfo(string deviceFingerprint, string ipAddress)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public DeviceInfo();
+    public double ipToMerchantDistance(com.fraud.geolocation.Location merchantLocation);
+}
+
+public class Location
+{
+    public string city;
+    public string country;
+    public string countryCode;
+    public double latitude;
+    public double longitude;
+    public string postalCode;
+    public string region;
+    public Location(double latitude, double longitude, string country, string countryCode)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Location();
+    public double distanceTo(com.fraud.geolocation.Location other);
+}
+
+public class RiskScore
+{
+    public boolean cardPresenceMismatchDetected;
+    public string confidenceLevel;
+    public boolean highRiskCountryDetected;
+    public boolean impossibleTravelDetected;
+    public boolean ipLocationMismatchDetected;
+    public int maxScore;
+    public readonly java.util.List riskFactors domain 0,* class string;
+    public int totalScore;
+    public readonly java.util.List triggeredRules domain 0,* class string;
+    public boolean unusualCorridorDetected;
+    public boolean velocityAnomalyDetected;
+    public RiskScore();
+    public void addRiskFactor(string factor);
+    public void addScore(int points, string ruleName);
+    public void addScore(int points);
+    public void addTriggeredRule(string ruleName);
+    public boolean exceedsThreshold(int threshold);
+    public readonly int normalizedScore
+                property "factory.ignore" "true";
+}
+
+public class Transaction
+{
+    public double amount;
+    public readonly java.util.List auditMessages domain 0,* class string;
+    public string cardNumber;
+    public boolean cardPresent;
+    public string cardType;
+    public string currency;
+    public com.fraud.geolocation.Customer customer;
+    public string decisionReasonCode;
+    public com.fraud.geolocation.DeviceInfo deviceInfo;
+    public int distinctCountriesLast24Hours;
+    public int distinctCountriesLast7Days;
+    public string fraudDecision;
+    public string merchantCategory;
+    public string merchantId;
+    public com.fraud.geolocation.Location merchantLocation;
+    public string merchantName;
+    public com.fraud.geolocation.Location previousTransactionLocation;
+    public long previousTransactionTimestampMs;
+    public string recommendedAction;
+    public com.fraud.geolocation.RiskScore riskScore;
+    public double totalAmountLast1Hour;
+    public double totalAmountLast24Hours;
+    public int transactionCountLast1Hour;
+    public int transactionCountLast24Hours;
+    public string transactionId;
+    public long transactionTimestampMs;
+    public readonly boolean inKnownTransactionCorridor
+                property "factory.ignore" "true";
+    public Transaction(string transactionId, double amount, string currency)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Transaction();
+    public void addAuditMessage(string message);
+}

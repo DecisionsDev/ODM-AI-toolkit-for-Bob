@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule5-Borate</name>
+  <uuid>2f3a4b5c-6d7e-8f9a-0b1c-2d3e4f5a6b7c</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the Mohs hardness of 'the specimen' is less than 3.0
+    and the color of 'the specimen' is one of { "white", "pale" }
+    and the environment of 'the specimen' is "arid"
+then
+    set the mineral class of 'the specimen' to "Borate" ;
+    add "Rule 5: Classified as Borate - soft (Mohs < 3), white to pale-colored, and occurs in arid environments" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

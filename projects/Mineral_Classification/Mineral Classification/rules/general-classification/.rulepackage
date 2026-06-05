@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>general-classification</name>
+  <uuid>6f7a8b9c-0d1e-2f3a-4b5c-6d7e8f9a0b1c</uuid>
+  <documentation><![CDATA[Rules for general mineral classification (Section 1 of policy)]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

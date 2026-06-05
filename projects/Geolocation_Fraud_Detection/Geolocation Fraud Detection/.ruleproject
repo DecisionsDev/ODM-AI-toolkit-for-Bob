@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RuleProject xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore"
+    xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore"
+    xmlns:ilog.rules.studio.model.bom="http://ilog.rules.studio/model/bom.ecore"
+    xmlns:ilog.rules.studio.model.query="http://ilog.rules.studio/model/query.ecore"
+    xmlns:ilog.rules.studio.model.rule="http://ilog.rules.studio/model/rule.ecore"
+    xmlns:ilog.rules.studio.model.xom="http://ilog.rules.studio/model/xom.ecore"
+    buildMode="DecisionEngine"
+    isADecisionService="true"
+    migrationFlag="3"
+    MigratedToOperationId="b7e2f4a1-3c8d-4e9f-a012-5b6c7d8e9f01">
+
+  <name>Geolocation Fraud Detection</name>
+
+  <uuid>a3f1e2d4-7b8c-4a9e-b012-3c4d5e6f7a8b</uuid>
+
+  <outputLocation>output</outputLocation>
+
+  <categories>any</categories>
+
+  <paths xsi:type="ilog.rules.studio.model.xom:XOMPath" pathID="XOM">
+    <entries xsi:type="ilog.rules.studio.model.xom:LibraryXOMPathEntry"
+             name="org.eclipse.jdt.launching.JRE_CONTAINER"
+             url="file:org.eclipse.jdt.launching.JRE_CONTAINER"
+             kind="LIBRARY"/>
+    <entries xsi:type="ilog.rules.studio.model.xom:SystemXOMPathEntry"
+             name="geolocation-fraud-xom"
+             url="platform:/geolocation-fraud-xom"
+             kind="JAVA_PROJECT"/>
+  </paths>
+
+  <paths xsi:type="ilog.rules.studio.model.bom:BOMPath" pathID="BOM">
+    <entries xsi:type="ilog.rules.studio.model.bom:BOMEntry"
+             name="geolocation-fraud"
+             url="platform:/Geolocation Fraud Detection/bom/geolocation-fraud.bom"
+             origin="xom:/Geolocation Fraud Detection/geolocation-fraud-xom"/>
+  </paths>
+
+  <modelFolders xsi:type="ilog.rules.studio.model.base:SourceFolder">
+    <name>rules</name>
+  </modelFolders>
+
+  <modelFolders xsi:type="ilog.rules.studio.model.bom:BOMFolder">
+    <name>bom</name>
+  </modelFolders>
+
+  <modelFolders xsi:type="ilog.rules.studio.model.rule:TemplateFolder">
+    <name>templates</name>
+  </modelFolders>
+
+  <modelFolders xsi:type="ilog.rules.studio.model.query:QueryFolder">
+    <name>queries</name>
+  </modelFolders>
+
+  <modelFolders xsi:type="com.ibm.rules.studio.model.decisionservice:OperationFolder">
+    <name>deployment</name>
+  </modelFolders>
+
+  <modelFolders xsi:type="ilog.rules.studio.model.base:ResourceFolder">
+    <name>resources</name>
+  </modelFolders>
+
+</ilog.rules.studio.model.base:RuleProject>

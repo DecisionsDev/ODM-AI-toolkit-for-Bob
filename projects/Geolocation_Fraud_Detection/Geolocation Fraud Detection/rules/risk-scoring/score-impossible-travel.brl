@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>score-impossible-travel</name>
+
+  <uuid>c5d6e7f8-a9b0-4c1d-b901-2c3d4e5f6a7b</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Score Impossible Travel
+    Package: risk-scoring
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Assigns a risk score of 40 points when impossible travel is detected.
+    Impossible travel is the highest-weight single geolocation signal as it represents
+    a physical impossibility - the card cannot be in two distant locations simultaneously
+    unless it has been cloned or the transaction data is fraudulent.
+    Score: 40 points (out of 100 maximum)
+    Tags: risk-scoring, impossible-travel, scoring
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has impossible travel detected
+
+  then
+    record score 40 on the risk score of 'the transaction' ;
+    record triggered rule "IMPOSSIBLE_TRAVEL" on the risk score of 'the transaction' ;
+    add audit message "Risk score +40: Impossible travel detected" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

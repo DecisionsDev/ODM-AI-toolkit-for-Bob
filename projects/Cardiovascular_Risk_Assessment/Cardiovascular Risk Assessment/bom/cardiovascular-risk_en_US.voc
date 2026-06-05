@@ -1,0 +1,36 @@
+# Vocabulary Properties
+uuid = c3d4e5f6-a7b8-9c0d-1e2f-3a4b5c6d7e8f
+
+# com.healthcare.cvd.Patient
+com.healthcare.cvd.Patient#concept.label = patient
+com.healthcare.cvd.Patient.age#phrase.navigation = {age} of {this}
+com.healthcare.cvd.Patient.age#phrase.action = set the age of {this} to {age}
+com.healthcare.cvd.Patient.sex#phrase.navigation = {sex} of {this}
+com.healthcare.cvd.Patient.sex#phrase.action = set the sex of {this} to {sex}
+com.healthcare.cvd.Patient.systolicBP#phrase.navigation = {systolic blood pressure} of {this}
+com.healthcare.cvd.Patient.systolicBP#phrase.action = set the systolic blood pressure of {this} to {systolic blood pressure}
+com.healthcare.cvd.Patient.diastolicBP#phrase.navigation = {diastolic blood pressure} of {this}
+com.healthcare.cvd.Patient.diastolicBP#phrase.action = set the diastolic blood pressure of {this} to {diastolic blood pressure}
+com.healthcare.cvd.Patient.ldlCholesterol#phrase.navigation = {LDL cholesterol} of {this}
+com.healthcare.cvd.Patient.ldlCholesterol#phrase.action = set the LDL cholesterol of {this} to {LDL cholesterol}
+com.healthcare.cvd.Patient.hdlCholesterol#phrase.navigation = {HDL cholesterol} of {this}
+com.healthcare.cvd.Patient.hdlCholesterol#phrase.action = set the HDL cholesterol of {this} to {HDL cholesterol}
+com.healthcare.cvd.Patient.triglycerides#phrase.navigation = {triglycerides} of {this}
+com.healthcare.cvd.Patient.triglycerides#phrase.action = set the triglycerides of {this} to {triglycerides}
+com.healthcare.cvd.Patient.smokingHistory#phrase.navigation = {smoking history} of {this}
+com.healthcare.cvd.Patient.smokingHistory#phrase.action = set the smoking history of {this} to {smoking history}
+com.healthcare.cvd.Patient.hasDiabetes#phrase.navigation = {this} has diabetes
+com.healthcare.cvd.Patient.hasDiabetes#phrase.action = make it {has diabetes} that {this} has diabetes
+com.healthcare.cvd.Patient.hasFamilyHistory#phrase.navigation = {this} has family history of CVD
+com.healthcare.cvd.Patient.hasFamilyHistory#phrase.action = make it {has family history} that {this} has family history of CVD
+com.healthcare.cvd.Patient.onBPMedication#phrase.navigation = {this} is on blood pressure medication
+com.healthcare.cvd.Patient.onBPMedication#phrase.action = make it {on BP medication} that {this} is on blood pressure medication
+com.healthcare.cvd.Patient.onCholesterolMedication#phrase.navigation = {this} is on cholesterol medication
+com.healthcare.cvd.Patient.onCholesterolMedication#phrase.action = make it {on cholesterol medication} that {this} is on cholesterol medication
+com.healthcare.cvd.Patient.riskLevel#phrase.navigation = {risk level} of {this}
+com.healthcare.cvd.Patient.riskLevel#phrase.action = set the risk level of {this} to {risk level}
+com.healthcare.cvd.Patient.messages#phrase.navigation = {messages} of {this}
+com.healthcare.cvd.Patient.requiresManualReview#phrase.navigation = {this} requires manual review
+com.healthcare.cvd.Patient.requiresManualReview#phrase.action = make it {requires manual review} that {this} requires manual review
+com.healthcare.cvd.Patient.addMessage(java.lang.String)#phrase.action = add {0} to the messages of {this}
+com.healthcare.cvd.Patient.flagForManualReview(java.lang.String)#phrase.action = flag {this} for manual review with reason {0}

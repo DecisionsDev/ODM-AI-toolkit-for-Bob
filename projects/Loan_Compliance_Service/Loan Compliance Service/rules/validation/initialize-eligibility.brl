@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>initialize-eligibility</name>
+  <uuid>a8b9c0d1-e2f3-4a5b-6c7d-8e9f0a1b2c3d</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the applicant of 'the request' is not null
+then
+    make it true that 'the request' is eligible ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

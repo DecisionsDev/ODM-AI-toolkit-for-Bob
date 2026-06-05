@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>score-high-risk-country</name>
+
+  <uuid>d6e7f8a9-b0c1-4d2e-c012-3d4e5f6a7b8c</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Score High Risk Country
+    Package: risk-scoring
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Assigns a risk score of 30 points when a high-risk or sanctioned country
+    is detected. Transactions in FATF blacklisted or OFAC sanctioned countries carry
+    significant regulatory and fraud risk. The score is weighted below impossible travel
+    as some legitimate transactions may occur in these countries.
+    Score: 30 points (out of 100 maximum)
+    Tags: risk-scoring, high-risk-country, sanctions, scoring
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has high risk country detected
+
+  then
+    record score 30 on the risk score of 'the transaction' ;
+    record triggered rule "HIGH_RISK_COUNTRY" on the risk score of 'the transaction' ;
+    add audit message "Risk score +30: High-risk or sanctioned country detected" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

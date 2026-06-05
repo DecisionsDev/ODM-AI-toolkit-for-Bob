@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>default-low-risk</name>
+  <uuid>c1d2e3f4-a5b6-7c8d-9e0f-1a2b3c4d5e6f</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the risk level of 'the patient' is ""
+then
+    set the risk level of 'the patient' to "Low" ;
+    add "Low risk: No high or medium risk factors identified" to the messages of 'the patient' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule2-Sulfide</name>
+  <uuid>9c0d1e2f-3a4b-5c6d-7e8f-9a0b1c2d3e4f</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the luster of 'the specimen' is "metallic"
+    and 'the specimen' produces hydrogen sulfide odor
+then
+    set the mineral class of 'the specimen' to "Sulfide" ;
+    add "Rule 2: Classified as Sulfide - exhibits metallic luster and produces hydrogen sulfide odor with acid" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

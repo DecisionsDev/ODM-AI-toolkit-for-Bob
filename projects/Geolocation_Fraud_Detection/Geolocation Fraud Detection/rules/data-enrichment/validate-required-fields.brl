@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>validate-required-fields</name>
+
+  <uuid>f6a7b8c9-d0e1-4f2a-e012-3f4a5b6c7d8e</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Validate Required Fields
+    Package: data-enrichment
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Validates that the minimum required fields for geolocation analysis are present.
+    If the merchant location is missing, the transaction cannot be geo-analyzed and is flagged
+    for manual review with reason code GEO-001.
+    Tags: validation, data-enrichment, required-fields
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the merchant location of 'the transaction' is null
+
+  then
+    set the fraud decision of 'the transaction' to "REVIEW" ;
+    set the decision reason code of 'the transaction' to "GEO-001-MISSING-MERCHANT-LOCATION" ;
+    set the recommended action of 'the transaction' to "MANUAL_REVIEW" ;
+    add audit message "Merchant location is missing - cannot perform geolocation analysis" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

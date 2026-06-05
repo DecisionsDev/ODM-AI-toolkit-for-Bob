@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule12-Phyllosilicate</name>
+  <uuid>9a0b1c2d-3e4f-5a6b-7c8d-9e0f1a2b3c4d</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the mineral class of 'the specimen' is "Silicate"
+    and 'the specimen' has sheet structure
+    and the cleavage of 'the specimen' is "basal"
+    and the crystal habit of 'the specimen' is one of { "platy", "flaky" }
+then
+    set the silicate subclass of 'the specimen' to "Phyllosilicate" ;
+    add "Rule 12: Classified as Phyllosilicate - forms sheets of tetrahedra with basal cleavage and platy or flaky habit" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

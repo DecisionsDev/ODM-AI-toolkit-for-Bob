@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-multi-country-velocity</name>
+
+  <uuid>a3b4c5d6-e7f8-4a9b-f789-0a1b2c3d4e5f</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect Multi-Country Velocity
+    Package: geolocation-prescreening
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Detects multiple transactions originating from different countries within
+    a configurable time window. Legitimate customers rarely transact in 3 or more distinct
+    countries within a 24-hour period. This pattern is a strong indicator of card cloning,
+    account takeover, or a compromised card being used simultaneously in multiple locations.
+    Thresholds:
+    - 3 or more distinct countries in the last 24 hours = velocity anomaly
+    - 5 or more distinct countries in the last 7 days = extended velocity anomaly
+    Risk Signal: VELOCITY_ANOMALY
+    Tags: geolocation, velocity, multi-country, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the distinct countries in last 24 hours of 'the transaction' is at least 3
+
+  then
+    make it true that the risk score of 'the transaction' has velocity anomaly detected ;
+    add risk factor "Transactions detected in 3 or more distinct countries within 24 hours" to the risk score of 'the transaction' ;
+    add audit message "MULTI_COUNTRY_VELOCITY detected - transactions in multiple countries within 24 hours" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

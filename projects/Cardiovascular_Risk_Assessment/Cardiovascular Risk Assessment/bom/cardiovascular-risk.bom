@@ -1,0 +1,30 @@
+property loadGetterSetterAsProperties "true"
+property origin "xom:/Cardiovascular Risk Assessment/cardiovascular-risk-xom"
+property uuid "b2c3d4e5-f6a7-8b9c-0d1e-2f3a4b5c6d7e"
+
+package com.healthcare.cvd;
+
+
+public class Patient
+{
+    public int age;
+    public string sex;
+    public int systolicBP;
+    public int diastolicBP;
+    public int ldlCholesterol;
+    public int hdlCholesterol;
+    public int triglycerides;
+    public string smokingHistory;
+    public boolean hasDiabetes;
+    public boolean hasFamilyHistory;
+    public boolean onBPMedication;
+    public boolean onCholesterolMedication;
+    public string riskLevel;
+    public readonly java.util.Collection messages domain 0,* class string;
+    public boolean requiresManualReview;
+    public Patient(int age, string sex, int systolicBP, int diastolicBP, int ldlCholesterol, int hdlCholesterol, int triglycerides, string smokingHistory, boolean hasDiabetes, boolean hasFamilyHistory, boolean onBPMedication, boolean onCholesterolMedication)
+        property "ilog.rules.engine.dataio.forConversion" "true";
+    public Patient();
+    public void addMessage(string arg);
+    public void flagForManualReview(string reason);
+}

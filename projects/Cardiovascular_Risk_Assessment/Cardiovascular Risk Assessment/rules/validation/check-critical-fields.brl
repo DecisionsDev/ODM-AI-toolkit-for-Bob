@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>check-critical-fields</name>
+  <uuid>d0e1f2a3-b4c5-6d7e-8f9a-0b1c2d3e4f5a</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the age of 'the patient' is 0
+    or the systolic blood pressure of 'the patient' is 0
+then
+    flag 'the patient' for manual review with reason "Critical fields missing: age or systolic blood pressure" ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

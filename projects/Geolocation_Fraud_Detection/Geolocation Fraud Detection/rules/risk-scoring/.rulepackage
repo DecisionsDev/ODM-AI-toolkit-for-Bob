@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+
+  <name>risk-scoring</name>
+
+  <uuid>c3d4e5f6-a7b8-4c9d-b789-0c1d2e3f4a5b</uuid>
+
+  <documentation><![CDATA[Risk scoring rules that assign numeric risk points based on detected
+geolocation anomalies and set the confidence level of the fraud assessment.
+Executed in RetePlus mode after pre-screening to accumulate scores from all triggered signals.]]></documentation>
+
+</ilog.rules.studio.model.base:RulePackage>

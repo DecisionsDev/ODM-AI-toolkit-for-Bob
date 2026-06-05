@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>calculate-offset-penalty</name>
+  <uuid>7AAB3683-37FB-4782-9DB4-9652D5086D09</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the airline operator of 'the request' is not null
+    and the offset deficit of the airline operator of 'the request' is more than 0
+then
+    add ( the offset deficit of the airline operator of 'the request' * 100 ) to the penalty amount of the airline operator of 'the request' ;
+    add ( the offset deficit of the airline operator of 'the request' * 100 ) to the total penalty amount of 'the request' ;
+    add "Section 7.1: Penalty of $100 per metric ton for unoffset CO2" to the messages of the airline operator of 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

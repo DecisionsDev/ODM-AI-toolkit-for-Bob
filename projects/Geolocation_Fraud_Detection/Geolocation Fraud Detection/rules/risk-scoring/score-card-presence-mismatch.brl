@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>score-card-presence-mismatch</name>
+
+  <uuid>b0c1d2e3-f4a5-4b6c-a456-7b8c9d0e1f2a</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Score Card Presence Mismatch
+    Package: risk-scoring
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Assigns a risk score of 15 points when a card-present transaction has
+    an IP geolocation that is more than 200 km from the merchant location. This indicates
+    potential card cloning where the physical card is being used at a POS terminal but
+    the transaction is being initiated remotely, or the card data has been skimmed and
+    replayed at a different location.
+    Score: 15 points (out of 100 maximum)
+    Tags: risk-scoring, card-present, card-cloning, scoring
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has card presence mismatch detected
+
+  then
+    record score 15 on the risk score of 'the transaction' ;
+    record triggered rule "CARD_PRESENCE_MISMATCH" on the risk score of 'the transaction' ;
+    add audit message "Risk score +15: Card presence location mismatch detected" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

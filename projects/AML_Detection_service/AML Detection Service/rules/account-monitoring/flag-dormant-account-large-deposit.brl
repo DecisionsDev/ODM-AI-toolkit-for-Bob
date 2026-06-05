@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>flag-dormant-account-large-deposit</name>
+  <uuid>f3a4b5c6-d7e8-9f0a-1b2c-3d4e5f6a7b8c</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the account of 'the request' is not null
+    and the current transaction of 'the request' is not null
+    and the account of 'the request' is dormant account
+    and the account of 'the request' is recently reactivated
+    and the amount of the current transaction of 'the request' is at least 5000
+then
+    set the overall risk level of 'the request' to "HIGH" ;
+    increment rule count of 'the request' ;
+    create alert on 'the request' with rule "RULE_4_DORMANT_REACTIVATION" severity "HIGH" and description "Dormant account reactivated with deposit >= $5,000 USD" ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

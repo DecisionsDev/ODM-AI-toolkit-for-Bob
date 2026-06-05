@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.ibm.rules.studio.model.decisionservice:Operation xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore" xmlns:ilog.rules.studio.model.query.extractor="http://ilog.rules.studio/model/query/extractor.ecore" rulesetName="Mineral_Classification_Ruleset" usingRuleflow="true" ruleflowName="mineral-classification-ruleflow" targetRuleProjectName="Mineral Classification">
+  <name>MineralClassificationOperation</name>
+  <uuid>8f3a2b1c-4d5e-6f7a-8b9c-0d1e2f3a4b5c</uuid>
+  <referencedVariables variableName="specimen" variableSetName="MineralClassificationParameters" direction="IN_OUT">
+    <variableSet href="../rules/MineralClassificationParameters.var#5e6f7a8b-9c0d-1e2f-3a4b-5c6d7e8f9a0b"/>
+  </referencedVariables>
+  <ruleflow href="../rules/mineral-classification-ruleflow.rfl#2d3e4f5a-6b7c-8d9e-0f1a-2b3c4d5e6f7a"/>
+  <extractor xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor" name="MineralClassificationOperation_extractor" validator="Default Validator"/>
+  <targetRuleProject href="../../Mineral%20Classification#1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"/>
+</com.ibm.rules.studio.model.decisionservice:Operation>

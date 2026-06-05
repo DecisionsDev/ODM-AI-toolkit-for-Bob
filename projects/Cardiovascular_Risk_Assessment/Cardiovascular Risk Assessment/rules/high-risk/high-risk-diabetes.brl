@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>high-risk-diabetes</name>
+  <uuid>b4c5d6e7-f8a9-0b1c-2d3e-4f5a6b7c8d9e</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    'the patient' has diabetes
+then
+    set the risk level of 'the patient' to "High" ;
+    add "High risk: Confirmed diabetes diagnosis" to the messages of 'the patient' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

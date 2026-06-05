@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:VariableSet xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>LuggageComplianceParameters</name>
+  <uuid>96e4dac6-b265-4a36-9c5d-154590e7d663</uuid>
+  <documentation><![CDATA[Variables for Luggage Compliance Service]]></documentation>
+  <variables name="request" type="com.skywings.luggage.LuggageRequest" initialValue="" verbalization="the request"/>
+</ilog.rules.studio.model.base:VariableSet>

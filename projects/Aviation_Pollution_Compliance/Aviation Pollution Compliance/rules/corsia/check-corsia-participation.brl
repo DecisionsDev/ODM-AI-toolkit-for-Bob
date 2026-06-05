@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>check-corsia-participation</name>
+  <uuid>FEF01C13-BD04-43F0-ABF0-EE5FA85BA22E</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the airline operator of 'the request' is not null
+    and the annual CO2 emissions in metric tons of the airline operator of 'the request' is more than 10000
+then
+    set the offset credits required of the airline operator of 'the request' to the excess emissions of the airline operator of 'the request' ;
+    add "Section 3.1: Operator must participate in GAEA Offsetting Mechanism" to the messages of the airline operator of 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

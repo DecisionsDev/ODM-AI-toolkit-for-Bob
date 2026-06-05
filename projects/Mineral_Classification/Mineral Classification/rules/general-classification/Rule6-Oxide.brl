@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule6-Oxide</name>
+  <uuid>3a4b5c6d-7e8f-9a0b-1c2d-3e4f5a6b7c8d</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    it is not true that 'the specimen' reacts with acid
+    and the specific gravity of 'the specimen' is more than 4.0
+    and 'the specimen' has metal bonded with oxygen
+then
+    set the mineral class of 'the specimen' to "Oxide" ;
+    add "Rule 6: Classified as Oxide - does not react with acid, has high specific gravity, and consists of metal bonded with oxygen" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>checked-baggage-validation</name>
+  <uuid>d4091934-fa97-47b4-9f1c-b999ba44447e</uuid>
+  <documentation><![CDATA[Rules for validating checked baggage allowances]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>excess-fees</name>
+  <uuid>523cb953-8bd1-4a51-8fa5-c985bd581345</uuid>
+  <documentation><![CDATA[Rules for calculating excess baggage fees]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

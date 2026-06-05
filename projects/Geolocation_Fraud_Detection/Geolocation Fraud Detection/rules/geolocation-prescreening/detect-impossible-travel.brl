@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-impossible-travel</name>
+
+  <uuid>b8c9d0e1-f2a3-4b4c-a234-5b6c7d8e9f0a</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect Impossible Travel
+    Package: geolocation-prescreening
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Detects impossible travel by computing the required travel speed between
+    the previous transaction location and the current merchant location. If the required
+    speed exceeds 900 km/h (maximum commercial aircraft speed), the transaction is physically
+    impossible and flagged as impossible travel fraud.
+    Threshold: 900 km/h (configurable - represents maximum commercial flight speed)
+    Risk Signal: IMPOSSIBLE_TRAVEL
+    Tags: geolocation, impossible-travel, velocity, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the previous transaction location of 'the transaction' is not null
+    and the merchant location of 'the transaction' is not null
+    and distance in km from (the previous transaction location of 'the transaction') to (the merchant location of 'the transaction') is more than 900
+
+  then
+    make it true that the risk score of 'the transaction' has impossible travel detected ;
+    add risk factor "Impossible travel: required speed exceeds 900 km/h between consecutive transactions" to the risk score of 'the transaction' ;
+    add audit message "IMPOSSIBLE_TRAVEL detected - required travel speed exceeds maximum aircraft speed" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

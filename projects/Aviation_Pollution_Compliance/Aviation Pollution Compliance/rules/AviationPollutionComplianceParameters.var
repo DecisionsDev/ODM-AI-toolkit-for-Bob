@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:VariableSet xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>AviationPollutionComplianceParameters</name>
+  <uuid>DD8B27A5-26AF-4B1C-9A88-1A19ABE6158A</uuid>
+  <documentation><![CDATA[Variables for Aviation Pollution Compliance]]></documentation>
+  <variables name="request" type="com.aviation.compliance.ComplianceRequest" initialValue="" verbalization="the request"/>
+</ilog.rules.studio.model.base:VariableSet>

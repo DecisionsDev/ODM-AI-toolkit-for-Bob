@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>check-age</name>
+  <uuid>d5e6f7a8-b9c0-1d2e-3f4a-5b6c7d8e9f0a</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the applicant of 'the request' is not null
+    and the age of the applicant of 'the request' is less than 18
+then
+    make it false that 'the request' is eligible ;
+    set the reason of 'the request' to "Applicant must be at least 18 years old" ;
+    add "Age requirement not met - applicant is under 18" to the violations of 'the request' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

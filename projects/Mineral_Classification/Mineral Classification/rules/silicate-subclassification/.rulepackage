@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>silicate-subclassification</name>
+  <uuid>7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d</uuid>
+  <documentation><![CDATA[Rules for silicate subclassification (Section 2 of policy)]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

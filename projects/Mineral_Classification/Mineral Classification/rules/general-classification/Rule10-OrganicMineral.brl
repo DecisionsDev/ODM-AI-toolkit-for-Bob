@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>Rule10-OrganicMineral</name>
+  <uuid>7e8f9a0b-1c2d-3e4f-5a6b-7c8d9e0f1a2b</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    'the specimen' contains organic molecules
+then
+    set the mineral class of 'the specimen' to "Organic Mineral" ;
+    add "Rule 10: Classified as Organic Mineral - contains organic molecules and originates from biological or biochemical processes" to the messages of 'the specimen' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

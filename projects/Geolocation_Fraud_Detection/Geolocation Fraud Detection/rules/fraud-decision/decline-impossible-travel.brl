@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>decline-impossible-travel</name>
+
+  <uuid>d2e3f4a5-b6c7-4d8e-c678-9d0e1f2a3b4c</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Decline - Impossible Travel
+    Package: fraud-decision
+    Version: 1.0
+    Author: IBM ODM Geolocation Fraud Detection
+    Description: Automatically declines transactions where impossible travel is detected
+    with high confidence (score >= 40). Impossible travel represents a physical impossibility
+    and is the strongest single fraud signal in geolocation analysis. No legitimate transaction
+    can require travel faster than a commercial aircraft between consecutive transactions.
+    Decision: DECLINE
+    Reason Code: GEO-101-IMPOSSIBLE-TRAVEL
+    Recommended Action: BLOCK_AND_ALERT
+    Tags: fraud-decision, decline, impossible-travel
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has impossible travel detected
+    and the total score of the risk score of 'the transaction' is at least 40
+
+  then
+    set the fraud decision of 'the transaction' to "DECLINE" ;
+    set the decision reason code of 'the transaction' to "GEO-101-IMPOSSIBLE-TRAVEL" ;
+    set the recommended action of 'the transaction' to "BLOCK_AND_ALERT" ;
+    add audit message "DECISION: DECLINE - Impossible travel detected with high confidence score" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

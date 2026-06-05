@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>escalation</name>
+  <uuid>e6f7a8b9-c0d1-2e3f-4a5b-6c7d8e9f0a1b</uuid>
+  <documentation><![CDATA[Rules for alert escalation and compliance reporting]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

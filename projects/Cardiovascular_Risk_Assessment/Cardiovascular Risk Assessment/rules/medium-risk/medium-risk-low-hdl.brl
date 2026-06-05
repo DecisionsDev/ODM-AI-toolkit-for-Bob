@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>medium-risk-low-hdl</name>
+  <uuid>b0c1d2e3-f4a5-6b7c-8d9e-0f1a2b3c4d5e</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the risk level of 'the patient' is ""
+    and the HDL cholesterol of 'the patient' is less than 40
+then
+    set the risk level of 'the patient' to "Medium" ;
+    add "Medium risk: HDL cholesterol < 40 mg/dL" to the messages of 'the patient' ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

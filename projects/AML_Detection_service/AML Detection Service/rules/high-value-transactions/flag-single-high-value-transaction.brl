@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+  <name>flag-single-high-value-transaction</name>
+  <uuid>f7a8b9c0-d1e2-3f4a-5b6c-7d8e9f0a1b2c</uuid>
+  <locale>en_US</locale>
+  <definition><![CDATA[if
+    the current transaction of 'the request' is not null
+    and the amount of the current transaction of 'the request' is at least 10000
+then
+    set the overall risk level of 'the request' to "HIGH" ;
+    increment rule count of 'the request' ;
+    create alert on 'the request' with rule "RULE_1_HIGH_VALUE_SINGLE" severity "HIGH" and description "Single transaction amount >= $10,000 USD" ;]]></definition>
+</ilog.rules.studio.model.brl:ActionRule>

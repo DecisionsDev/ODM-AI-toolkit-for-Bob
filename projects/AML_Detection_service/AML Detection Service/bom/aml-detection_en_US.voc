@@ -1,0 +1,119 @@
+# Vocabulary Properties
+uuid = d1e2f3a4-b5c6-7d8e-9f0a-1b2c3d4e5f6b
+
+# com.banking.aml.Transaction
+com.banking.aml.Transaction#concept.label = transaction
+com.banking.aml.Transaction.transactionId#phrase.navigation = {transaction ID} of {this}
+com.banking.aml.Transaction.transactionId#phrase.action = set the transaction ID of {this} to {transaction ID}
+com.banking.aml.Transaction.customerId#phrase.navigation = {customer ID} of {this}
+com.banking.aml.Transaction.customerId#phrase.action = set the customer ID of {this} to {customer ID}
+com.banking.aml.Transaction.accountId#phrase.navigation = {account ID} of {this}
+com.banking.aml.Transaction.accountId#phrase.action = set the account ID of {this} to {account ID}
+com.banking.aml.Transaction.amount#phrase.navigation = {amount} of {this}
+com.banking.aml.Transaction.amount#phrase.action = set the amount of {this} to {amount}
+com.banking.aml.Transaction.currency#phrase.navigation = {currency} of {this}
+com.banking.aml.Transaction.currency#phrase.action = set the currency of {this} to {currency}
+com.banking.aml.Transaction.timestamp#phrase.navigation = {timestamp} of {this}
+com.banking.aml.Transaction.timestamp#phrase.action = set the timestamp of {this} to {timestamp}
+com.banking.aml.Transaction.transactionType#phrase.navigation = {transaction type} of {this}
+com.banking.aml.Transaction.transactionType#phrase.action = set the transaction type of {this} to {transaction type}
+com.banking.aml.Transaction.counterpartyAccountId#phrase.navigation = {counterparty account ID} of {this}
+com.banking.aml.Transaction.counterpartyAccountId#phrase.action = set the counterparty account ID of {this} to {counterparty account ID}
+com.banking.aml.Transaction.counterpartyJurisdiction#phrase.navigation = {counterparty jurisdiction} of {this}
+com.banking.aml.Transaction.counterpartyJurisdiction#phrase.action = set the counterparty jurisdiction of {this} to {counterparty jurisdiction}
+com.banking.aml.Transaction.crossBorder#phrase.navigation = {this} is cross border
+com.banking.aml.Transaction.crossBorder#phrase.action = make it {cross border} that {this} is cross border
+com.banking.aml.Transaction.roundNumber#phrase.navigation = {this} is round number
+com.banking.aml.Transaction.roundNumber#phrase.action = make it {round number} that {this} is round number
+com.banking.aml.Transaction.amountRoundNumber#phrase.navigation = {this} has round number amount
+
+# com.banking.aml.Customer
+com.banking.aml.Customer#concept.label = customer
+com.banking.aml.Customer.customerId#phrase.navigation = {customer ID} of {this}
+com.banking.aml.Customer.customerId#phrase.action = set the customer ID of {this} to {customer ID}
+com.banking.aml.Customer.name#phrase.navigation = {name} of {this}
+com.banking.aml.Customer.name#phrase.action = set the name of {this} to {name}
+com.banking.aml.Customer.industry#phrase.navigation = {industry} of {this}
+com.banking.aml.Customer.industry#phrase.action = set the industry of {this} to {industry}
+com.banking.aml.Customer.geographicLocation#phrase.navigation = {geographic location} of {this}
+com.banking.aml.Customer.geographicLocation#phrase.action = set the geographic location of {this} to {geographic location}
+com.banking.aml.Customer.riskScore#phrase.navigation = {risk score} of {this}
+com.banking.aml.Customer.riskScore#phrase.action = set the risk score of {this} to {risk score}
+com.banking.aml.Customer.kycComplete#phrase.navigation = {this} has KYC complete
+com.banking.aml.Customer.kycComplete#phrase.action = make it {KYC complete} that {this} has KYC complete
+com.banking.aml.Customer.kycLastUpdated#phrase.navigation = {KYC last updated date} of {this}
+com.banking.aml.Customer.kycLastUpdated#phrase.action = set the KYC last updated date of {this} to {KYC last updated date}
+com.banking.aml.Customer.priorCrossBorderActivity#phrase.navigation = {this} has prior cross border activity
+com.banking.aml.Customer.priorCrossBorderActivity#phrase.action = make it {prior cross border activity} that {this} has prior cross border activity
+com.banking.aml.Customer.linkedAccountIds#phrase.navigation = {linked account IDs} of {this}
+com.banking.aml.Customer.highRisk#phrase.navigation = {this} is high risk customer
+com.banking.aml.Customer.mediumRisk#phrase.navigation = {this} is medium risk customer
+com.banking.aml.Customer.kycOutdated#phrase.navigation = {this} has outdated KYC
+com.banking.aml.Customer.addLinkedAccount(java.lang.String)#phrase.action = add linked account {0} to {this}
+
+# com.banking.aml.Account
+com.banking.aml.Account#concept.label = account
+com.banking.aml.Account.accountId#phrase.navigation = {account ID} of {this}
+com.banking.aml.Account.accountId#phrase.action = set the account ID of {this} to {account ID}
+com.banking.aml.Account.customerId#phrase.navigation = {customer ID} of {this}
+com.banking.aml.Account.customerId#phrase.action = set the customer ID of {this} to {customer ID}
+com.banking.aml.Account.lastActivityDate#phrase.navigation = {last activity date} of {this}
+com.banking.aml.Account.lastActivityDate#phrase.action = set the last activity date of {this} to {last activity date}
+com.banking.aml.Account.dormant#phrase.navigation = {this} is dormant
+com.banking.aml.Account.dormant#phrase.action = make it {dormant} that {this} is dormant
+com.banking.aml.Account.daysSinceLastActivity#phrase.navigation = {days since last activity} of {this}
+com.banking.aml.Account.daysSinceLastActivity#phrase.action = set the days since last activity of {this} to {days since last activity}
+com.banking.aml.Account.reactivationDate#phrase.navigation = {reactivation date} of {this}
+com.banking.aml.Account.reactivationDate#phrase.action = set the reactivation date of {this} to {reactivation date}
+com.banking.aml.Account.dormantAccount#phrase.navigation = {this} is dormant account
+com.banking.aml.Account.recentlyReactivated#phrase.navigation = {this} is recently reactivated
+
+# com.banking.aml.Alert
+com.banking.aml.Alert#concept.label = alert
+com.banking.aml.Alert.alertId#phrase.navigation = {alert ID} of {this}
+com.banking.aml.Alert.alertId#phrase.action = set the alert ID of {this} to {alert ID}
+com.banking.aml.Alert.ruleTriggered#phrase.navigation = {rule triggered} of {this}
+com.banking.aml.Alert.ruleTriggered#phrase.action = set the rule triggered of {this} to {rule triggered}
+com.banking.aml.Alert.severity#phrase.navigation = {severity} of {this}
+com.banking.aml.Alert.severity#phrase.action = set the severity of {this} to {severity}
+com.banking.aml.Alert.description#phrase.navigation = {description} of {this}
+com.banking.aml.Alert.description#phrase.action = set the description of {this} to {description}
+com.banking.aml.Alert.transactionId#phrase.navigation = {transaction ID} of {this}
+com.banking.aml.Alert.transactionId#phrase.action = set the transaction ID of {this} to {transaction ID}
+com.banking.aml.Alert.customerId#phrase.navigation = {customer ID} of {this}
+com.banking.aml.Alert.customerId#phrase.action = set the customer ID of {this} to {customer ID}
+com.banking.aml.Alert.accountId#phrase.navigation = {account ID} of {this}
+com.banking.aml.Alert.accountId#phrase.action = set the account ID of {this} to {account ID}
+com.banking.aml.Alert.alertTimestamp#phrase.navigation = {alert timestamp} of {this}
+com.banking.aml.Alert.alertTimestamp#phrase.action = set the alert timestamp of {this} to {alert timestamp}
+com.banking.aml.Alert.escalated#phrase.navigation = {this} is escalated
+com.banking.aml.Alert.escalated#phrase.action = make it {escalated} that {this} is escalated
+
+# com.banking.aml.AMLRequest
+com.banking.aml.AMLRequest#concept.label = AML request
+com.banking.aml.AMLRequest.currentTransaction#phrase.navigation = {current transaction} of {this}
+com.banking.aml.AMLRequest.currentTransaction#phrase.action = set the current transaction of {this} to {current transaction}
+com.banking.aml.AMLRequest.customer#phrase.navigation = {customer} of {this}
+com.banking.aml.AMLRequest.customer#phrase.action = set the customer of {this} to {customer}
+com.banking.aml.AMLRequest.account#phrase.navigation = {account} of {this}
+com.banking.aml.AMLRequest.account#phrase.action = set the account of {this} to {account}
+com.banking.aml.AMLRequest.recentTransactions#phrase.navigation = {recent transactions} of {this}
+com.banking.aml.AMLRequest.alerts#phrase.navigation = {alerts} of {this}
+com.banking.aml.AMLRequest.highRiskJurisdictions#phrase.navigation = {high risk jurisdictions} of {this}
+com.banking.aml.AMLRequest.ruleTriggeredCount#phrase.navigation = {rule triggered count} of {this}
+com.banking.aml.AMLRequest.ruleTriggeredCount#phrase.action = set the rule triggered count of {this} to {rule triggered count}
+com.banking.aml.AMLRequest.requiresManualReview#phrase.navigation = {this} requires manual review
+com.banking.aml.AMLRequest.requiresManualReview#phrase.action = make it {requires manual review} that {this} requires manual review
+com.banking.aml.AMLRequest.escalateToCompliance#phrase.navigation = {this} should escalate to compliance
+com.banking.aml.AMLRequest.escalateToCompliance#phrase.action = make it {escalate to compliance} that {this} should escalate to compliance
+com.banking.aml.AMLRequest.overallRiskLevel#phrase.navigation = {overall risk level} of {this}
+com.banking.aml.AMLRequest.overallRiskLevel#phrase.action = set the overall risk level of {this} to {overall risk level}
+com.banking.aml.AMLRequest.totalRecentTransactionAmount#phrase.navigation = {total recent transaction amount} of {this}
+com.banking.aml.AMLRequest.recentTransactionCount#phrase.navigation = {recent transaction count} of {this}
+com.banking.aml.AMLRequest.multipleRulesTriggered#phrase.navigation = {this} has multiple rules triggered
+com.banking.aml.AMLRequest.addAlert(com.banking.aml.Alert)#phrase.action = add alert {0} to {this}
+com.banking.aml.AMLRequest.addRecentTransaction(com.banking.aml.Transaction)#phrase.action = add recent transaction {0} to {this}
+com.banking.aml.AMLRequest.addHighRiskJurisdiction(java.lang.String)#phrase.action = add high risk jurisdiction {0} to {this}
+com.banking.aml.AMLRequest.incrementRuleCount()#phrase.action = increment rule count of {this}
+com.banking.aml.AMLRequest.isHighRiskJurisdiction(java.lang.String)#phrase.navigation = {0} is high risk jurisdiction in {this}
+com.banking.aml.AMLRequest.createAndAddAlert(java.lang.String,java.lang.String,java.lang.String)#phrase.action = create alert on {this} with rule {0} severity {1} and description {2}
