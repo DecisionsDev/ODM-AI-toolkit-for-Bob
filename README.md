@@ -207,7 +207,7 @@ We welcome contributions! Whether it's:
 - 📖 Documentation improvements
 - ✨ Feature enhancements
 
-Please use the [GitHub issue tracker](https://github.com/DecisionsDev/odm-ai-toolkit/issues) for project-specific issues.
+Please use the [GitHub issue tracker](https://github.com/DecisionsDev/ODM-AI-toolkit-for-Bob/issues) for project-specific issues.
 
 For general ODM questions, visit the [ODM Community](https://community.ibm.com/community/user/automation/communities/community-home?CommunityKey=c0005a22-520b-4181-bfad-feffd8bdc022).
 
