@@ -1,0 +1,11 @@
+  {
+     "mcpServers": {
+       "odm-rule-compiler": {
+         "command": "java",
+         "args": [
+           "-jar",
+           "./mcp-servers/odm-rule-compiler/target/odm-rule-compiler-mcp-1.0.0.jar"
+         ]
+       }
+     }
+   }

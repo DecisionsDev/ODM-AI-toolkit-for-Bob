@@ -113,27 +113,25 @@ This skill integrates with the ODM Rule Compiler MCP Server for seamless project
 
 2. **Configure Bob to use the MCP server**:
    
-   Add to your Bob MCP configuration file (`~/.config/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/cline_mcp_settings.json` on macOS):
+   It's already configured in the Bob MCP configuration file but if it's not the case,
+   Add to your Bob MCP configuration file (`` on macOS):
 
    ```json
-   {
+  {
      "mcpServers": {
        "odm-rule-compiler": {
          "command": "java",
          "args": [
            "-jar",
-           "/absolute/path/to/ODM-AI-toolkit-for-Bob/mcp-servers/odm-rule-compiler/target/odm-rule-compiler-mcp-1.0.0.jar"
+           "./mcp-servers/odm-rule-compiler/target/odm-rule-compiler-mcp-1.0.0.jar"
          ]
        }
      }
    }
    ```
 
-   **Important**: Replace `/absolute/path/to/` with your actual project path.
 
-3. **Restart VS Code** to load the MCP server.
-
-4. **Verify the setup** by asking Bob:
+3. **Verify the setup** by asking Bob:
    - "List ODM projects in the projects directory"
    - "Compile the Mineral_Classification project"
 
