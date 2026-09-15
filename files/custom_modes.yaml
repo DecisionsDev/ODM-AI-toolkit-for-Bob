@@ -658,6 +658,41 @@ customModes:
       CRITICAL: Every ODM artifact file MUST have a unique UUID. ALWAYS generate a fresh UUID for each new file.
       NEVER reuse UUIDs from templates or copy-paste UUIDs between files.
 
+      **Rule Designer UUID Ownership and Drift (CRITICAL - Post-Generation Maintenance):**
+
+      When a project is opened in IBM Rule Designer (Eclipse), Rule Designer may regenerate UUIDs
+      for deployment artifacts (.dop, .dep) as it takes ownership of those files. This causes
+      UUID drift: the .dep href no longer matches the .dop uuid, and .ruleproject
+      MigratedToOperationId becomes stale. This is NOT a bug to fight — Rule Designer is the
+      source of truth for its own files once the project is imported.
+
+      **Rule: ALWAYS read .dep and .dop BEFORE running Build Command or fixing UUID errors.**
+      The current .dep href is always correct (Rule Designer wrote it). Align .dop and
+      .ruleproject to match .dep, never the other way around.
+
+      **UUID Drift Correction Workflow:**
+      1. Read .dep → note the UUID in <operation href="X.dop#THE-UUID"/>
+      2. Read .dop → if its <uuid> differs, update .dop <uuid> to match .dep href
+      3. Read .ruleproject → update MigratedToOperationId to the same UUID
+      4. Re-run Build Command to confirm BUILD SUCCESS
+
+      **Symptom:** "Cannot load operation" or "The deployment configuration named 'X' was not found"
+      after opening the project in Rule Designer — always UUID drift.
+
+      **Variable initialValue — NEVER use "null" (CRITICAL):**
+      The initialValue attribute in .var files controls what object the Decision Engine injects
+      before rules execute. Setting initialValue="null" injects a null reference — any rule
+      navigation like 'the transaction' will throw NullPointerException at runtime.
+
+      - WRONG:   initialValue="null"   ← injects null, causes NullPointerException
+      - WRONG:   initialValue=""       ← empty string, engine may not instantiate the object
+      - CORRECT: initialValue="new com.fully.qualified.ClassName()"
+                 ← calls the default constructor; all nested objects initialised by XOM constructor
+
+      This is especially important when the XOM default constructor initialises nested objects
+      (e.g. RiskScore, auditLog lists). Using the constructor call in initialValue guarantees
+      those objects are non-null before the first rule fires.
+
       **How to Generate UUIDs:**
 
       **Method 1 - Using uuidgen command (macOS/Linux - PREFERRED):**
@@ -784,7 +819,7 @@ customModes:
 
         <documentation><![CDATA[Variables for ProjectName]]></documentation>
 
-        <variables name="request" type="package.ClassName" initialValue="" verbalization="the request"/>
+        <variables name="request" type="package.ClassName" initialValue="new package.ClassName()" verbalization="the request"/>
 
       </ilog.rules.studio.model.base:VariableSet>
 
@@ -793,6 +828,9 @@ customModes:
       - verbalization attribute: Natural language with "the" prefix (e.g., "the request")
       - Rules reference using verbalization in single quotes: 'the request'
       - Deployment operations use the name attribute (without spaces)
+      - initialValue MUST be the fully-qualified constructor call, NOT "null" or ""
+        e.g.: initialValue="new com.fraud.crossborder.Transaction()"
+        NEVER: initialValue="null" (injects null → NullPointerException at runtime)
 
       **Deployment Operation Template (.dop):**
       <?xml version="1.0" encoding="UTF-8"?>
