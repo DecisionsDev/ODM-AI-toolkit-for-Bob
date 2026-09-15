@@ -110,8 +110,7 @@ docker stop odm-buildcmd && docker rm odm-buildcmd
 
    **Option A: Use a Policy Document (Recommended)**
    ```
-   Generate an ODM rule project based on the Cross-Border Transaction Fraud Detection policy
-   in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
+   Generate an ODM rule project based on the Cross-Border Transaction Fraud Detection policy in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
    ```
    
    **Option B: Natural Language Description**
