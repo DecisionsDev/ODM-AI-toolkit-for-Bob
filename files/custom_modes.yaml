@@ -323,6 +323,59 @@ customModes:
           - Fix one error at a time - later errors may be cascading from the first
           - After XOM changes: recompile Java, rebuild JAR, then re-run build command
 
+      **15. C-Style Comments in Rule CDATA Blocks - STRICTLY FORBIDDEN:**
+          - The ODM BAL parser reads the full content of <definition><![CDATA[...]]> as BAL source
+          - C-style comments (`/* ... */`) placed inside CDATA are parsed as BAL tokens, not skipped
+          - This causes a total rule parse failure: every token is reported as "not required"
+          - WRONG (causes cascading errors on EVERY token in the rule):
+            <definition><![CDATA[/* Rule 1.1: description */
+            if
+              condition
+            then
+              action ;]]></definition>
+          - CORRECT (no comments inside CDATA):
+            <definition><![CDATA[if
+              condition
+            then
+              action ;]]></definition>
+          - Rule descriptions belong in the <name> element and surrounding XML comments, NOT in CDATA
+          - ERROR SIGNATURE: "[ERROR] The word '/' is not required" followed by every rule token
+            being reported as "not required" — this is always a comment-in-CDATA issue
+
+      **16. String Equality Comparisons - NEVER use "is equal to" / "is not equal to" on strings:**
+          - `is equal to` and `is not equal to` are date/numeric comparison operators in ODM BAL
+          - When used on a string property, the parser enters a date-context and expects a month name
+          - ERROR SIGNATURE: "[ERROR] The word 'January' is expected in place of 'equal'"
+            followed by "Invalid type 'string', it is not assignable from type 'month'"
+          - WRONG (causes date-parse error on any string property):
+            the fraud decision of 'the transaction' is equal to "PENDING"
+            the fraud decision of 'the transaction' is not equal to "BLOCK"
+          - CORRECT - string equality (bare `is`):
+            the fraud decision of 'the transaction' is "PENDING"
+          - CORRECT - string inequality (negate with "it is not true that"):
+            it is not true that the fraud decision of 'the transaction' is "BLOCK"
+          - NOTE: `is equal to` / `is not equal to` ARE valid for numeric and boolean comparisons
+          - This rule applies to ALL string-typed properties regardless of vocabulary definition
+
+      **17. Object Instantiation in Rules - Use Concept Label, Avoid When Possible:**
+          - BAL object creation syntax uses the BOM concept label (lowercase), NOT the Java class name
+          - `is equal to` confusion: the `a ClassName` form fails with "Variable 'ClassName' is not declared"
+          - `a new ConceptLabel` fails with "The word 'new' is not required" (even though guides say to omit it)
+          - `a ConceptLabel` (without new) fails with "The word 'each' is expected in place of 'a'"
+          - CONCLUSION: Object instantiation in BAL rules is unreliable and should be AVOIDED
+          - CORRECT DESIGN PATTERN: Initialize all nested objects in the XOM default constructor
+            so they are never null when rules execute — eliminates the need for in-rule instantiation
+          - XOM best practice:
+            public Transaction() {
+                this.riskScore = new RiskScore();   // always initialized
+                this.auditLog = new ArrayList<>();   // always initialized
+            }
+          - With this pattern, rules never need to create objects — they only read and modify them
+          - If object creation in rules is absolutely required, use a factory method in XOM:
+            public void initializeRiskScore() { if (this.riskScore == null) this.riskScore = new RiskScore(); }
+            Then expose via BOM method: public void initializeRiskScore();
+            And call in rules: initialize risk score of 'the transaction' ;
+
 
       **Build Command Sanity Check (MANDATORY - Run After Every Project Creation):**
 
@@ -696,6 +749,16 @@ customModes:
       </ilog.rules.studio.model.brl:ActionRule>
 
       **CRITICAL NOTE:** Multiple actions in 'then' clause use SEMICOLONS after each statement.
+
+      **CRITICAL NOTE - No Comments in CDATA:** NEVER place `/* */` comments inside `<definition><![CDATA[...]]>`.
+      The BAL parser has no comment syntax — `/*` is treated as two unknown tokens causing total rule failure.
+      Use the `<name>` element to describe the rule. Everything inside CDATA must be pure BAL.
+
+      **CRITICAL NOTE - String Comparisons:** For string-typed properties, NEVER use `is equal to "X"` or
+      `is not equal to "X"`. These operators trigger the date parser and cause "The word 'January' is expected" errors.
+      - String equality:   `the property of 'the variable' is "VALUE"`
+      - String inequality: `it is not true that the property of 'the variable' is "VALUE"`
+      - Numeric equality:  `the amount of 'the variable' is equal to 0`  ← safe on numbers only
 
       **Variables File Template (.var):**
       <?xml version="1.0" encoding="UTF-8"?>
@@ -1516,15 +1579,33 @@ customModes:
       - **Prevention Rule**: ALWAYS use `make it true/false that {this} is {adjective}` for boolean property assignments
       - **Never Use**: `set the {boolean property} of {this} to true/false` (Java-style assignment)
 
-      **Error 1.2 - Object Initialization with 'new' Keyword:**
+      **Error 1.2 - Object Instantiation in Rules:**
       ```
-      [ERROR] The word 'new' is not required
+      [ERROR] The word 'new' is not required                         ← tried: a new RiskScore
+      [ERROR] Variable 'RiskScore' is not declared                   ← tried: a RiskScore (Java class name)
+      [ERROR] The word 'each' is expected in place of 'a'            ← tried: a risk score (concept label)
       Rule: data-enrichment.initialize-risk-score
       ```
-      - **Root Cause**: Used Java `new` keyword in BAL: `set the riskScore of 'the transaction' to a new RiskScore`
-      - **Correct BAL Syntax**: `set the riskScore of 'the transaction' to a RiskScore`
-      - **Prevention Rule**: BAL doesn't use `new` keyword for object instantiation - just use the class name
-      - **Pattern**: `set the {property} of {this} to a ClassName` (no "new")
+      - **Root Cause**: All three forms of BAL object instantiation are unreliable or context-sensitive
+      - **Full Error Sequence** (from iterative testing during Cross-Border Fraud Detection project):
+        1. `set X to a new RiskScore` → "The word 'new' is not required"
+        2. `set X to a RiskScore`     → "Variable 'RiskScore' is not declared" (Java class not recognized)
+        3. `set X to a risk score`    → "The word 'each' is expected in place of 'a'" (concept label fails too)
+      - **DEFINITIVE PREVENTION**: Initialize ALL nested objects in the XOM default constructor
+        so they are NEVER null when rules execute. Rules only read/modify — never create objects.
+        ```java
+        public Transaction() {
+            this.riskScore = new RiskScore();   // guaranteed non-null
+            this.auditLog  = new ArrayList<>(); // guaranteed non-null
+        }
+        ```
+      - **If in-rule creation is required**: Add a factory method to XOM and expose via BOM
+        ```java
+        // XOM: public void ensureRiskScore() { if (riskScore==null) riskScore = new RiskScore(); }
+        // BOM: public void ensureRiskScore();
+        // Rule: ensure risk score of 'the transaction' ;
+        ```
+      - **Remove any "initialize-X" rules** — the XOM constructor design makes them unnecessary
 
       **Error 1.3 & 1.4 - Vocabulary Phrase Conflicts with BAL Keywords:**
       ```
@@ -1543,6 +1624,44 @@ customModes:
         * "register amount {0} with {this}" ✅
       - **Prevention Rule**: Avoid these tokens in vocabulary action phrases: to, by, points, from, at, with (when used as prepositions)
       - **Safe Verbs**: record, log, register, capture, store, save, mark, flag, note
+
+      **Error 1.5 - C-Style Comments Inside Rule CDATA:**
+      ```
+      [ERROR] The word '/' is not required. (compliance-overrides.intra-region-exemption)
+      [ERROR] The word 'definitions' is missing. (compliance-overrides.intra-region-exemption)
+      [ERROR] No bindings are present (compliance-overrides.intra-region-exemption)
+      [ERROR] The word 'if' is not required. (compliance-overrides.intra-region-exemption)
+      ... (every rule token reported as "not required")
+      ```
+      - **Root Cause**: A `/* Rule 5.2: Intra-Region Compliance Exceptions */` comment was placed
+        as the first line inside `<definition><![CDATA[...]]>`. The BAL parser has no comment syntax
+        and treats `/*` as two unknown tokens, causing total parse failure for the entire rule body.
+      - **Error Signature**: The FIRST error is always `"The word '/' is not required"` followed by
+        `"The word 'definitions' is missing"` and `"No bindings are present"`. Every subsequent
+        token of the rule is then reported as "not required" — this cascade is always caused by
+        a comment at the start of the CDATA block.
+      - **Fix**: Remove all `/* ... */` comments from inside `<definition><![CDATA[...]]>` blocks
+      - **Prevention**: NEVER put any comment syntax inside BAL CDATA. The `<name>` element and
+        surrounding XML comments (`<!-- -->`) are the correct place for rule descriptions.
+
+      **Error 1.6 - String Equality Triggers Date Parser:**
+      ```
+      [ERROR] The word 'January' is expected in place of 'equal'. (data-enrichment.set-default-fraud-decision)
+      [ERROR] The word 'is' is expected in place of 'to'. (data-enrichment.set-default-fraud-decision)
+      [ERROR] Invalid type 'string', it is not assignable from type 'month' (data-enrichment.set-default-fraud-decision)
+      ```
+      - **Root Cause**: Used `the fraud decision of 'the transaction' is equal to "PENDING"` on a
+        `string`-typed property. ODM BAL interprets `is equal to` as a date/temporal comparison
+        and expects a month literal (e.g., `January`) after `equal to`, not a quoted string.
+      - **Same error** appears with `is not equal to` on string properties.
+      - **Fix — string equality**: Replace `is equal to "X"` with bare `is "X"`
+        WRONG:   `the fraud decision of 'the transaction' is equal to "PENDING"`
+        CORRECT: `the fraud decision of 'the transaction' is "PENDING"`
+      - **Fix — string inequality**: Replace `is not equal to "X"` with negation
+        WRONG:   `the fraud decision of 'the transaction' is not equal to "BLOCK"`
+        CORRECT: `it is not true that the fraud decision of 'the transaction' is "BLOCK"`
+      - **NOTE**: `is equal to` / `is not equal to` remain valid for **numeric** comparisons
+        (e.g., `the amount of 'the transaction' is equal to 0` works fine on a `double`)
 
       **ERROR CATEGORY 2: BOM-to-XOM Mapping Violations (Pattern 3 Errors)**
 
@@ -1809,7 +1928,11 @@ customModes:
       - [ ] **Vocabulary Parentheses**: Pattern 3 method phrases include parentheses
       - [ ] **Vocabulary Tokens**: No problematic tokens (to, by, points) in action phrases
       - [ ] **BAL Boolean Syntax**: All boolean assignments use "make it true/false that"
-      - [ ] **BAL Object Init**: No "new" keyword used for object instantiation
+      - [ ] **BAL No CDATA Comments**: No `/* */` comments inside `<definition><![CDATA[...]]>` blocks
+      - [ ] **BAL String Equality**: String comparisons use bare `is "X"`, never `is equal to "X"`
+      - [ ] **BAL String Inequality**: String negation uses `it is not true that ... is "X"`, never `is not equal to "X"`
+      - [ ] **BAL Object Init**: Nested objects initialized in XOM constructor — no in-rule object creation
+      - [ ] **dep Property**: `dep` in .properties file matches the .dep filename (without extension), e.g., `MyProjectDeployment`
       - [ ] **BAL Null Checks**: Use "is null" / "is not null", never "is not defined"
 
       **Phase 6: Build Command Execution and Error Resolution**
@@ -1845,10 +1968,16 @@ customModes:
       | Error Message | Root Cause | Fix |
       |---------------|------------|-----|
       | "The word 'is' is expected in place of 'to'" | Boolean assignment syntax | Use `make it true/false that {this} is {adjective}` |
-      | "The word 'new' is not required" | Java keyword in BAL | Remove "new": `set X to a ClassName` |
+      | "The word '/' is not required" + "No bindings are present" | C-style comment `/* */` inside CDATA | Remove comment from CDATA; use `<name>` for description |
+      | "The word 'January' is expected in place of 'equal'" | `is equal to` on string property | Use bare `is "X"` for string equality |
+      | "Invalid type 'string', it is not assignable from type 'month'" | `is equal to` on string property | Use bare `is "X"` for string equality |
+      | "The word 'each' is expected in place of 'a'" | In-rule object instantiation `a ConceptLabel` | Initialize object in XOM constructor; never create in rules |
+      | "Variable 'X' is not declared" (on class name) | In-rule instantiation with Java class name | Initialize object in XOM constructor; never create in rules |
+      | "The word 'new' is not required" | Java `new` keyword in BAL | Initialize object in XOM constructor; never create in rules |
       | "The word 'the' is expected in place of 'to'" | Vocabulary phrase conflict | Use distinct verb: "record X on {this}" |
       | "[B2X] GBREX0021E: Cannot find attribute 'hasX'" | Pattern 3 violation | Change BOM to method syntax: `public boolean hasX();` |
       | "GBRET0009E: Failed to transform constructor" | Constructor mismatch | Add matching constructor to XOM, recompile |
+      | "The deployment configuration named 'X' was not found" | Wrong `dep` value in .properties | Set `dep` to the .dep filename without extension |
 
       **SUCCESS METRICS**
 
