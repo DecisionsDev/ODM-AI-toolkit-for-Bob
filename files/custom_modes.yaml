@@ -269,6 +269,20 @@ customModes:
          - These words cause parser errors like "The word 'X' is expected" or "The word '+' is missing"
          - Use safe alternatives: prior, gap, offset, delta, measure, count, tally, record, log
 
+      **7b. Vocabulary Phrase Label Tokens are CASE-SENSITIVE (CRITICAL):**
+         - ODM parses each word inside `{phrase label}` curly braces as a literal BAL token
+         - The token case in the vocabulary definition MUST exactly match the BAL rule text
+         - WRONG vocabulary: `{IP location} of {this}` → ODM expects uppercase `IP` in rules
+           → BAL rule writes `ip location` → ERROR: "The word 'IP' is expected in place of 'ip'"
+         - CORRECT vocabulary: `{ip location} of {this}` → matches lowercase rule text
+         - RULE: ALWAYS use all-lowercase tokens inside `{...}` phrase label curly braces
+         - This applies to ALL multi-word labels: use `{ip location}`, `{kyc status}`, `{aml flag}`
+           never `{IP location}`, `{KYC status}`, `{AML flag}`
+         - Acronyms that appear natural in uppercase (IP, KYC, AML, EDD, SEPA, EEA) MUST be
+           written lowercase in the vocabulary `{...}` token to avoid case mismatch errors
+         - ERROR SIGNATURE: "[ERROR] The word 'XYZ' is expected in place of 'xyz'" where XYZ is
+           an uppercase token used in the vocabulary but lowercase in the BAL rule
+
       **8. Boolean Computed Properties in BOM - MUST declare explicitly:**
          - Computed boolean properties (XOM getter with no setter) that need vocabulary phrases
            MUST be declared in BOM as: public readonly boolean propertyName property "factory.ignore" "true";
@@ -1975,6 +1989,7 @@ customModes:
       | "Variable 'X' is not declared" (on class name) | In-rule instantiation with Java class name | Initialize object in XOM constructor; never create in rules |
       | "The word 'new' is not required" | Java `new` keyword in BAL | Initialize object in XOM constructor; never create in rules |
       | "The word 'the' is expected in place of 'to'" | Vocabulary phrase conflict | Use distinct verb: "record X on {this}" |
+      | "The word 'XYZ' is expected in place of 'xyz'" (exact case flip) | Uppercase token in `{phrase label}` but lowercase in BAL rule | Use all-lowercase tokens inside `{...}` in vocabulary (e.g. `{ip location}` not `{IP location}`) |
       | "[B2X] GBREX0021E: Cannot find attribute 'hasX'" | Pattern 3 violation | Change BOM to method syntax: `public boolean hasX();` |
       | "GBRET0009E: Failed to transform constructor" | Constructor mismatch | Add matching constructor to XOM, recompile |
       | "The deployment configuration named 'X' was not found" | Wrong `dep` value in .properties | Set `dep` to the .dep filename without extension |
