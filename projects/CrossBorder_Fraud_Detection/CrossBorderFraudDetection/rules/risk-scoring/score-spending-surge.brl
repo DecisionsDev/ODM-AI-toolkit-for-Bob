@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>score-spending-surge</name>
+
+  <uuid>99f8f914-383f-45be-8e81-2c0ed72e519e</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Score Cross-Border Spending Surge
+    Package: risk-scoring
+    Description: Assigns 20 points when an undeclared cross-border spending surge is detected
+    (3+ transactions, multiple currency zones, EUR 1000+ within 24h).
+    Score: 20 points
+    Tags: risk-scoring, velocity, spending-surge, cross-border
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has spending surge detected
+
+  then
+    record score 20 on the risk score of 'the transaction' ;
+    record triggered rule "SPENDING_SURGE" on the risk score of 'the transaction' ;
+    add audit message "Risk score +20: Undeclared cross-border spending surge detected" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

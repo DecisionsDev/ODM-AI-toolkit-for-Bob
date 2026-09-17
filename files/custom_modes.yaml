@@ -400,9 +400,13 @@ customModes:
          The rules-compiler.jar MUST be copied to buildcommand/rules-compiler in the current workspace.
          This ensures build reproducibility and avoids dependency on external installations.
 
+         **Detect the OS first** — use `execute_command` with `echo %OS%` (Windows returns "Windows_NT")
+         or check `$env:OS` in PowerShell. Then follow the matching instructions below.
+
          **Option A - Copy from ODM On-Premises Installation:**
            If you have ODM installed locally (on-prem), copy rules-compiler.jar to the project:
 
+           === Linux / macOS (bash/zsh) ===
            # Check if ODM_HOME is set
            echo $ODM_HOME
 
@@ -413,7 +417,7 @@ customModes:
            # If ODM_HOME is not set, search common installation locations:
            # Linux/Unix:
            find /opt/ibm/odm /opt/IBM/ODM ~/IBM/ODM* -name "rules-compiler.jar" 2>/dev/null | head -1
-           
+
            # macOS:
            find /Applications/IBM/ODM* -name "rules-compiler.jar" 2>/dev/null | head -1
 
@@ -421,9 +425,25 @@ customModes:
            mkdir -p buildcommand/rules-compiler
            cp /path/to/found/rules-compiler.jar buildcommand/rules-compiler/
 
+           === Windows (PowerShell) ===
+           # Check if ODM_HOME is set
+           echo $env:ODM_HOME
+
+           # If ODM_HOME is set, copy from there
+           New-Item -ItemType Directory -Force -Path "buildcommand\rules-compiler"
+           Copy-Item "$env:ODM_HOME\buildcommand\rules-compiler\rules-compiler.jar" "buildcommand\rules-compiler\"
+
+           # If ODM_HOME is not set, search common installation locations:
+           Get-ChildItem -Path "C:\IBM\ODM*","C:\Program Files\IBM\ODM*" -Filter "rules-compiler.jar" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
+
+           # Once found, copy to project:
+           New-Item -ItemType Directory -Force -Path "buildcommand\rules-compiler"
+           Copy-Item "C:\path\to\found\rules-compiler.jar" "buildcommand\rules-compiler\"
+
          **Option B - Extract from ODM Docker Container:**
            If you don't have ODM on-prem, extract rules-compiler.jar from ODM Docker image:
 
+           === Linux / macOS (bash/zsh) ===
            # Start ODM 9.5 standalone container (runs in background)
            docker run -d -e LICENSE=accept -p 9060:9060 -p 9443:9443 -u $(id -u) \
              -e SAMPLE=false \
@@ -449,11 +469,40 @@ customModes:
            # docker stop odm-buildcmd && docker rm odm-buildcmd
            # Note: Keep container running if you plan to deploy the RuleApp later
 
-         **Verification:**
-           After copying, verify the file exists and has correct size (~52MB):
-           ls -lh buildcommand/rules-compiler/rules-compiler.jar
+           === Windows (PowerShell) ===
+           # Start ODM 9.5 standalone container (runs in background)
+           # Note: -u $(id -u) is not needed on Windows
+           docker run -d -e LICENSE=accept -p 9060:9060 -p 9443:9443 `
+             -e SAMPLE=false `
+             --name odm-buildcmd icr.io/cpopen/odm-k8s/odm:9.5
 
-           Expected output: -rw-r--r-- 1 user group 52M ... rules-compiler.jar
+           # Wait for Decision Center to be ready (check logs)
+           Write-Host "Waiting for ODM Decision Center to start..."
+           Start-Sleep -Seconds 60
+           docker logs odm-buildcmd 2>&1 | Select-String "The defaultServer server is ready to run a smarter planet" | Select-Object -First 1
+
+           # Download buildcommand.zip from Decision Center
+           Write-Host "Downloading buildcommand.zip..."
+           Invoke-WebRequest -Uri "http://localhost:9060/decisioncenter/assets/buildcommand.zip" -OutFile "buildcommand.zip"
+
+           # Unzip into project directory
+           Write-Host "Extracting buildcommand tools..."
+           Expand-Archive -Path "buildcommand.zip" -DestinationPath "buildcommand" -Force
+
+           # Verify rules-compiler.jar exists
+           Get-Item "buildcommand\rules-compiler\rules-compiler.jar" | Select-Object Name, Length
+
+           # Optional: Stop container if no longer needed for deployment
+           # docker stop odm-buildcmd; docker rm odm-buildcmd
+
+         **Verification:**
+           === Linux / macOS ===
+           ls -lh buildcommand/rules-compiler/rules-compiler.jar
+           # Expected output: -rw-r--r-- 1 user group 52M ... rules-compiler.jar
+
+           === Windows (PowerShell) ===
+           Get-Item "buildcommand\rules-compiler\rules-compiler.jar" | Select-Object Name, @{N='Size(MB)';E={[math]::Round($_.Length/1MB,1)}}
+           # Expected output: Name: rules-compiler.jar  Size(MB): ~52
 
            If file is missing or size is wrong, repeat the copy/extraction process.
 
@@ -473,20 +522,51 @@ customModes:
       **Step 3 - Run Build Command with JDK 21:**
          Use IBM Semeru OpenJ9 JDK 21 (required for ODM 9.5 compatibility):
 
+         === Linux (bash) ===
+         # Find IBM Semeru JDK 21 path
+         update-java-alternatives -l 2>/dev/null | grep -i semeru
+         # OR locate manually:
+         find /opt /usr/lib/jvm ~/IBM -name "java" -path "*/semeru*21*/bin/java" 2>/dev/null | head -1
+
+         # Run build command (paths are forward-slash, relative to workspace root)
+         cd buildcommand/samples/config-files && \
+           /path/to/semeru-21/bin/java \
+           -jar ../../../buildcommand/rules-compiler/rules-compiler.jar \
+           -config [ProjectName].properties 2>&1
+
+         === macOS (zsh/bash) ===
          # Find IBM Semeru JDK 21 path
          /usr/libexec/java_home -V 2>&1 | grep -i semeru
 
          # Run build command
          cd buildcommand/samples/config-files && \
            /Library/Java/JavaVirtualMachines/ibm-semeru-open-21.jdk/Contents/Home/bin/java \
-           -jar buildcommand/rules-compiler/rules-compiler.jar \
+           -jar ../../../buildcommand/rules-compiler/rules-compiler.jar \
            -config [ProjectName].properties 2>&1
+
+         === Windows (PowerShell) ===
+         # Find IBM Semeru JDK 21 path
+         Get-ChildItem -Path "C:\Program Files\Eclipse Adoptium","C:\Program Files\IBM Semeru","C:\Program Files\Java" `
+           -Filter "java.exe" -Recurse -ErrorAction SilentlyContinue |
+           Where-Object { $_.FullName -match "semeru.*21|21.*semeru" } |
+           Select-Object -First 1 -ExpandProperty FullName
+
+         # Run build command (use backslash paths, PowerShell backtick for line continuation)
+         Set-Location "buildcommand\samples\config-files"
+         & "C:\Program Files\Eclipse Adoptium\jdk-21\bin\java.exe" `
+           -jar "..\..\..\buildcommand\rules-compiler\rules-compiler.jar" `
+           -config "[ProjectName].properties"
+         # Return to workspace root afterwards:
+         Set-Location "..\..\..\"
 
          JDK selection priority:
          1. IBM Semeru OpenJ9 21 (preferred - best ODM compatibility)
          2. IBM Semeru OpenJ9 17 (acceptable)
          3. Standard OpenJDK 21 (may work but less tested)
          NEVER use JDK 8 or JDK 11 - ODM 9.5 requires JDK 17+
+
+         **Windows PATH note:** If `java` is on the system PATH and resolves to JDK 17+, you can
+         use `java` directly instead of the full path. Verify with: java -version
 
       **Step 4 - Interpret Build Output:**
          EXIT CODE 0 = BUILD SUCCESS
@@ -511,13 +591,22 @@ customModes:
          2. Read the vocabulary file to understand phrase definitions
          3. Apply the fix (see BAL Parser Constraints section above)
          4. If XOM was changed: recompile Java + rebuild JAR first
+            === Linux / macOS ===
             cd [xom-project] && javac -d classes src/[package]/*.java && jar cf [name].jar -C classes .
+            === Windows (PowerShell) ===
+            Set-Location "[xom-project]"
+            javac -d classes src\[package]\*.java
+            jar cf [name].jar -C classes .
+            Set-Location ".."
          5. Re-run build command
          6. If new errors appear: they may be cascading - fix the first error first
 
       **Step 6 - Verify Output:**
          After BUILD SUCCESS, confirm the JAR exists:
+         === Linux / macOS ===
          ls -la "[ProjectName]/output/"
+         === Windows (PowerShell) ===
+         Get-ChildItem "[ProjectName]\output\"
          Expected: [ProjectName_with_underscores].jar
 
 

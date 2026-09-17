@@ -1,0 +1,84 @@
+property loadGetterSetterAsProperties "true"
+property origin "xom:/CrossBorderFraudDetection/cross-border-fraud-xom"
+property uuid "fc7cfe3f-9c9f-4ef2-a2c1-93b16bda4cdf"
+package com.fraud.crossborder;
+
+
+public class Customer
+{
+    public string customerId;
+    public string residenceCountryCode;
+    public boolean kycComplete;
+    public boolean hasVerifiedAddress;
+    public boolean hasIdDocument;
+    public boolean hasBusinessProfile;
+    public string riskTier;
+    public readonly java.util.List knownTransactionCountries domain 0,* class string;
+    public readonly java.util.List travelNotifications domain 0,* class string;
+    public Customer(string customerId, string residenceCountryCode)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Customer();
+    public void addKnownTransactionCountry(string countryCode);
+    public void addTravelNotification(string countryCode);
+    public boolean hasTransactionHistoryIn(string countryCode);
+    public boolean hasTravelNotificationFor(string countryCode);
+}
+
+public class RiskScore
+{
+    public int totalScore;
+    public int maxScore;
+    public string confidenceLevel;
+    public boolean sanctionedCountryDetected;
+    public boolean amlJurisdictionDetected;
+    public boolean spendingSurgeDetected;
+    public boolean exoticCurrencyDetected;
+    public boolean offshoreProviderDetected;
+    public boolean greyZoneMerchantDetected;
+    public boolean kycIncompleteDetected;
+    public boolean mandatoryReportingRequired;
+    public readonly java.util.List triggeredRules domain 0,* class string;
+    public readonly java.util.List riskFactors domain 0,* class string;
+    public RiskScore();
+    public void addScore(int points);
+    public void addScore(int points, string ruleName);
+    public void addTriggeredRule(string ruleName);
+    public void addRiskFactor(string factor);
+    public boolean exceedsThreshold(int threshold);
+}
+
+public class Transaction
+{
+    public string transactionId;
+    public double amount;
+    public string currency;
+    public string cardIssuingCountry;
+    public string merchantCountryCode;
+    public string merchantCategory;
+    public boolean merchantIsOffshore;
+    public boolean merchantIsOnGreyList;
+    public boolean merchantIsOnRegulatedWhitelist;
+    public string ipCountryCode;
+    public com.fraud.crossborder.Customer customer;
+    public int crossBorderTransactionCountLast24Hours;
+    public double totalCrossBorderAmountLast24Hours;
+    public int distinctCurrencyZonesLast24Hours;
+    public boolean travelDeclared;
+    public boolean sanctionedCountry;
+    public boolean highRiskAmlJurisdiction;
+    public boolean exoticCurrency;
+    public boolean mandatoryReporting;
+    public com.fraud.crossborder.RiskScore riskScore;
+    public string fraudDecision;
+    public string decisionReasonCode;
+    public string recommendedAction;
+    public readonly java.util.List auditMessages domain 0,* class string;
+    public readonly boolean crossBorder
+                property "factory.ignore" "true";
+    public readonly boolean ipMerchantCountryMismatch
+                property "factory.ignore" "true";
+    public Transaction(string transactionId, double amount, string currency)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public Transaction();
+    public void addAuditMessage(string message);
+}

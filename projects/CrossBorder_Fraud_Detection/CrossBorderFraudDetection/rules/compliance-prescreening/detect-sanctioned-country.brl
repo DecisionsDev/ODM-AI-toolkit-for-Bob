@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-sanctioned-country</name>
+
+  <uuid>e8558c91-adfe-4641-988d-4733a5262e3f</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect Sanctioned Country (Rule 2.1)
+    Package: compliance-prescreening
+    Description: Detects transactions involving merchants in OFAC, EU, or UN sanctioned jurisdictions.
+    Sanctioned country codes: IR (Iran), KP (North Korea), SY (Syria), CU (Cuba), SD (Sudan),
+    RU (Russia), BY (Belarus), MM (Myanmar), LY (Libya), YE (Yemen).
+    Risk Signal: SANCTIONED_COUNTRY
+    Tags: compliance, sanctions, OFAC, block, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    'the transaction' is from sanctioned country
+    or the merchant country code of 'the transaction' is one of { "IR" , "KP" , "SY" , "CU" , "SD" , "RU" , "BY" , "MM" , "LY" , "YE" }
+
+  then
+    make it true that the risk score of 'the transaction' has sanctioned country detected ;
+    add risk factor "Transaction involves a sanctioned jurisdiction (OFAC/EU/UN)" to the risk score of 'the transaction' ;
+    add audit message "SANCTIONED_COUNTRY detected - merchant country is on the sanctions list" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>
