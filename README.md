@@ -64,20 +64,6 @@ The custom mode is defined in [`custom_modes.yaml`](./files/custom_modes.yaml). 
 
 ![Mode Import](images/Mode_Import.png)
 
-
-
-Change the LLM attribution mode to avoid the following message at the end of XML generated files as it breaks the ODM build command execution : 
-
-```bash
-<!-- Made with Bob -->
-```
-
-1. Open Bob settings (gear icon ⚙️ in upper right)
-2. Select **Editor** from left panel
-3. Select **Git Notes** for **LLM attribution**
-
-![LLM attribution](images/LLM_attribution.png)
-
 ### 2️⃣ Setup ODM Build Command (One-Time Setup)
 
 Before creating or modifying ODM projects, you need to retrieve the ODM Build Command compiler in your workspace directory. This is required for validating and building Decision Services.
@@ -107,7 +93,7 @@ docker run -d -e LICENSE=accept -p 9060:9060 -p 9443:9443 -u $(id -u) \
 
 # Wait ~60 seconds, then download and extract
 curl http://localhost:9060/decisioncenter/assets/buildcommand.zip --output buildcommand.zip
-unzip -o ../buildcommand.zip -d buildcommand 'rules-compiler/*'
+unzip -o buildcommand.zip -d buildcommand 'rules-compiler/*'
 
 # Verify and cleanup
 ls -lh buildcommand/rules-compiler/rules-compiler.jar
@@ -126,8 +112,7 @@ docker stop odm-buildcmd && docker rm odm-buildcmd
 
    **Option A: Use a Policy Document (Recommended)**
    ```
-   Generate an ODM rule project based on the Cross-Border Transaction Fraud Detection policy
-   in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
+   Generate an ODM rule project based on the Cross-Border Transaction Fraud Detection policy in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
    ```
    
    **Option B: Natural Language Description**

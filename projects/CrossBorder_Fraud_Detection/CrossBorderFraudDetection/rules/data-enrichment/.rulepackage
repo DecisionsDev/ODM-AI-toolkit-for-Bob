@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>data-enrichment</name>
+  <uuid>31801f28-9794-42cb-bd31-f790507374c2</uuid>
+  <documentation><![CDATA[Validates required fields, initializes the risk score, and sets default output values.]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

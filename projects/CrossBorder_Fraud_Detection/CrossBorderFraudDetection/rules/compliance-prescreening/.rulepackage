@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>compliance-prescreening</name>
+  <uuid>2b4da601-ec1b-4b56-a581-9c5620d19547</uuid>
+  <documentation><![CDATA[Detects compliance violations: sanctions, AML jurisdictions, spending surges, exotic currencies, offshore providers, KYC gaps, grey-zone merchants, and mandatory reporting thresholds.]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

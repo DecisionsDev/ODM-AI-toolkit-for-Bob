@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<com.ibm.rules.studio.model.decisionservice:Operation xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:com.ibm.rules.studio.model.decisionservice="http://com.ibm.rules.studio/model/decisionservice.ecore" xmlns:ilog.rules.studio.model.query.extractor="http://ilog.rules.studio/model/query/extractor.ecore" rulesetName="CrossBorderFraudDetection_Ruleset" usingRuleflow="true" ruleflowName="cross-border-fraud-flow" targetRuleProjectName="CrossBorderFraudDetection">
+  <eAnnotations source="ilog.rules.custom_properties">
+    <details key="rulesetVersion" value="&lt;structValue>&#xA;&lt;name>CrossBorderFraudDetectionOperation&lt;/name>&#xA;&lt;uuid>c8065506-d5f8-49d9-9b07-14cff80ea43e&lt;/uuid>&#xA;&lt;documentation>Decision Service Operation for Cross-Border Transaction Fraud Detection.&#xA;Accepts a Transaction object containing merchant country, customer KYC profile, compliance flags,&#xA;and velocity metrics. Returns the transaction with fraud decision (APPROVE/REVIEW/BLOCK),&#xA;risk score, triggered rules, decision reason code, and recommended action.&#xA;&#xA;REST Endpoint: POST /DecisionService/rest/v1/CrossBorderFraudDetection_Ruleset/execute&#xA;Input: JSON Transaction payload&#xA;Output: JSON Transaction with fraudDecision, riskScore, decisionReasonCode, recommendedAction, auditMessages&lt;/documentation>&#xA;&lt;/structValue>"/>
+  </eAnnotations>
+  <name>CrossBorderFraudDetectionOperation</name>
+  <uuid>d038c2de-0d36-43a6-a685-d8ac3dae673e</uuid>
+  <ruleflow href="../rules/cross-border-fraud-flow.rfl#aa515a0c-8bad-4726-beb9-d06b618b97ac"/>
+  <extractor xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor" name="CrossBorderFraudDetectionOperation_extractor" validator="Default Validator"/>
+  <targetRuleProject href="../../CrossBorderFraudDetection#a712610d-70e8-4caa-9b33-6aae8fcde6de"/>
+</com.ibm.rules.studio.model.decisionservice:Operation>

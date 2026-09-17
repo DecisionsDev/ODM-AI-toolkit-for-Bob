@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-high-risk-aml-jurisdiction</name>
+
+  <uuid>293fb0b8-cb54-4196-917e-c06e361d9eca</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect High-Risk AML Jurisdiction (Rule 2.2)
+    Package: compliance-prescreening
+    Description: Flags transactions from FATF high-risk or monitored jurisdictions where
+    the amount exceeds EUR 200. Triggers manual compliance review as per FATF guidance.
+    FATF grey/black list countries (2024): AF, AL, BJ, BF, CM, HT, IR, JM, KH, ML, MM,
+    MZ, NG, PA, PK, PH, SN, SS, SY, TZ, TR, UG, VN, YE.
+    Risk Signal: AML_JURISDICTION
+    Tags: compliance, AML, FATF, high-risk, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    'the transaction' is in high risk AML jurisdiction
+    or the merchant country code of 'the transaction' is one of { "AF" , "AL" , "BJ" , "BF" , "CM" , "HT" , "JM" , "KH" , "MZ" , "NG" , "PA" , "PK" , "PH" , "SN" , "SS" , "TZ" , "TR" , "UG" , "VN" }
+    and the amount of 'the transaction' is more than 200
+
+  then
+    make it true that the risk score of 'the transaction' has AML jurisdiction detected ;
+    add risk factor "Transaction originates from a FATF high-risk AML jurisdiction" to the risk score of 'the transaction' ;
+    add audit message "AML_JURISDICTION detected - amount exceeds EUR 200 in FATF high-risk country" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>
