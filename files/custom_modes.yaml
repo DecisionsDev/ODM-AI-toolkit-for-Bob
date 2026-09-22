@@ -772,26 +772,32 @@ customModes:
       CRITICAL: Every ODM artifact file MUST have a unique UUID. ALWAYS generate a fresh UUID for each new file.
       NEVER reuse UUIDs from templates or copy-paste UUIDs between files.
 
-      **Rule Designer UUID Ownership and Drift (CRITICAL - Post-Generation Maintenance):**
+      **UUID Consistency — .dop is the Authoritative Source of Truth (CRITICAL):**
 
+      The `<uuid>` inside the `.dop` file is the single source of truth for the operation UUID.
+      Both `.ruleproject` `MigratedToOperationId` and the `.dep` `<operation href>` MUST always
+      equal this value. The required consistent chain is:
+
+        .dop   <uuid>DOP_UUID</uuid>                             ← source of truth
+        .dep   <operation href="...Operation.dop#DOP_UUID"/>     ← follows .dop
+        .ruleproject  MigratedToOperationId="DOP_UUID"           ← follows .dop
+
+      Whenever any of `.ruleproject`, `.dop`, or `.dep` is created or modified, immediately
+      perform the following four steps — no exceptions:
+
+      **UUID Synchronisation Workflow (MANDATORY after any create/modify of .ruleproject, .dop, or .dep):**
+      1. Read `deployment/[ProjectName]Operation.dop` → extract `<uuid>` (this is DOP_UUID)
+      2. Update `.ruleproject` → set `MigratedToOperationId="DOP_UUID"`
+      3. Update `.dep` → set `<operation href="[ProjectName]Operation.dop#DOP_UUID"/>`
+      4. Run Build Command → confirm exit code 0
+
+      **UUID Drift (Rule Designer post-import):**
       When a project is opened in IBM Rule Designer (Eclipse), Rule Designer may regenerate UUIDs
-      for deployment artifacts (.dop, .dep) as it takes ownership of those files. This causes
-      UUID drift: the .dep href no longer matches the .dop uuid, and .ruleproject
-      MigratedToOperationId becomes stale. This is NOT a bug to fight — Rule Designer is the
-      source of truth for its own files once the project is imported.
-
-      **Rule: ALWAYS read .dep and .dop BEFORE running Build Command or fixing UUID errors.**
-      The current .dep href is always correct (Rule Designer wrote it). Align .dop and
-      .ruleproject to match .dep, never the other way around.
-
-      **UUID Drift Correction Workflow:**
-      1. Read .dep → note the UUID in <operation href="X.dop#THE-UUID"/>
-      2. Read .dop → if its <uuid> differs, update .dop <uuid> to match .dep href
-      3. Read .ruleproject → update MigratedToOperationId to the same UUID
-      4. Re-run Build Command to confirm BUILD SUCCESS
+      for deployment artifacts. If drift occurs, the `.dop` `<uuid>` is still the authoritative
+      value — read it first, then align `.dep` and `.ruleproject` to match it.
 
       **Symptom:** "Cannot load operation" or "The deployment configuration named 'X' was not found"
-      after opening the project in Rule Designer — always UUID drift.
+      — always UUID drift; fix by re-running the four-step workflow above.
 
       **Variable initialValue — NEVER use "null" (CRITICAL):**
       The initialValue attribute in .var files controls what object the Decision Engine injects
@@ -1400,7 +1406,6 @@ customModes:
              </versionPolicies>
              ```
          - Without ruleset.version property, deployment fails with "The property 'ruleset.version' is required and not yet set"
-         - The .dop file should also include rulesetVersion="1.0" attribute in the Operation element
 
       3. **Build Properties File Configuration:**
          - When creating buildcommand/samples/config-files/[ProjectName].properties, include:
