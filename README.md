@@ -37,7 +37,7 @@ The Bob mode can generate complete ODM Decision Services for any business domain
 
 **See it in action:**
 
-https://github.ibm.com/user-attachments/assets/a560dda9-e389-4a89-a575-87373a40a82d
+https://github.com/user-attachments/assets/46028c2d-fd19-4944-9fbc-2f49e324b333
 
 ---
 
