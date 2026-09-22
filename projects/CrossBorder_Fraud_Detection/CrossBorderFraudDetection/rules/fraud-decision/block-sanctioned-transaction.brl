@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>block-sanctioned-transaction</name>
+
+  <uuid>18efed97-59ac-4626-862a-4cfa59c31a98</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Block Sanctioned Transaction (Rule 2.1 Override)
+    Package: fraud-decision
+    Description: Automatically blocks any transaction involving a sanctioned jurisdiction
+    regardless of composite score, and escalates to compliance as required by OFAC/EU/UN rules.
+    Decision: BLOCK
+    Reason Code: CBF-201-SANCTIONED-JURISDICTION
+    Recommended Action: BLOCK_AND_ESCALATE_TO_COMPLIANCE
+    Tags: fraud-decision, block, sanctions, compliance-override
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has sanctioned country detected
+
+  then
+    set the fraud decision of 'the transaction' to "BLOCK" ;
+    set the decision reason code of 'the transaction' to "CBF-201-SANCTIONED-JURISDICTION" ;
+    set the recommended action of 'the transaction' to "BLOCK_AND_ESCALATE_TO_COMPLIANCE" ;
+    add audit message "DECISION: BLOCK - Sanctioned jurisdiction detected, compliance escalation required" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

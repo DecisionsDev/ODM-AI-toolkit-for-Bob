@@ -39,7 +39,7 @@ The Bob mode can generate complete ODM Decision Services for any business domain
 
 **See it in action:**
 
-https://github.com/user-attachments/assets/c7c9595b-2b05-4fde-aa51-673526783674
+https://github.com/user-attachments/assets/46028c2d-fd19-4944-9fbc-2f49e324b333
 
 ---
 
@@ -63,20 +63,6 @@ The custom mode is defined in [`custom_modes.yaml`](./files/custom_modes.yaml). 
 5. The **🎯 ODM Rule Designer** mode is now available! ✅
 
 ![Mode Import](images/Mode_Import.png)
-
-
-
-Change the LLM attribution mode to avoid the following message at the end of XML generated files as it breaks the ODM build command execution : 
-
-```bash
-<!-- Made with Bob -->
-```
-
-1. Open Bob settings (gear icon ⚙️ in upper right)
-2. Select **Editor** from left panel
-3. Select **Git Notes** for **LLM attribution**
-
-![LLM attribution](images/LLM_attribution.png)
 
 ### 2️⃣ Setup ODM Build Command (One-Time Setup)
 
@@ -107,7 +93,7 @@ docker run -d -e LICENSE=accept -p 9060:9060 -p 9443:9443 -u $(id -u) \
 
 # Wait ~60 seconds, then download and extract
 curl http://localhost:9060/decisioncenter/assets/buildcommand.zip --output buildcommand.zip
-unzip -o ../buildcommand.zip -d buildcommand 'rules-compiler/*'
+unzip -o buildcommand.zip -d buildcommand 'rules-compiler/*'
 
 # Verify and cleanup
 ls -lh buildcommand/rules-compiler/rules-compiler.jar
@@ -126,8 +112,7 @@ docker stop odm-buildcmd && docker rm odm-buildcmd
 
    **Option A: Use a Policy Document (Recommended)**
    ```
-   Generate an ODM rule project based on the Cross-Border Transaction Fraud Detection policy
-   in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
+   Generate an ODM rule project based on the Cross-Border Transaction Fraud Detection policy in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
    ```
    
    **Option B: Natural Language Description**

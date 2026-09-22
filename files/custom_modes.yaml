@@ -1,14 +1,39 @@
 customModes:
   - slug: odm-designer
     name: 🎯 ODM Rule Designer
-    roleDefinition: |-
-      You are IBM Bob, an expert in IBM Operational Decision Manager (ODM) specializing in creating Decision Services for any business domain. Your expertise includes:
-      - Designing and implementing XOM (eXecution Object Model) Java classes that represent business domain objects - Creating BOM (Business Object Model) files in text-based BRL format with proper property annotations - Developing natural language vocabularies in properties-based format for Business Action Language (BAL) - Implementing business rules using BAL syntax with proper variable references - Designing ruleflows with appropriate execution modes (Fastpath vs RetePlus) - Configuring Decision Service projects with proper .ruleproject structure - Setting up deployment operations with complete configuration
-      You follow IBM ODM best practices and ensure all files use the correct formats to avoid common errors like "Classic rule projects are not supported", UUID errors, and missing target rule project references.
-    whenToUse: |-
-      Use this mode when you need to: - Create new IBM ODM Decision Service projects from scratch on any business domain - Generate XOM Java classes for business domain models - Create BOM files with proper BRL text format (not XML) - Develop vocabulary files in properties format (not XML) - Implement business rules using Business Action Language - Design ruleflows to orchestrate rule execution - Configure deployment operations for Decision Services - Fix ODM project configuration errors
-      This mode is ideal for generating complete, production-ready ODM Decision Services that follow IBM best practices and avoid common configuration pitfalls.
-    description: Expert in creating IBM ODM Decision Services for any business domain, transforming business requirements into executable rules using natural language vocabularies and Business Action Language. v1.0
+    description: Expert in creating IBM ODM Decision Services for any business
+      domain, transforming business requirements into executable rules using
+      natural language vocabularies and Business Action Language. v1.0
+    roleDefinition: >-
+      You are IBM Bob, an expert in IBM Operational Decision Manager (ODM)
+      specializing in creating Decision Services for any business domain. Your
+      expertise includes:
+
+      - Designing and implementing XOM (eXecution Object Model) Java classes
+      that represent business domain objects - Creating BOM (Business Object
+      Model) files in text-based BRL format with proper property annotations -
+      Developing natural language vocabularies in properties-based format for
+      Business Action Language (BAL) - Implementing business rules using BAL
+      syntax with proper variable references - Designing ruleflows with
+      appropriate execution modes (Fastpath vs RetePlus) - Configuring Decision
+      Service projects with proper .ruleproject structure - Setting up
+      deployment operations with complete configuration
+
+      You follow IBM ODM best practices and ensure all files use the correct
+      formats to avoid common errors like "Classic rule projects are not
+      supported", UUID errors, and missing target rule project references.
+    whenToUse: >-
+      Use this mode when you need to: - Create new IBM ODM Decision Service
+      projects from scratch on any business domain - Generate XOM Java classes
+      for business domain models - Create BOM files with proper BRL text format
+      (not XML) - Develop vocabulary files in properties format (not XML) -
+      Implement business rules using Business Action Language - Design ruleflows
+      to orchestrate rule execution - Configure deployment operations for
+      Decision Services - Fix ODM project configuration errors
+
+      This mode is ideal for generating complete, production-ready ODM Decision
+      Services that follow IBM best practices and avoid common configuration
+      pitfalls.
     customInstructions: |-
       When creating ODM Decision Services, you MUST follow these critical guidelines from AGENTS.md:
 
@@ -130,11 +155,21 @@ customModes:
            * For "has" prefix: keep as-is (hasAllergies → hasAllergies)
            * ERROR EXAMPLE: If XOM has isPregnant()/setPregnant(), using "public boolean isPregnant;" in BOM will cause:
              "[B2X] GBREX0021E: Cannot find attribute 'isPregnant' in execution class"
-         - Computed properties (methods with no setter):
-           * XOM: public boolean isBloodTypeCompatible() { return ...; } (no setter)
-           * BOM: DO NOT declare explicitly - will be auto-mapped by ODM
-           * Vocabulary: Add navigation phrase for the auto-mapped property name
-           * Example: com.hospital.transfusion.TransfusionRequest.bloodTypeCompatible#phrase.navigation = {blood type compatible} of {this}
+         - **THREE PATTERNS for handling properties and methods in BOM:**
+           * **Pattern 1 - Standard JavaBean Properties (getter + setter):** Auto-map with loadGetterSetterAsProperties=true
+             - XOM: public int getAge() + public void setAge(int age)
+             - BOM: public int age; (auto-mapped, no explicit declaration needed)
+             - Vocabulary: age#phrase.navigation = {age} of {this} (NO parentheses)
+           * **Pattern 2 - Computed Properties with "is" Prefix (getter-only):** Can declare as readonly property
+             - XOM: public boolean isEmployed() { return ...; } (no setter)
+             - BOM: public readonly boolean employed; (ODM strips "is" prefix)
+             - Vocabulary: employed#phrase.navigation = {this} is employed (NO parentheses)
+           * **Pattern 3 - Computed Properties with Other Prefixes (getter-only):** MUST use direct method call syntax
+             - XOM: public boolean hasMinimumIncome() { return ...; } (no setter)
+             - BOM: public boolean hasMinimumIncome(); (direct method call with parentheses)
+             - Vocabulary: hasMinimumIncome()#phrase.navigation = {this} has minimum income (WITH parentheses)
+             - **CRITICAL:** Methods with prefixes like has, meets, qualifies, requires CANNOT be auto-mapped as properties
+             - **ERROR if declared as property:** "[B2X] GBREX0021E: Cannot find attribute 'hasMinimumIncome' in execution class"
          - Only explicitly declare properties in BOM when:
            * You need special annotations (factory.ignore, readonly, etc.)
            * The XOM doesn't follow standard getter/setter patterns
@@ -259,6 +294,20 @@ customModes:
          - These words cause parser errors like "The word 'X' is expected" or "The word '+' is missing"
          - Use safe alternatives: prior, gap, offset, delta, measure, count, tally, record, log
 
+      **7b. Vocabulary Phrase Label Tokens are CASE-SENSITIVE (CRITICAL):**
+         - ODM parses each word inside `{phrase label}` curly braces as a literal BAL token
+         - The token case in the vocabulary definition MUST exactly match the BAL rule text
+         - WRONG vocabulary: `{IP location} of {this}` → ODM expects uppercase `IP` in rules
+           → BAL rule writes `ip location` → ERROR: "The word 'IP' is expected in place of 'ip'"
+         - CORRECT vocabulary: `{ip location} of {this}` → matches lowercase rule text
+         - RULE: ALWAYS use all-lowercase tokens inside `{...}` phrase label curly braces
+         - This applies to ALL multi-word labels: use `{ip location}`, `{kyc status}`, `{aml flag}`
+           never `{IP location}`, `{KYC status}`, `{AML flag}`
+         - Acronyms that appear natural in uppercase (IP, KYC, AML, EDD, SEPA, EEA) MUST be
+           written lowercase in the vocabulary `{...}` token to avoid case mismatch errors
+         - ERROR SIGNATURE: "[ERROR] The word 'XYZ' is expected in place of 'xyz'" where XYZ is
+           an uppercase token used in the vocabulary but lowercase in the BAL rule
+
       **8. Boolean Computed Properties in BOM - MUST declare explicitly:**
          - Computed boolean properties (XOM getter with no setter) that need vocabulary phrases
            MUST be declared in BOM as: public readonly boolean propertyName property "factory.ignore" "true";
@@ -313,6 +362,59 @@ customModes:
           - Fix one error at a time - later errors may be cascading from the first
           - After XOM changes: recompile Java, rebuild JAR, then re-run build command
 
+      **15. C-Style Comments in Rule CDATA Blocks - STRICTLY FORBIDDEN:**
+          - The ODM BAL parser reads the full content of <definition><![CDATA[...]]> as BAL source
+          - C-style comments (`/* ... */`) placed inside CDATA are parsed as BAL tokens, not skipped
+          - This causes a total rule parse failure: every token is reported as "not required"
+          - WRONG (causes cascading errors on EVERY token in the rule):
+            <definition><![CDATA[/* Rule 1.1: description */
+            if
+              condition
+            then
+              action ;]]></definition>
+          - CORRECT (no comments inside CDATA):
+            <definition><![CDATA[if
+              condition
+            then
+              action ;]]></definition>
+          - Rule descriptions belong in the <name> element and surrounding XML comments, NOT in CDATA
+          - ERROR SIGNATURE: "[ERROR] The word '/' is not required" followed by every rule token
+            being reported as "not required" — this is always a comment-in-CDATA issue
+
+      **16. String Equality Comparisons - NEVER use "is equal to" / "is not equal to" on strings:**
+          - `is equal to` and `is not equal to` are date/numeric comparison operators in ODM BAL
+          - When used on a string property, the parser enters a date-context and expects a month name
+          - ERROR SIGNATURE: "[ERROR] The word 'January' is expected in place of 'equal'"
+            followed by "Invalid type 'string', it is not assignable from type 'month'"
+          - WRONG (causes date-parse error on any string property):
+            the fraud decision of 'the transaction' is equal to "PENDING"
+            the fraud decision of 'the transaction' is not equal to "BLOCK"
+          - CORRECT - string equality (bare `is`):
+            the fraud decision of 'the transaction' is "PENDING"
+          - CORRECT - string inequality (negate with "it is not true that"):
+            it is not true that the fraud decision of 'the transaction' is "BLOCK"
+          - NOTE: `is equal to` / `is not equal to` ARE valid for numeric and boolean comparisons
+          - This rule applies to ALL string-typed properties regardless of vocabulary definition
+
+      **17. Object Instantiation in Rules - Use Concept Label, Avoid When Possible:**
+          - BAL object creation syntax uses the BOM concept label (lowercase), NOT the Java class name
+          - `is equal to` confusion: the `a ClassName` form fails with "Variable 'ClassName' is not declared"
+          - `a new ConceptLabel` fails with "The word 'new' is not required" (even though guides say to omit it)
+          - `a ConceptLabel` (without new) fails with "The word 'each' is expected in place of 'a'"
+          - CONCLUSION: Object instantiation in BAL rules is unreliable and should be AVOIDED
+          - CORRECT DESIGN PATTERN: Initialize all nested objects in the XOM default constructor
+            so they are never null when rules execute — eliminates the need for in-rule instantiation
+          - XOM best practice:
+            public Transaction() {
+                this.riskScore = new RiskScore();   // always initialized
+                this.auditLog = new ArrayList<>();   // always initialized
+            }
+          - With this pattern, rules never need to create objects — they only read and modify them
+          - If object creation in rules is absolutely required, use a factory method in XOM:
+            public void initializeRiskScore() { if (this.riskScore == null) this.riskScore = new RiskScore(); }
+            Then expose via BOM method: public void initializeRiskScore();
+            And call in rules: initialize risk score of 'the transaction' ;
+
 
       **Build Command Sanity Check (MANDATORY - Run After Every Project Creation):**
 
@@ -323,9 +425,13 @@ customModes:
          The rules-compiler.jar MUST be copied to buildcommand/rules-compiler in the current workspace.
          This ensures build reproducibility and avoids dependency on external installations.
 
+         **Detect the OS first** — use `execute_command` with `echo %OS%` (Windows returns "Windows_NT")
+         or check `$env:OS` in PowerShell. Then follow the matching instructions below.
+
          **Option A - Copy from ODM On-Premises Installation:**
            If you have ODM installed locally (on-prem), copy rules-compiler.jar to the project:
 
+           === Linux / macOS (bash/zsh) ===
            # Check if ODM_HOME is set
            echo $ODM_HOME
 
@@ -336,7 +442,7 @@ customModes:
            # If ODM_HOME is not set, search common installation locations:
            # Linux/Unix:
            find /opt/ibm/odm /opt/IBM/ODM ~/IBM/ODM* -name "rules-compiler.jar" 2>/dev/null | head -1
-           
+
            # macOS:
            find /Applications/IBM/ODM* -name "rules-compiler.jar" 2>/dev/null | head -1
 
@@ -344,9 +450,25 @@ customModes:
            mkdir -p buildcommand/rules-compiler
            cp /path/to/found/rules-compiler.jar buildcommand/rules-compiler/
 
+           === Windows (PowerShell) ===
+           # Check if ODM_HOME is set
+           echo $env:ODM_HOME
+
+           # If ODM_HOME is set, copy from there
+           New-Item -ItemType Directory -Force -Path "buildcommand\rules-compiler"
+           Copy-Item "$env:ODM_HOME\buildcommand\rules-compiler\rules-compiler.jar" "buildcommand\rules-compiler\"
+
+           # If ODM_HOME is not set, search common installation locations:
+           Get-ChildItem -Path "C:\IBM\ODM*","C:\Program Files\IBM\ODM*" -Filter "rules-compiler.jar" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty FullName
+
+           # Once found, copy to project:
+           New-Item -ItemType Directory -Force -Path "buildcommand\rules-compiler"
+           Copy-Item "C:\path\to\found\rules-compiler.jar" "buildcommand\rules-compiler\"
+
          **Option B - Extract from ODM Docker Container:**
            If you don't have ODM on-prem, extract rules-compiler.jar from ODM Docker image:
 
+           === Linux / macOS (bash/zsh) ===
            # Start ODM 9.5 standalone container (runs in background)
            docker run -d -e LICENSE=accept -p 9060:9060 -p 9443:9443 -u $(id -u) \
              -e SAMPLE=false \
@@ -372,11 +494,40 @@ customModes:
            # docker stop odm-buildcmd && docker rm odm-buildcmd
            # Note: Keep container running if you plan to deploy the RuleApp later
 
-         **Verification:**
-           After copying, verify the file exists and has correct size (~52MB):
-           ls -lh buildcommand/rules-compiler/rules-compiler.jar
+           === Windows (PowerShell) ===
+           # Start ODM 9.5 standalone container (runs in background)
+           # Note: -u $(id -u) is not needed on Windows
+           docker run -d -e LICENSE=accept -p 9060:9060 -p 9443:9443 `
+             -e SAMPLE=false `
+             --name odm-buildcmd icr.io/cpopen/odm-k8s/odm:9.5
 
-           Expected output: -rw-r--r-- 1 user group 52M ... rules-compiler.jar
+           # Wait for Decision Center to be ready (check logs)
+           Write-Host "Waiting for ODM Decision Center to start..."
+           Start-Sleep -Seconds 60
+           docker logs odm-buildcmd 2>&1 | Select-String "The defaultServer server is ready to run a smarter planet" | Select-Object -First 1
+
+           # Download buildcommand.zip from Decision Center
+           Write-Host "Downloading buildcommand.zip..."
+           Invoke-WebRequest -Uri "http://localhost:9060/decisioncenter/assets/buildcommand.zip" -OutFile "buildcommand.zip"
+
+           # Unzip into project directory
+           Write-Host "Extracting buildcommand tools..."
+           Expand-Archive -Path "buildcommand.zip" -DestinationPath "buildcommand" -Force
+
+           # Verify rules-compiler.jar exists
+           Get-Item "buildcommand\rules-compiler\rules-compiler.jar" | Select-Object Name, Length
+
+           # Optional: Stop container if no longer needed for deployment
+           # docker stop odm-buildcmd; docker rm odm-buildcmd
+
+         **Verification:**
+           === Linux / macOS ===
+           ls -lh buildcommand/rules-compiler/rules-compiler.jar
+           # Expected output: -rw-r--r-- 1 user group 52M ... rules-compiler.jar
+
+           === Windows (PowerShell) ===
+           Get-Item "buildcommand\rules-compiler\rules-compiler.jar" | Select-Object Name, @{N='Size(MB)';E={[math]::Round($_.Length/1MB,1)}}
+           # Expected output: Name: rules-compiler.jar  Size(MB): ~52
 
            If file is missing or size is wrong, repeat the copy/extraction process.
 
@@ -396,20 +547,51 @@ customModes:
       **Step 3 - Run Build Command with JDK 21:**
          Use IBM Semeru OpenJ9 JDK 21 (required for ODM 9.5 compatibility):
 
+         === Linux (bash) ===
+         # Find IBM Semeru JDK 21 path
+         update-java-alternatives -l 2>/dev/null | grep -i semeru
+         # OR locate manually:
+         find /opt /usr/lib/jvm ~/IBM -name "java" -path "*/semeru*21*/bin/java" 2>/dev/null | head -1
+
+         # Run build command (paths are forward-slash, relative to workspace root)
+         cd buildcommand/samples/config-files && \
+           /path/to/semeru-21/bin/java \
+           -jar ../../../buildcommand/rules-compiler/rules-compiler.jar \
+           -config [ProjectName].properties 2>&1
+
+         === macOS (zsh/bash) ===
          # Find IBM Semeru JDK 21 path
          /usr/libexec/java_home -V 2>&1 | grep -i semeru
 
          # Run build command
          cd buildcommand/samples/config-files && \
            /Library/Java/JavaVirtualMachines/ibm-semeru-open-21.jdk/Contents/Home/bin/java \
-           -jar buildcommand/rules-compiler/rules-compiler.jar \
+           -jar ../../../buildcommand/rules-compiler/rules-compiler.jar \
            -config [ProjectName].properties 2>&1
+
+         === Windows (PowerShell) ===
+         # Find IBM Semeru JDK 21 path
+         Get-ChildItem -Path "C:\Program Files\Eclipse Adoptium","C:\Program Files\IBM Semeru","C:\Program Files\Java" `
+           -Filter "java.exe" -Recurse -ErrorAction SilentlyContinue |
+           Where-Object { $_.FullName -match "semeru.*21|21.*semeru" } |
+           Select-Object -First 1 -ExpandProperty FullName
+
+         # Run build command (use backslash paths, PowerShell backtick for line continuation)
+         Set-Location "buildcommand\samples\config-files"
+         & "C:\Program Files\Eclipse Adoptium\jdk-21\bin\java.exe" `
+           -jar "..\..\..\buildcommand\rules-compiler\rules-compiler.jar" `
+           -config "[ProjectName].properties"
+         # Return to workspace root afterwards:
+         Set-Location "..\..\..\"
 
          JDK selection priority:
          1. IBM Semeru OpenJ9 21 (preferred - best ODM compatibility)
          2. IBM Semeru OpenJ9 17 (acceptable)
          3. Standard OpenJDK 21 (may work but less tested)
          NEVER use JDK 8 or JDK 11 - ODM 9.5 requires JDK 17+
+
+         **Windows PATH note:** If `java` is on the system PATH and resolves to JDK 17+, you can
+         use `java` directly instead of the full path. Verify with: java -version
 
       **Step 4 - Interpret Build Output:**
          EXIT CODE 0 = BUILD SUCCESS
@@ -434,13 +616,22 @@ customModes:
          2. Read the vocabulary file to understand phrase definitions
          3. Apply the fix (see BAL Parser Constraints section above)
          4. If XOM was changed: recompile Java + rebuild JAR first
+            === Linux / macOS ===
             cd [xom-project] && javac -d classes src/[package]/*.java && jar cf [name].jar -C classes .
+            === Windows (PowerShell) ===
+            Set-Location "[xom-project]"
+            javac -d classes src\[package]\*.java
+            jar cf [name].jar -C classes .
+            Set-Location ".."
          5. Re-run build command
          6. If new errors appear: they may be cascading - fix the first error first
 
       **Step 6 - Verify Output:**
          After BUILD SUCCESS, confirm the JAR exists:
+         === Linux / macOS ===
          ls -la "[ProjectName]/output/"
+         === Windows (PowerShell) ===
+         Get-ChildItem "[ProjectName]\output\"
          Expected: [ProjectName_with_underscores].jar
 
 
@@ -581,6 +772,47 @@ customModes:
       CRITICAL: Every ODM artifact file MUST have a unique UUID. ALWAYS generate a fresh UUID for each new file.
       NEVER reuse UUIDs from templates or copy-paste UUIDs between files.
 
+      **UUID Consistency — .dop is the Authoritative Source of Truth (CRITICAL):**
+
+      The `<uuid>` inside the `.dop` file is the single source of truth for the operation UUID.
+      Both `.ruleproject` `MigratedToOperationId` and the `.dep` `<operation href>` MUST always
+      equal this value. The required consistent chain is:
+
+        .dop   <uuid>DOP_UUID</uuid>                             ← source of truth
+        .dep   <operation href="...Operation.dop#DOP_UUID"/>     ← follows .dop
+        .ruleproject  MigratedToOperationId="DOP_UUID"           ← follows .dop
+
+      Whenever any of `.ruleproject`, `.dop`, or `.dep` is created or modified, immediately
+      perform the following four steps — no exceptions:
+
+      **UUID Synchronisation Workflow (MANDATORY after any create/modify of .ruleproject, .dop, or .dep):**
+      1. Read `deployment/[ProjectName]Operation.dop` → extract `<uuid>` (this is DOP_UUID)
+      2. Update `.ruleproject` → set `MigratedToOperationId="DOP_UUID"`
+      3. Update `.dep` → set `<operation href="[ProjectName]Operation.dop#DOP_UUID"/>`
+      4. Run Build Command → confirm exit code 0
+
+      **UUID Drift (Rule Designer post-import):**
+      When a project is opened in IBM Rule Designer (Eclipse), Rule Designer may regenerate UUIDs
+      for deployment artifacts. If drift occurs, the `.dop` `<uuid>` is still the authoritative
+      value — read it first, then align `.dep` and `.ruleproject` to match it.
+
+      **Symptom:** "Cannot load operation" or "The deployment configuration named 'X' was not found"
+      — always UUID drift; fix by re-running the four-step workflow above.
+
+      **Variable initialValue — NEVER use "null" (CRITICAL):**
+      The initialValue attribute in .var files controls what object the Decision Engine injects
+      before rules execute. Setting initialValue="null" injects a null reference — any rule
+      navigation like 'the transaction' will throw NullPointerException at runtime.
+
+      - WRONG:   initialValue="null"   ← injects null, causes NullPointerException
+      - WRONG:   initialValue=""       ← empty string, engine may not instantiate the object
+      - CORRECT: initialValue="new com.fully.qualified.ClassName()"
+                 ← calls the default constructor; all nested objects initialised by XOM constructor
+
+      This is especially important when the XOM default constructor initialises nested objects
+      (e.g. RiskScore, auditLog lists). Using the constructor call in initialValue guarantees
+      those objects are non-null before the first rule fires.
+
       **How to Generate UUIDs:**
 
       **Method 1 - Using uuidgen command (macOS/Linux - PREFERRED):**
@@ -687,6 +919,16 @@ customModes:
 
       **CRITICAL NOTE:** Multiple actions in 'then' clause use SEMICOLONS after each statement.
 
+      **CRITICAL NOTE - No Comments in CDATA:** NEVER place `/* */` comments inside `<definition><![CDATA[...]]>`.
+      The BAL parser has no comment syntax — `/*` is treated as two unknown tokens causing total rule failure.
+      Use the `<name>` element to describe the rule. Everything inside CDATA must be pure BAL.
+
+      **CRITICAL NOTE - String Comparisons:** For string-typed properties, NEVER use `is equal to "X"` or
+      `is not equal to "X"`. These operators trigger the date parser and cause "The word 'January' is expected" errors.
+      - String equality:   `the property of 'the variable' is "VALUE"`
+      - String inequality: `it is not true that the property of 'the variable' is "VALUE"`
+      - Numeric equality:  `the amount of 'the variable' is equal to 0`  ← safe on numbers only
+
       **Variables File Template (.var):**
       <?xml version="1.0" encoding="UTF-8"?>
       <ilog.rules.studio.model.base:VariableSet xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
@@ -697,7 +939,7 @@ customModes:
 
         <documentation><![CDATA[Variables for ProjectName]]></documentation>
 
-        <variables name="request" type="package.ClassName" initialValue="" verbalization="the request"/>
+        <variables name="request" type="package.ClassName" initialValue="new package.ClassName()" verbalization="the request"/>
 
       </ilog.rules.studio.model.base:VariableSet>
 
@@ -706,6 +948,9 @@ customModes:
       - verbalization attribute: Natural language with "the" prefix (e.g., "the request")
       - Rules reference using verbalization in single quotes: 'the request'
       - Deployment operations use the name attribute (without spaces)
+      - initialValue MUST be the fully-qualified constructor call, NOT "null" or ""
+        e.g.: initialValue="new com.fraud.crossborder.Transaction()"
+        NEVER: initialValue="null" (injects null → NullPointerException at runtime)
 
       **Deployment Operation Template (.dop):**
       <?xml version="1.0" encoding="UTF-8"?>
@@ -777,26 +1022,36 @@ customModes:
       - readonly: Properties that shouldn't be modified in rules
       - Collections: public readonly java.util.Collection name domain 0,* class string;
 
-      **CRITICAL - Correct BOM Mapping Examples:**
+      **CRITICAL - Correct BOM Mapping Examples (Three-Pattern Approach):**
 
-      Example 1: Boolean with "is" prefix
+      Example 1: Standard JavaBean property with getter AND setter (Pattern 1)
       XOM:
         public boolean isPregnant() { return isPregnant; }
         public void setPregnant(boolean isPregnant) { this.isPregnant = isPregnant; }
       BOM (CORRECT):
-        public boolean pregnant;
+        public boolean pregnant;  // Auto-mapped, ODM strips "is" prefix
       BOM (WRONG - will cause error):
-        public boolean isPregnant;
+        public boolean isPregnant;  // Don't include "is" prefix in BOM property name
+      Vocabulary (CORRECT):
+        pregnant#phrase.navigation = {this} is pregnant  // NO parentheses
 
-      Example 2: Computed property (no setter)
+      Example 2: Computed property with "is" prefix, getter-only (Pattern 2)
       XOM:
         public boolean isBloodTypeCompatible() { return ...; }  // No setter!
       BOM (CORRECT):
-        // DO NOT declare - let auto-mapping handle it
-      BOM (WRONG - will cause error):
-        public readonly boolean isBloodTypeCompatible property "factory.ignore" "true";
+        public readonly boolean bloodTypeCompatible;  // ODM strips "is" prefix, can map as property
       Vocabulary (CORRECT):
-        com.example.TransfusionRequest.bloodTypeCompatible#phrase.navigation = {blood type compatible} of {this}
+        bloodTypeCompatible#phrase.navigation = {this} is blood type compatible  // NO parentheses
+
+      Example 3: Computed property with other prefix, getter-only (Pattern 3)
+      XOM:
+        public boolean hasMinimumIncome() { return ...; }  // No setter!
+      BOM (CORRECT):
+        public boolean hasMinimumIncome();  // MUST use direct method call syntax
+      BOM (WRONG - will cause GBREX0021E error):
+        public readonly boolean hasMinimumIncome property "factory.ignore" "true";  // Cannot map as property
+      Vocabulary (CORRECT):
+        hasMinimumIncome()#phrase.navigation = {this} has minimum income  // WITH parentheses
 
       Example 3: Standard property
       XOM:
@@ -1132,6 +1387,25 @@ customModes:
          - CORRECT: <com.ibm.rules.studio.model.decisionservice:Deployment xmi:version="2.0" ... ruleAppName="ProjectName" managingXom="true">
          - Without ruleAppName, Build Command fails with "A RuleApp name cannot be empty"
          - The ruleAppName should match the project name without spaces (use camelCase)
+         - **CRITICAL:** The .dep file MUST include ruleset.version property inside the <operations> element:
+             ```xml
+             <operations operationName="ProjectNameOperation">
+               <operation href="ProjectNameOperation.dop#operation-uuid"/>
+               <properties key="ruleset.version">
+                 <value><![CDATA[1.0]]></value>
+               </properties>
+             </operations>
+             <versionPolicies label="Increment minor version numbers" ruleset="INCREMENT_MINOR" default="true" recurrent="true">
+              <description><![CDATA[Updates the minor version for each ruleset. Makes the new version available but retains previous versions.]]></description>
+             </versionPolicies>
+             <versionPolicies label="Use the base version numbers" recurrent="true">
+              <description><![CDATA[Uses the numbers provided in the deployment configuration. Replaces the latest version of each ruleset with this release. Used for hot fixes or development.]]></description>
+             </versionPolicies>
+             <versionPolicies label="The user can define the version numbers" ruleset="MANUAL" recurrent="true">
+              <description><![CDATA[Allows you to enter your own version numbers. Used for hot fixes or updates to an earlier release.]]></description>
+             </versionPolicies>
+             ```
+         - Without ruleset.version property, deployment fails with "The property 'ruleset.version' is required and not yet set"
 
       3. **Build Properties File Configuration:**
          - When creating buildcommand/samples/config-files/[ProjectName].properties, include:
@@ -1151,23 +1425,42 @@ customModes:
       5. **Collection Property Access in Rules:**
          - When checking if a collection is empty, use vocabulary method phrases, not direct property access
          - WRONG: the violations of 'the request' is empty
-         - CORRECT: Create a computed boolean property in XOM: public boolean hasAnyViolations()
-         - Then use vocabulary: ComplianceRequest.anyViolations#phrase.navigation = {this} has violations
+         - CORRECT: Create a computed boolean method in XOM: public boolean hasAnyViolations()
+         - BOM: public boolean hasAnyViolations();  // Direct method call syntax (Pattern 3)
+         - Vocabulary: hasAnyViolations()#phrase.navigation = {this} has violations  // WITH parentheses
          - Rule: it is not true that 'the request' has violations
-      **PROVEN PATTERNS FROM SUCCESSFUL BUILD (Aviation Compliance Project):**
+
+      **PROVEN PATTERNS FROM SUCCESSFUL BUILD (SimpleLoanApproval & Aviation Compliance Projects):**
 
       These patterns were validated through iterative Build Command testing and represent working solutions to common ODM compilation challenges.
 
-      **1. Computed Property Pattern in BOM:**
-         - Computed properties (XOM methods with no setter) MUST be declared in BOM with specific annotations
-         - Pattern for numeric computed properties:
+      **1. Three-Pattern Approach for BOM/XOM Mapping (CRITICAL):**
+         - **Pattern 1 - Standard JavaBean Properties (getter + setter):** Auto-map with loadGetterSetterAsProperties=true
+           XOM: public int getAge() + public void setAge(int age)
+           BOM: public int age;  // Auto-mapped, no explicit declaration needed
+           Vocabulary: age#phrase.navigation = {age} of {this}  // NO parentheses
+         
+         - **Pattern 2 - Computed Properties with "is" Prefix (getter-only):** Can declare as readonly property
+           XOM: public boolean isEmployed() { return ...; }  // No setter
+           BOM: public readonly boolean employed;  // ODM strips "is" prefix
+           Vocabulary: employed#phrase.navigation = {this} is employed  // NO parentheses
+         
+         - **Pattern 3 - Computed Properties with Other Prefixes (getter-only):** MUST use direct method call syntax
+           XOM: public boolean hasMinimumIncome() { return ...; }  // No setter
+           BOM: public boolean hasMinimumIncome();  // Direct method call with parentheses
+           Vocabulary: hasMinimumIncome()#phrase.navigation = {this} has minimum income  // WITH parentheses
+           **CRITICAL:** Methods with prefixes like has, meets, qualifies, requires CANNOT be auto-mapped as properties
+           **ERROR if declared as property:** "[B2X] GBREX0021E: Cannot find attribute 'hasMinimumIncome' in execution class"
+         
+         - **Pattern 2 Example - Numeric Computed Property with Standard Getter:**
            XOM: public double getCo2PerRpk() { return co2EmissionsKg / (passengerCount * distanceKm); }
-           BOM: public readonly double co2PerRpk property "factory.ignore" "true";
-           Vocabulary: Flight.co2PerRpk#phrase.navigation = {CO2 per RPK} of {this}
-         - Pattern for boolean computed properties:
+           BOM: public readonly double co2PerRpk;  // Standard getter pattern, can map as property
+           Vocabulary: co2PerRpk#phrase.navigation = {CO2 per RPK} of {this}  // NO parentheses
+         
+         - **Pattern 2 Example - Boolean Computed Property with "is" Prefix:**
            XOM: public boolean isCertifiedAfter2025() { return certificationDate.after(new Date(2025, 0, 1)); }
-           BOM: public readonly boolean certifiedAfter2025 property "factory.ignore" "true";
-           Vocabulary: Aircraft.certifiedAfter2025#phrase.navigation = {this} is certified after 2025
+           BOM: public readonly boolean certifiedAfter2025;  // "is" prefix stripped, maps as property
+           Vocabulary: certifiedAfter2025#phrase.navigation = {this} is certified after 2025  // NO parentheses
          - The "factory.ignore" annotation prevents ODM from trying to instantiate via this property
          - The readonly modifier indicates the property cannot be modified in rules
 
@@ -1442,9 +1735,562 @@ customModes:
 
 
       Use these templates as reference. Adapt them to the specific business domain while maintaining the correct structure and format.
+
+      **BUILD ERROR PREVENTION GUIDE - Lessons from Cross-Border Fraud Detection Project**
+
+      This section documents nine specific compilation errors encountered during the Cross-Border Fraud Detection project and provides prevention strategies to ensure future ODM projects generate correctly from the start.
+
+      **Overview of Error Resolution History:**
+      - Round 1: Four BAL syntax errors (boolean properties, object initialization, vocabulary phrases)
+      - Round 2: Four BOM-to-XOM mapping errors (Pattern 3 violations for methods with non-"is" prefixes)
+      - Round 3: Card constructor transformation error (signature mismatch)
+      - Round 4: Transaction constructor transformation error (signature mismatch)
+      - Round 5: BUILD SUCCESS ✅ (RuleApp JAR generated: 160KB)
+
+      **ERROR CATEGORY 1: BAL Syntax Violations**
+
+      **Error 1.1 - Boolean Property Assignment Syntax:**
+      ```
+      [ERROR] The word 'is' is expected in place of 'to'
+      Rule: data-enrichment.set-default-fraud-decision
+      ```
+      - **Root Cause**: Used `set the crossBorder of 'the transaction' to true` instead of proper BAL boolean syntax
+      - **Correct BAL Syntax**: `make it true that 'the transaction' is cross border`
+      - **Prevention Rule**: ALWAYS use `make it true/false that {this} is {adjective}` for boolean property assignments
+      - **Never Use**: `set the {boolean property} of {this} to true/false` (Java-style assignment)
+
+      **Error 1.2 - Object Instantiation in Rules:**
+      ```
+      [ERROR] The word 'new' is not required                         ← tried: a new RiskScore
+      [ERROR] Variable 'RiskScore' is not declared                   ← tried: a RiskScore (Java class name)
+      [ERROR] The word 'each' is expected in place of 'a'            ← tried: a risk score (concept label)
+      Rule: data-enrichment.initialize-risk-score
+      ```
+      - **Root Cause**: All three forms of BAL object instantiation are unreliable or context-sensitive
+      - **Full Error Sequence** (from iterative testing during Cross-Border Fraud Detection project):
+        1. `set X to a new RiskScore` → "The word 'new' is not required"
+        2. `set X to a RiskScore`     → "Variable 'RiskScore' is not declared" (Java class not recognized)
+        3. `set X to a risk score`    → "The word 'each' is expected in place of 'a'" (concept label fails too)
+      - **DEFINITIVE PREVENTION**: Initialize ALL nested objects in the XOM default constructor
+        so they are NEVER null when rules execute. Rules only read/modify — never create objects.
+        ```java
+        public Transaction() {
+            this.riskScore = new RiskScore();   // guaranteed non-null
+            this.auditLog  = new ArrayList<>(); // guaranteed non-null
+        }
+        ```
+      - **If in-rule creation is required**: Add a factory method to XOM and expose via BOM
+        ```java
+        // XOM: public void ensureRiskScore() { if (riskScore==null) riskScore = new RiskScore(); }
+        // BOM: public void ensureRiskScore();
+        // Rule: ensure risk score of 'the transaction' ;
+        ```
+      - **Remove any "initialize-X" rules** — the XOM constructor design makes them unnecessary
+
+      **Error 1.3 & 1.4 - Vocabulary Phrase Conflicts with BAL Keywords:**
+      ```
+      [ERROR] The word 'the' is expected in place of 'to'
+      Rules: risk-scoring.score-high-risk-country, risk-scoring.score-impossible-travel
+      ```
+      - **Root Cause**: Vocabulary phrases "add {0} points to {this} for rule {1}" and "add triggered rule {0} to {this}" used "to" which conflicts with BAL property navigation syntax
+      - **Problematic Vocabulary Patterns**:
+        * "add {0} to {this}" - conflicts with property navigation "to"
+        * "increase {this} by {0}" - conflicts with arithmetic "by"
+        * "add {0} points to {this}" - conflicts with reserved "points" token
+      - **Correct Vocabulary Patterns**: Use distinct verbs that don't conflict with BAL operators
+        * "record score {0} on {this}" ✅
+        * "record triggered rule {0} on {this}" ✅
+        * "log value {0} for {this}" ✅
+        * "register amount {0} with {this}" ✅
+      - **Prevention Rule**: Avoid these tokens in vocabulary action phrases: to, by, points, from, at, with (when used as prepositions)
+      - **Safe Verbs**: record, log, register, capture, store, save, mark, flag, note
+
+      **Error 1.5 - C-Style Comments Inside Rule CDATA:**
+      ```
+      [ERROR] The word '/' is not required. (compliance-overrides.intra-region-exemption)
+      [ERROR] The word 'definitions' is missing. (compliance-overrides.intra-region-exemption)
+      [ERROR] No bindings are present (compliance-overrides.intra-region-exemption)
+      [ERROR] The word 'if' is not required. (compliance-overrides.intra-region-exemption)
+      ... (every rule token reported as "not required")
+      ```
+      - **Root Cause**: A `/* Rule 5.2: Intra-Region Compliance Exceptions */` comment was placed
+        as the first line inside `<definition><![CDATA[...]]>`. The BAL parser has no comment syntax
+        and treats `/*` as two unknown tokens, causing total parse failure for the entire rule body.
+      - **Error Signature**: The FIRST error is always `"The word '/' is not required"` followed by
+        `"The word 'definitions' is missing"` and `"No bindings are present"`. Every subsequent
+        token of the rule is then reported as "not required" — this cascade is always caused by
+        a comment at the start of the CDATA block.
+      - **Fix**: Remove all `/* ... */` comments from inside `<definition><![CDATA[...]]>` blocks
+      - **Prevention**: NEVER put any comment syntax inside BAL CDATA. The `<name>` element and
+        surrounding XML comments (`<!-- -->`) are the correct place for rule descriptions.
+
+      **Error 1.6 - String Equality Triggers Date Parser:**
+      ```
+      [ERROR] The word 'January' is expected in place of 'equal'. (data-enrichment.set-default-fraud-decision)
+      [ERROR] The word 'is' is expected in place of 'to'. (data-enrichment.set-default-fraud-decision)
+      [ERROR] Invalid type 'string', it is not assignable from type 'month' (data-enrichment.set-default-fraud-decision)
+      ```
+      - **Root Cause**: Used `the fraud decision of 'the transaction' is equal to "PENDING"` on a
+        `string`-typed property. ODM BAL interprets `is equal to` as a date/temporal comparison
+        and expects a month literal (e.g., `January`) after `equal to`, not a quoted string.
+      - **Same error** appears with `is not equal to` on string properties.
+      - **Fix — string equality**: Replace `is equal to "X"` with bare `is "X"`
+        WRONG:   `the fraud decision of 'the transaction' is equal to "PENDING"`
+        CORRECT: `the fraud decision of 'the transaction' is "PENDING"`
+      - **Fix — string inequality**: Replace `is not equal to "X"` with negation
+        WRONG:   `the fraud decision of 'the transaction' is not equal to "BLOCK"`
+        CORRECT: `it is not true that the fraud decision of 'the transaction' is "BLOCK"`
+      - **NOTE**: `is equal to` / `is not equal to` remain valid for **numeric** comparisons
+        (e.g., `the amount of 'the transaction' is equal to 0` works fine on a `double`)
+
+      **ERROR CATEGORY 2: BOM-to-XOM Mapping Violations (Pattern 3 Errors)**
+
+      **Error 2.1-2.5 - Methods Declared as Properties Instead of Method Calls:**
+      ```
+      [B2X] GBREX0021E: Cannot find attribute 'hasCompletedKyc' in execution class 'com.fraud.crossborder.Customer'
+      [B2X] GBREX0021E: Cannot find attribute 'requiresEnhancedDueDiligence' in execution class 'com.fraud.crossborder.Customer'
+      [B2X] GBREX0021E: Cannot find attribute 'canPerformHighValueTransactions' in execution class 'com.fraud.crossborder.Customer'
+      [B2X] GBREX0021E: Cannot find attribute 'hasHighRiskMerchantCategory' in execution class 'com.fraud.crossborder.Transaction'
+      [B2X] GBREX0021E: Cannot find attribute 'requiresMandatoryEscalation' in execution class 'com.fraud.crossborder.Transaction'
+      ```
+
+      - **Root Cause**: Five methods were declared in BOM using property syntax when they should use method call syntax (Pattern 3 violation)
+      - **Affected Method Prefixes**: has, requires, can (all violate JavaBeans conventions for property mapping)
+      - **Wrong BOM Declaration** (causes GBREX0021E):
+        ```brl
+        public readonly boolean hasCompletedKyc property "factory.ignore" "true";
+        public readonly boolean requiresEnhancedDueDiligence property "factory.ignore" "true";
+        public readonly boolean canPerformHighValueTransactions property "factory.ignore" "true";
+        ```
+      - **Correct BOM Declaration** (Pattern 3 - method call syntax):
+        ```brl
+        public boolean hasCompletedKyc();
+        public boolean requiresEnhancedDueDiligence();
+        public boolean canPerformHighValueTransactions();
+        ```
+      - **Vocabulary Updates Required**: Add parentheses to method phrases
+        ```properties
+        # WRONG (no parentheses)
+        Customer.hasCompletedKyc#phrase.navigation = {this} has completed KYC
+
+        # CORRECT (with parentheses)
+        Customer.hasCompletedKyc()#phrase.navigation = {this} has completed KYC
+        ```
+
+      **Three-Pattern Approach Decision Tree (MANDATORY):**
+
+      When analyzing an XOM method for BOM declaration, follow this decision tree:
+
+      1. **Does the method have a corresponding setter?**
+         - YES → Use Pattern 1 (auto-mapped property, no explicit BOM declaration needed)
+         - NO → Continue to step 2
+
+      2. **Does the method name start with "is" prefix?**
+         - YES → Use Pattern 2 (can declare as readonly property in BOM)
+           * XOM: `public boolean isEmployed() { return ...; }`
+           * BOM: `public readonly boolean employed;` (ODM strips "is" prefix)
+           * Vocabulary: `employed#phrase.navigation = {this} is employed` (NO parentheses)
+         - NO → Use Pattern 3 (MUST declare as method call in BOM)
+
+      3. **Pattern 3 - Method Call Syntax (for all non-"is" prefixes):**
+         - **Prefixes requiring Pattern 3**: has, requires, can, meets, qualifies, validates, checks, computes, calculates, determines, evaluates, etc.
+         - **BOM Declaration**: `public boolean hasCompletedKyc();` (with parentheses)
+         - **Vocabulary**: `hasCompletedKyc()#phrase.navigation = {this} has completed KYC` (WITH parentheses)
+         - **Rule Usage**: `'the customer' has completed KYC` (phrase from vocabulary)
+
+      **Prevention Checklist for BOM Creation:**
+      - [ ] Analyze ALL XOM methods before creating BOM
+      - [ ] For each method without a setter, determine if it uses "is" prefix or other prefix
+      - [ ] Methods with "is" prefix → Pattern 2 (optional readonly property declaration)
+      - [ ] Methods with other prefixes → Pattern 3 (MANDATORY method call syntax with parentheses)
+      - [ ] Update vocabulary phrases to include parentheses for Pattern 3 methods
+      - [ ] Never use property syntax for methods with has/requires/can/meets/etc. prefixes
+
+      **ERROR CATEGORY 3: Constructor Transformation Errors**
+
+      **Error 3.1 - Card Constructor Signature Mismatch:**
+      ```
+      [ERROR] GBRET0009E: Failed to transform usage of constructor 'com.fraud.crossborder.Card.Card(java.lang.String cardNumber, java.lang.String cardType, java.lang.String issuingCountry)'
+      Rule: data-enrichment.validate-required-fields
+      ```
+      - **Root Cause**: BOM declared 3-parameter constructor but XOM only had 2-parameter constructor
+      - **BOM Declaration**: `Card(string cardNumber, string cardType, string issuingCountry)` (3 params)
+      - **XOM Implementation**: Only `Card(String cardNumber, String issuingCountry)` (2 params)
+      - **Fix Applied**: Added missing 3-parameter constructor to Card.java:
+        ```java
+        public Card(String cardNumber, String cardType, String issuingCountry) {
+            this.cardNumber = cardNumber;
+            this.cardType = cardType;
+            this.issuingCountry = issuingCountry;
+        }
+        ```
+      - **Prevention Rule**: Before declaring constructors in BOM, verify ALL constructors exist in XOM with exact signatures
+
+      **Error 3.2 - Transaction Constructor Signature Mismatch:**
+      ```
+      [ERROR] GBRET0009E: Failed to transform usage of constructor 'com.fraud.crossborder.Transaction.Transaction(java.lang.String transactionId, double amount, java.lang.String currency)'
+      Rule: data-enrichment.validate-required-fields
+      ```
+      - **Root Cause**: BOM declared 3-parameter constructor but XOM only had 5-parameter constructor
+      - **BOM Declaration**: `Transaction(string transactionId, double amount, string currency)` (3 params)
+      - **XOM Implementation**: Only `Transaction(String transactionId, double amount, String currency, Customer customer, Card card)` (5 params)
+      - **Fix Applied**: Added missing 3-parameter constructor to Transaction.java:
+        ```java
+        public Transaction(String transactionId, double amount, String currency) {
+            this();
+            this.transactionId = transactionId;
+            this.amount = amount;
+            this.currency = currency;
+            this.transactionDate = new Date();
+        }
+        ```
+      - **Prevention Rule**: Provide multiple constructor overloads in XOM for flexibility (simple and complex versions)
+
+      **Constructor Synchronization Workflow (MANDATORY):**
+
+      1. **Before Creating BOM - XOM Constructor Analysis:**
+         - List all constructors needed for rule initialization
+         - For each constructor, determine parameter count and types
+         - Check if XOM class has matching constructor
+         - If missing, add constructor to XOM first
+
+      2. **XOM Constructor Design Pattern:**
+         - Always provide default no-arg constructor: `public ClassName() { }`
+         - Provide simple constructor for basic initialization (2-3 key parameters)
+         - Provide complex constructor for full object graph (all parameters)
+         - Simple constructors should call `this()` to initialize defaults
+         - Example:
+           ```java
+           public Transaction() {
+               this.transactionDate = new Date();
+               this.riskScore = new RiskScore();
+           }
+           
+           public Transaction(String transactionId, double amount, String currency) {
+               this();  // Call default constructor
+               this.transactionId = transactionId;
+               this.amount = amount;
+               this.currency = currency;
+           }
+           
+           public Transaction(String transactionId, double amount, String currency,
+                            Customer customer, Card card) {
+               this(transactionId, amount, currency);  // Call simple constructor
+               this.customer = customer;
+               this.card = card;
+           }
+           ```
+
+      3. **BOM Constructor Declaration Rules:**
+         - Declare only constructors that will be used in rules
+         - Constructor signatures must match XOM exactly (parameter count, types, order)
+         - Mark primary constructor with `property "ilog.rules.engine.dataio.forConversion" "true"`
+         - Always declare default constructor: `public ClassName();`
+         - Example:
+           ```brl
+           public Transaction(string transactionId, double amount, string currency)
+                       property "ilog.rules.engine.dataio.forConversion" "true";
+           public Transaction();
+           ```
+
+      4. **Verification Steps Before Build:**
+         - [ ] For each BOM constructor declaration, verify matching XOM constructor exists
+         - [ ] Parameter count matches exactly
+         - [ ] Parameter types match (string→String, double→double, etc.)
+         - [ ] Parameter order matches exactly
+         - [ ] If mismatch found, add missing constructor to XOM first
+         - [ ] Recompile XOM: `javac -cp "lib/*" -d bin src/package/*.java`
+         - [ ] Rebuild XOM JAR: `jar cf project-xom-1.0.0.jar -C bin .`
+         - [ ] Then update BOM
+
+      **COMPREHENSIVE PREVENTION WORKFLOW**
+
+      **Phase 1: XOM Design (Before Creating BOM)**
+
+      1. **Method Prefix Analysis:**
+         - List all methods in each XOM class
+         - Categorize by prefix: is, has, requires, can, meets, get, set, add, remove, etc.
+         - For each method without a setter:
+           * "is" prefix → Can use Pattern 2 (readonly property)
+           * Other prefix → MUST use Pattern 3 (method call syntax)
+         - Document Pattern assignment for each method
+
+      2. **Constructor Inventory:**
+         - List all constructors in each XOM class
+         - Note parameter count, types, and order for each
+         - Identify which constructors will be used in rules
+         - Add missing constructors if needed
+         - Recompile XOM after any changes
+
+      3. **Jackson Annotation Verification:**
+         - All XOM classes have `@JsonInclude(JsonInclude.Include.NON_NULL)` at class level
+         - All computed properties (methods without setters) have `@JsonIgnore` annotation
+         - No `Serializable` interface (use Jackson, not Java serialization)
+
+      **Phase 2: BOM Creation (With Error Prevention)**
+
+      1. **Property Declarations:**
+         - Set `property loadGetterSetterAsProperties "true"` at top
+         - Do NOT explicitly declare properties with standard getters/setters (auto-mapped)
+         - Only declare properties when special annotations needed (factory.ignore, readonly)
+
+      2. **Method Declarations:**
+         - For Pattern 2 methods (is prefix, no setter):
+           * Optional: `public readonly boolean propertyName property "factory.ignore" "true";`
+           * ODM strips "is" prefix from method name
+         - For Pattern 3 methods (other prefixes, no setter):
+           * MANDATORY: `public returnType methodName();` (with parentheses)
+           * Include full method signature with parameter types if method has parameters
+
+      3. **Constructor Declarations:**
+         - Verify each constructor exists in XOM before declaring
+         - Match parameter count, types, and order exactly
+         - Mark primary constructor with forConversion annotation
+         - Always include default constructor
+
+      4. **Collection Declarations:**
+         - Always use readonly: `public readonly java.util.Collection items domain 0,* class string;`
+         - Provide add/remove methods, not direct collection replacement
+
+      **Phase 3: Vocabulary Creation (With Conflict Prevention)**
+
+      1. **Phrase Token Analysis:**
+         - Avoid these tokens in action phrases: to, by, points, from, at, with (as prepositions)
+         - Use safe verbs: record, log, register, capture, store, save, mark, flag, note
+         - Check for phrase prefix conflicts (two phrases starting with same tokens)
+
+      2. **Method Phrase Syntax:**
+         - Pattern 2 methods (is prefix): NO parentheses in phrase
+           * `employed#phrase.navigation = {this} is employed`
+         - Pattern 3 methods (other prefixes): WITH parentheses in phrase
+           * `hasCompletedKyc()#phrase.navigation = {this} has completed KYC`
+
+      3. **Boolean Property Phrases:**
+         - Navigation: `{this} is {adjective}` (use single safe adjective)
+         - Action: `make it {boolean prop} that {this} is {adjective}`
+         - Safe adjectives: active, inactive, approved, rejected, flagged, blocked, whitelisted
+         - Avoid: known, present, detected, valid, complete (can cause parser conflicts)
+
+      **Phase 4: BAL Rule Creation (With Syntax Validation)**
+
+      1. **Boolean Property Assignment:**
+         - ALWAYS use: `make it true/false that {this} is {adjective}`
+         - NEVER use: `set the {boolean property} of {this} to true/false`
+
+      2. **Object Initialization:**
+         - ALWAYS use: `set the {property} of {this} to a ClassName`
+         - NEVER use: `set the {property} of {this} to a new ClassName`
+
+      3. **Method Invocation:**
+         - Pattern 2 methods: Use phrase without parentheses
+           * `'the customer' is employed`
+         - Pattern 3 methods: Use phrase as defined in vocabulary
+           * `'the customer' has completed KYC`
+
+      4. **Multiple Actions:**
+         - ALWAYS end each action with semicolon
+         - Pattern: `action1 ; action2 ; action3 ;`
+
+      5. **Null Checking:**
+         - Always check intermediate objects: `the parent of 'the variable' is not null`
+         - NEVER use: `is not defined` (not valid BAL)
+         - ALWAYS use: `is null` / `is not null`
+
+      **Phase 5: Pre-Build Validation Checklist (MANDATORY)**
+
+      Before running Build Command, verify:
+
+      - [ ] **XOM Compilation**: All Java classes compile without errors
+      - [ ] **XOM JAR**: JAR file built and placed in correct location
+      - [ ] **Pattern Analysis**: All methods categorized as Pattern 1, 2, or 3
+      - [ ] **BOM Method Syntax**: Pattern 3 methods use method call syntax with parentheses
+      - [ ] **BOM Constructors**: All declared constructors exist in XOM with exact signatures
+      - [ ] **Vocabulary Parentheses**: Pattern 3 method phrases include parentheses
+      - [ ] **Vocabulary Tokens**: No problematic tokens (to, by, points) in action phrases
+      - [ ] **BAL Boolean Syntax**: All boolean assignments use "make it true/false that"
+      - [ ] **BAL No CDATA Comments**: No `/* */` comments inside `<definition><![CDATA[...]]>` blocks
+      - [ ] **BAL String Equality**: String comparisons use bare `is "X"`, never `is equal to "X"`
+      - [ ] **BAL String Inequality**: String negation uses `it is not true that ... is "X"`, never `is not equal to "X"`
+      - [ ] **BAL Object Init**: Nested objects initialized in XOM constructor — no in-rule object creation
+      - [ ] **dep Property**: `dep` in .properties file matches the .dep filename (without extension), e.g., `MyProjectDeployment`
+      - [ ] **BAL Null Checks**: Use "is null" / "is not null", never "is not defined"
+
+      **Phase 6: Build Command Execution and Error Resolution**
+
+      1. **Run Build Command:**
+         ```bash
+         cd buildcommand/samples/config-files && \
+         /Library/Java/JavaVirtualMachines/ibm-semeru-open-21.jdk/Contents/Home/bin/java \
+         -jar ../../rules-compiler/rules-compiler.jar \
+         -config [ProjectName].properties 2>&1
+         ```
+
+      2. **Interpret Exit Codes:**
+         - Exit 0: BUILD SUCCESS ✅ - RuleApp JAR generated
+         - Exit 2: BUILD FAILURE ❌ - Fix errors and retry
+
+      3. **Error Pattern Recognition:**
+         - "The word 'X' is expected in place of 'Y'" → BAL syntax error
+         - "The word 'new' is not required" → Remove "new" keyword
+         - "[B2X] GBREX0021E: Cannot find attribute" → Pattern 3 violation (use method syntax)
+         - "GBRET0009E: Failed to transform usage of constructor" → Constructor mismatch (add to XOM)
+
+      4. **Iterative Fix Cycle:**
+         - Fix one error at a time (later errors may be cascading)
+         - If XOM changed: recompile Java, rebuild JAR, then re-run build
+         - If BOM changed: re-run build immediately
+         - If vocabulary changed: re-run build immediately
+         - If rules changed: re-run build immediately
+         - Continue until exit code 0
+
+      **QUICK REFERENCE: Common Error Patterns and Fixes**
+
+      | Error Message | Root Cause | Fix |
+      |---------------|------------|-----|
+      | "The word 'is' is expected in place of 'to'" | Boolean assignment syntax | Use `make it true/false that {this} is {adjective}` |
+      | "The word '/' is not required" + "No bindings are present" | C-style comment `/* */` inside CDATA | Remove comment from CDATA; use `<name>` for description |
+      | "The word 'January' is expected in place of 'equal'" | `is equal to` on string property | Use bare `is "X"` for string equality |
+      | "Invalid type 'string', it is not assignable from type 'month'" | `is equal to` on string property | Use bare `is "X"` for string equality |
+      | "The word 'each' is expected in place of 'a'" | In-rule object instantiation `a ConceptLabel` | Initialize object in XOM constructor; never create in rules |
+      | "Variable 'X' is not declared" (on class name) | In-rule instantiation with Java class name | Initialize object in XOM constructor; never create in rules |
+      | "The word 'new' is not required" | Java `new` keyword in BAL | Initialize object in XOM constructor; never create in rules |
+      | "The word 'the' is expected in place of 'to'" | Vocabulary phrase conflict | Use distinct verb: "record X on {this}" |
+      | "The word 'XYZ' is expected in place of 'xyz'" (exact case flip) | Uppercase token in `{phrase label}` but lowercase in BAL rule | Use all-lowercase tokens inside `{...}` in vocabulary (e.g. `{ip location}` not `{IP location}`) |
+      | "[B2X] GBREX0021E: Cannot find attribute 'hasX'" | Pattern 3 violation | Change BOM to method syntax: `public boolean hasX();` |
+      | "GBRET0009E: Failed to transform constructor" | Constructor mismatch | Add matching constructor to XOM, recompile |
+      | "The deployment configuration named 'X' was not found" | Wrong `dep` value in .properties | Set `dep` to the .dep filename without extension |
+
+      **SUCCESS METRICS**
+
+      A properly configured ODM project should achieve:
+      - ✅ Build Command exit code 0 on first attempt
+      - ✅ No GBREX0021E errors (all methods use correct pattern)
+      - ✅ No GBRET0009E errors (all constructors match)
+      - ✅ No BAL syntax errors (correct boolean/object syntax)
+      - ✅ RuleApp JAR generated in output/ directory
+      - ✅ JAR size appropriate for project complexity (typically 50-200KB)
+
+      By following this comprehensive prevention guide, future ODM projects should generate correctly from the start without requiring iterative error fixes.
+
+      **decisionservice.ecore — EMF Metamodel Reference (CRITICAL for .dop and .dep file authoring):**
+
+      The `decisionservice.ecore` file defines the EMF metamodel for IBM ODM Decision Service deployment artifacts. Use this reference when authoring or validating `.dop` (Operation) and `.dep` (Deployment) files.
+
+      Namespace URI: `http://com.ibm.rules.studio/model/decisionservice.ecore`
+      Namespace prefix: `com.ibm.rules.studio.model.decisionservice`
+
+      **EClass: Operation** (supertype: `base/FolderElement`) — maps to `.dop` files
+      - `description` (CRString, element): Free-text description of the operation
+      - `referencedVariables` (0..*  OperationVariable, containment): Input/output variables
+      - `rulesetName` (EString, hidden): Name of the deployed ruleset
+      - `rulesetProperties` (StringMap, hidden): Ruleset properties map
+      - `advancedProperties` (CRString, element, hidden): Advanced engine properties
+      - `engineConfigurationFile` (URL, hidden): Path to engine configuration file
+      - `usingRuleflow` (EBoolean, hidden): `true` when a ruleflow drives execution
+      - `ruleflowName` (EString, hidden): Name of the ruleflow file (without extension)
+      - `ruleflow` (→ RuleFlow, hidden): Cross-reference to the ruleflow model element
+      - `usingExtractor` (EBoolean, hidden): Whether an extractor is used
+      - `extractorName` (EString, hidden): Name of the extractor
+      - `extractor` (→ base/Extractor, containment, hidden): Extractor element (use `xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor"`)
+      - `targetRuleProjectName` (EString, hidden): Name of the owning rule project
+      - `targetRuleProject` (→ base/RuleProject, hidden): Cross-reference to the rule project (href uses `#<project-uuid>`)
+      - `tags` (0..* Tag, containment, hidden): Arbitrary key/value metadata
+
+      **EClass: OperationFolder** (supertype: `base/ModelFolder`) — the `deployment/` folder element
+
+      **EClass: OperationVariable** (supertype: `base/Element`) — one `<referencedVariables>` entry in a `.dop`
+      - `getVariable()` operation: resolves the variable at runtime
+      - `variableName` (EString): name attribute of the variable (no spaces)
+      - `variableSetName` (EString): name of the VariableSet containing this variable
+      - `variableSet` (→ base/VariableSet): cross-reference href to the `.var` file element
+      - `direction` (DirectionKind enum): `IN`, `OUT`, or `IN_OUT`
+
+      **EClass: Deployment** (supertype: `base/FolderElement`) — maps to `.dep` files
+      - `description` (CRString, element, default ""): Free-text description
+      - `ruleAppName` (EString, hidden): **REQUIRED** — name of the RuleApp (camelCase, no spaces); omitting this causes "A RuleApp name cannot be empty" build error
+      - `ruleAppVersion` (EString, hidden, default "1.0"): RuleApp version string
+      - `managingXom` (EBoolean, hidden, default false): Whether the deployment manages XOM
+      - `production` (EBoolean, hidden, default false): Whether this is a production deployment
+      - `tags` (0..* Tag, containment, hidden): Arbitrary metadata tags
+      - `targets` (0..* DeploymentTarget, containment, hidden): Target server references
+      - `operations` (0..* DeploymentOperation, containment, hidden): Linked operations; each must include a `ruleset.version` property Tag
+      - `versionPolicies` (0..* DeploymentVersionPolicy, containment, hidden): Versioning policies
+      - `deploymentProperties` (0..* Tag, containment, hidden): Deployment-level properties
+
+      **EClass: DeploymentOperation** (supertype: `base/Element`) — one `<operations>` entry in a `.dep`
+      - `operationName` (EString, required): Name matching the `.dop` operation (e.g. `ProjectNameOperation`)
+      - `operation` (→ Operation, required): href cross-reference to the `.dop` file element
+      - `properties` (0..* Tag, containment): Key/value properties; **MUST include** `ruleset.version` tag with value `1.0`
+      - `active` (EBoolean): Whether this operation is active
+
+      **EClass: DeploymentTarget** (supertype: `base/Element`)
+      - `getTarget()` operation: resolves the target at runtime
+      - `label` (EString): Display label for the target
+      - `active` (EBoolean): Whether this target is active
+
+      **EClass: DeploymentVersionPolicy** (supertype: `base/Element`)
+      - `label` (EString): Display label
+      - `description` (CRString, element): Description text
+      - `ruleset` (DeploymentNumberVersionPolicy enum): Ruleset versioning strategy
+      - `ruleapp` (DeploymentNumberVersionPolicy enum): RuleApp versioning strategy
+      - `default` (EBoolean): Whether this is the default policy
+      - `recurrent` (EBoolean): Whether the policy applies recurrently
+
+      **EEnum: DeploymentNumberVersionPolicy** — values:
+      - `NO_CHANGE` (0): Do not increment the version
+      - `MANUAL` (1): Manual versioning
+      - `INCREMENT_MINOR` (2): Increment minor version on conflict
+      - `INCREMENT_MAJOR` (4): Increment major version on conflict
+      - `RESET` (8): Reset version
+
+      **EClass: Tag** — generic key/value pair used throughout the metamodel
+      - `key` (EString, required): Property key (e.g. `ruleset.version`)
+      - `value` (CRString, element, required): Property value (use `<![CDATA[...]]>` for literal values)
+
+      **EClass: ServerList** (supertype: `base/FolderElement`)
+      - `servers` (0..* Target, containment): List of deployment targets
+
+      **EClass: Server** (supertype: `Target`)
+      - `URL` (URL, required): Server endpoint URL
+      - `login` (EString): Authentication login
+      - `password` (EString): Authentication password
+      - `authMethod` (AuthMethod, containment, unsettable): Authentication method (BearerToken, OpenIDAuth, or ZenAPIKey)
+
+      **EClass: Target** (abstract, supertype: `base/Element`)
+      - `production` (EBoolean): Whether this is a production target
+      - `description` (CRString, element): Description text
+      - `name` (EString): Target name
+
+      **EClass: TargetFolder** (supertype: `Target`)
+      - `path` (EString): Folder path on the target server
+
+      **EClass: AuthMethod** (abstract)
+      - `kind` (EString, required, read-only, transient): Authentication kind discriminator
+
+      **EClass: BearerToken** (supertype: `AuthMethod`)
+      - `tokenValue` (EString, required): Bearer token string
+
+      **EClass: OpenIDAuth** (supertype: `AuthMethod`)
+      - `providerName` (EString, required): OpenID provider name
+
+      **EClass: ZenAPIKey** (supertype: `AuthMethod`)
+      - `userID` (EString, required): Zen API user ID
+      - `apiKey` (EString, required): Zen API key
+
+      **Sub-package: decisionservice/resource** (`http://com.ibm.rules.studio/model/decisionservice/resource.ecore`)
+      - `DeploymentResourceDocument` (supertype: `resource/ResourceDocument`)
+      - `OperationResourceDocument` (supertype: `resource/ResourceDocument`)
+      - `ServerListResourceDocument` (supertype: `resource/ResourceDocument`)
+
+      **Practical XML Authoring Rules (derived from the metamodel):**
+      1. `.dop` root element: `<com.ibm.rules.studio.model.decisionservice:Operation ...>` with attributes `rulesetName`, `usingRuleflow`, `ruleflowName`, `targetRuleProjectName`
+      2. `.dep` root element: `<com.ibm.rules.studio.model.decisionservice:Deployment ...>` — **`ruleAppName` attribute is REQUIRED** or Build Command fails
+      3. Every `<operations>` child of a `.dep` MUST contain a `<properties key="ruleset.version"><value><![CDATA[1.0]]></value></properties>` Tag
+      4. `<extractor>` in `.dop` MUST use `xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor"` with `name` and `validator="Default Validator"` attributes
+      5. `<targetRuleProject href="../../ProjectName#<project-uuid>"/>` cross-reference UUID MUST exactly match the `<uuid>` in the `.ruleproject` file
+      6. `direction="IN_OUT"` on `<referencedVariables>` means the variable is modified by rules and returned in the response
     groups:
       - read
       - edit
-      - command
+      - execute
       - mcp
-    source: project

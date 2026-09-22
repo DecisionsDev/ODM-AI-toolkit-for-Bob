@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>block-high-score</name>
+
+  <uuid>7b6b21eb-a1d0-43e6-8518-b8fcf584cbbb</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Block High-Score Transaction
+    Package: fraud-decision
+    Description: Blocks transactions with a composite risk score exceeding 60.
+    Per policy Section 6: score >60 triggers block and EDD/SAR process.
+    Decision: BLOCK
+    Reason Code: CBF-202-HIGH-COMPOSITE-SCORE
+    Recommended Action: BLOCK_AND_INITIATE_EDD_SAR
+    Tags: fraud-decision, block, composite-score, EDD, SAR
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the total score of the risk score of 'the transaction' is more than 60
+    and it is not true that the risk score of 'the transaction' has sanctioned country detected
+
+  then
+    set the fraud decision of 'the transaction' to "BLOCK" ;
+    set the decision reason code of 'the transaction' to "CBF-202-HIGH-COMPOSITE-SCORE" ;
+    set the recommended action of 'the transaction' to "BLOCK_AND_INITIATE_EDD_SAR" ;
+    add audit message "DECISION: BLOCK - Composite risk score exceeds 60, EDD/SAR process initiated" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

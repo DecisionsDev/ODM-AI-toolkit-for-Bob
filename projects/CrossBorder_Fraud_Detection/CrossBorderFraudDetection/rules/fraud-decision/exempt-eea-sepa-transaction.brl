@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>exempt-eea-sepa-transaction</name>
+
+  <uuid>a9c16dc0-528f-41fb-9158-98e54c97e1b0</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: EEA/SEPA Intra-Region Compliance Exception (Rule 5.2)
+    Package: fraud-decision
+    Description: Exempts low-value cross-border transactions within the EEA/SEPA zone from
+    enhanced scrutiny unless other risk signals are already present.
+    Applies when: transaction is cross-border within EEA, amount <= EUR 200, and no
+    AML/sanctions/offshore/grey-zone signals are active.
+    Decision: APPROVE (clears REVIEW if set by scoring)
+    Reason Code: CBF-002-EEA-SEPA-EXEMPT
+    Recommended Action: APPROVE_EEA_SEPA_EXEMPT
+    Tags: fraud-decision, EEA, SEPA, exemption, low-risk
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    'the transaction' is cross border
+    and the amount of 'the transaction' is at most 200
+    and the merchant country code of 'the transaction' is one of { "AT" , "BE" , "BG" , "HR" , "CY" , "CZ" , "DK" , "EE" , "FI" , "FR" , "DE" , "GR" , "HU" , "IE" , "IT" , "LV" , "LT" , "LU" , "MT" , "NL" , "PL" , "PT" , "RO" , "SK" , "SI" , "ES" , "SE" , "NO" , "IS" , "LI" , "CH" }
+    and it is not true that the risk score of 'the transaction' has sanctioned country detected
+    and it is not true that the risk score of 'the transaction' has AML jurisdiction detected
+    and it is not true that the risk score of 'the transaction' has offshore provider detected
+
+  then
+    set the fraud decision of 'the transaction' to "APPROVE" ;
+    set the decision reason code of 'the transaction' to "CBF-002-EEA-SEPA-EXEMPT" ;
+    set the recommended action of 'the transaction' to "APPROVE_EEA_SEPA_EXEMPT" ;
+    add audit message "DECISION: APPROVE - Low-value EEA/SEPA cross-border transaction exempted from enhanced scrutiny" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

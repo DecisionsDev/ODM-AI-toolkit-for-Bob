@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>set-default-fraud-decision</name>
+
+  <uuid>d5387839-d248-4f43-badf-9c4d6e6b1530</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Set Default Fraud Decision
+    Package: data-enrichment
+    Description: Sets the default fraud decision to APPROVE (PENDING) so that subsequent
+    rules can override it to REVIEW or BLOCK as risk signals are detected.
+    Tags: initialization, data-enrichment, default-decision
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the fraud decision of 'the transaction' is "PENDING"
+
+  then
+    set the fraud decision of 'the transaction' to "APPROVE" ;
+    set the recommended action of 'the transaction' to "APPROVE_WITH_MONITORING" ;
+    add audit message "Default decision initialized to APPROVE" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

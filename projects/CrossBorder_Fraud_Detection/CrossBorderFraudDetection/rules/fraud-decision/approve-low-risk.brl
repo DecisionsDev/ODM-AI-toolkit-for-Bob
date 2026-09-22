@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>approve-low-risk</name>
+
+  <uuid>dc533963-c60f-44b4-afb0-b3e6f728da43</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Approve Low-Risk Transaction
+    Package: fraud-decision
+    Description: Approves transactions with a composite risk score of 30 or below
+    and no blocking signals. Per policy Section 6: score 0-30 is accepted with monitoring.
+    Decision: APPROVE
+    Reason Code: CBF-001-LOW-RISK-APPROVED
+    Recommended Action: APPROVE_WITH_MONITORING
+    Tags: fraud-decision, approve, low-risk, monitoring
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the total score of the risk score of 'the transaction' is at most 30
+    and it is not true that the risk score of 'the transaction' has sanctioned country detected
+    and it is not true that the risk score of 'the transaction' has KYC incomplete detected
+
+  then
+    set the fraud decision of 'the transaction' to "APPROVE" ;
+    set the decision reason code of 'the transaction' to "CBF-001-LOW-RISK-APPROVED" ;
+    set the recommended action of 'the transaction' to "APPROVE_WITH_MONITORING" ;
+    add audit message "DECISION: APPROVE - Low risk score, transaction approved with monitoring" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>
