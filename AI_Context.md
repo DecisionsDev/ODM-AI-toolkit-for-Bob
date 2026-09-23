@@ -8,7 +8,7 @@ project committed under [projects/](projects/) that was compiled successfully wi
 
 - [AGENTS.md](AGENTS.md): short do/don't rules and build commands for coding agents.
 - `projects/<Project>/AI_Context.md`: a file-by-file walkthrough of one project.
-- [skills/odm-rule-designer-bob/](skills/odm-rule-designer-bob/): the authoring skill, with deeper references.
+- [skills/odm-rule-designer/](skills/odm-rule-designer/): the authoring skill, with deeper references.
 
 ## 1. Mental model
 
@@ -410,11 +410,10 @@ Result of building every committed project with IBM Semeru JDK 21 (XOM compiled 
 | AML_Detection_service | SUCCESS | |
 | Aviation_Pollution_Compliance | SUCCESS | |
 | Cardiovascular_Risk_Assessment | SUCCESS | |
-| CrossBorderComplianceService | SUCCESS | includes decision table |
-| CrossBorderFraudDetection | SUCCESS | includes decision table |
+| CrossBorder_Fraud_Detection | SUCCESS | |
+| Geolocation_Fraud_Detection | SUCCESS | |
 | Luggage_Compliance_Service | SUCCESS | uses `definitions` |
 | Mineral_Classification | SUCCESS | |
-| PetShop_Service | SUCCESS | |
 | Loan_Compliance_Service | **FAILURE** | has no `.dep`; error: `The deployment configuration named "…" was not found in rule project`. Its XOM still implements `Serializable` and its vocabulary has phrases with no BOM member (`hasCoSigner`, `combinedCreditScore`). Treat as a partial example. |
 
 JDK matters: with JDK 25 every build failed with `GBREX0011E: Cannot find method 'resume()' in execution class 'java.lang.Thread'`
@@ -448,14 +447,13 @@ Each project's folder has its own `AI_Context.md` with a file-by-file tour.
 
 | Project | Domain / decision | Root object | Ruleflow (mode) | Features shown |
 |---|---|---|---|---|
-| [PetShop_Service](projects/PetShop_Service/AI_Context.md) | Pet adoption eligibility, senior discount | `AdoptionRequest` | 1 package (Fastpath) | Smallest working example |
 | [Mineral_Classification](projects/Mineral_Classification/AI_Context.md) | Classify a mineral specimen by chemistry, then silicate subtype | `MineralSpecimen` | 2 packages (Fastpath) | One rule per class, two-stage classification, Jackson XOM |
 | [Cardiovascular_Risk_Assessment](projects/Cardiovascular_Risk_Assessment/AI_Context.md) | Patient risk tier: high, medium, low | `Patient` | validation, high-risk (RetePlus), medium, low | Severity-tiered packages, default rule last |
 | [Luggage_Compliance_Service](projects/Luggage_Compliance_Service/AI_Context.md) | Airline baggage limits and fees | `LuggageRequest` | 5 packages (Fastpath/RetePlus) | `definitions` iteration over collection, fee calculation |
 | [Aviation_Pollution_Compliance](projects/Aviation_Pollution_Compliance/AI_Context.md) | Emissions limits, CORSIA offsets, penalties | `ComplianceRequest` | 7 packages | Arithmetic, null-safe navigation, computed boolean |
 | [AML_Detection_service](projects/AML_Detection_service/AI_Context.md) | Anti-money-laundering alerts and escalation | `AMLRequest` | 5 packages (RetePlus + Fastpath) | Alert creation methods, cumulative amounts |
-| [CrossBorderFraudDetection](projects/CrossBorderFraudDetection/AI_Context.md) | Cross-border transaction risk scoring | `ComplianceRequest` | 8 packages | Score accumulation, decision table, audit trail |
-| [CrossBorderComplianceService](projects/CrossBorderComplianceService/AI_Context.md) | Variant of the above on a single transaction object | `CrossBorderTransaction` | 9 packages | Intake classification, decision table, finalization overrides |
+| [CrossBorder_Fraud_Detection](projects/CrossBorder_Fraud_Detection/AI_Context.md) | Cross-border transaction risk scoring | `Transaction` | 4 packages (Fastpath + RetePlus) | Score accumulation, compliance pre-screening, audit trail |
+| [Geolocation_Fraud_Detection](projects/Geolocation_Fraud_Detection/AI_Context.md) | Geolocation and velocity-based fraud risk scoring | `Transaction` | 4 packages (Fastpath + RetePlus) | Pre-screening anomaly detection, risk scoring, confidence levels |
 | [Loan_Compliance_Service](projects/Loan_Compliance_Service/AI_Context.md) | Loan eligibility and interest pricing | `LoanRequest` | validation (Fastpath), pricing (RetePlus) | Decision table `.dta`; **does not build yet** |
 
 ## 9. Recipe: building a new project
