@@ -8,7 +8,6 @@ project committed under [projects/](projects/) that was compiled successfully wi
 
 - [AGENTS.md](AGENTS.md): short do/don't rules and build commands for coding agents.
 - `projects/<Project>/AI_Context.md`: a file-by-file walkthrough of one project.
-- [skills/odm-rule-designer/](skills/odm-rule-designer/): the authoring skill, with deeper references.
 
 ## 1. Mental model
 

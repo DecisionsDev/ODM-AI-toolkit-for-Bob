@@ -5,7 +5,7 @@ Part of the ODM examples in this repository. For format-level explanations (what
 ## Purpose
 
 - Rule project folder: `Mineral Classification/` (name `Mineral Classification`); XOM Java project: `mineral-classification-xom/`.
-- Source policy used to generate it: <https://github.com/DecisionsDev/policy-corpus/blob/main/nature/mineral-classification.txt>
+- Source policy used to generate it: <https://raw.githubusercontent.com/DecisionsDev/policy-corpus/refs/heads/main/nature/mineral-classification.txt>
 
 ## Build status
 
