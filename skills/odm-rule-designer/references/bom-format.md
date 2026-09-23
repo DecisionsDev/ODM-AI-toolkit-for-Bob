@@ -1,110 +1,63 @@
-# BOM (Business Object Model) Format
+# BOM (Business Object Model): text BRL, never XML
 
-## Use text-based BRL format, NOT XML
+`odm.py init` writes the header (`loadGetterSetterAsProperties`, `origin`, `uuid`, `package`). Append the class declarations below it.
 
-Start with a properties section (no XML declaration):
+## Declare every property the rules use
 
-```
-property loadGetterSetterAsProperties "true"
-property origin "xom:/[ProjectName]/[xom-project-name]"
-property uuid "[unique-uuid]"
-package [package.name];
-```
+`loadGetterSetterAsProperties "true"` makes the BOM *bind* to XOM getters/setters. It does **not** create BOM members, because the rules compiler never introspects the XOM. Any property missing from the BOM is invisible to rules and to the vocabulary.
 
-Then Java-like class syntax with annotations.
+Naming follows the setter without `set`:
+
+| XOM | BOM |
+|---|---|
+| `getName()` / `setName()` | `public string name;` |
+| `isPregnant()` / `setPregnant()` | `public boolean pregnant;` (**not** `isPregnant`: that gives `GBREX0021E Cannot find attribute`) |
+| `hasAllergies()` / `setHasAllergies()` | `public boolean hasAllergies;` |
+| computed `isEligible()`, no setter | `public readonly boolean eligible property "factory.ignore" "true";` |
+| computed `getTotalCm()`, no setter | `public readonly int totalCm property "factory.ignore" "true";` |
+
+Use the same base name in all four layers: XOM field/getter/setter, BOM property, vocabulary key, and rule phrase. Reserved names (`operator`, `function`, `rule`, `package`, `import`) can't be used as property names. Add a qualifier instead (`airlineOperator`).
 
 ## Annotations
 
-- `property loadGetterSetterAsProperties "true"` — auto-maps XOM getter/setter to BOM properties. Set this always.
-- `property "ilog.rules.engine.dataio.forConversion" "true"` — mark constructors for JSON/XML serialization.
-- `property "factory.ignore" "true"` — prevents factory instantiation; use for computed/status properties.
-- `readonly` — BOM-only restriction; XOM setters still exist but rules can't write. Collections example:
-  `public readonly java.util.Collection name domain 0,* class string;`
+- `property "factory.ignore" "true"`: for computed/status properties.
+- `property "ilog.rules.engine.dataio.forConversion" "true"`: on the full-args constructor, used for JSON/XML conversion.
+- `readonly`: stops rules from writing the property (the XOM setter can still exist).
 
-## Auto-mapped properties (the #1 source of errors)
-
-With `loadGetterSetterAsProperties="true"`, ODM auto-maps getters/setters. **Do not redeclare** properties that have standard getters/setters — let them auto-map.
-
-**Boolean naming — the BOM property name matches the SETTER name without `set`, NOT the getter:**
-
-| XOM getter / setter | Correct BOM property | Wrong (causes error) |
-|---|---|---|
-| `isPregnant()` / `setPregnant()` | `public boolean pregnant;` | `isPregnant` |
-| `hasAllergies()` / `setHasAllergies()` | `public boolean hasAllergies;` | — |
-
-- `is` prefix: drop `is`, lowercase first letter (`isPregnant` → `pregnant`).
-- `has` prefix: keep as-is (`hasAllergies` → `hasAllergies`).
-- Wrong naming produces: `[B2X] GBREX0021E: Cannot find attribute 'isPregnant' in execution class`.
-
-**Computed boolean properties** (getter, no setter) that need vocabulary phrases MUST be declared explicitly:
+## Example (order: properties → computed → collections → constructors → methods)
 
 ```
-public readonly boolean inKnownTransactionCorridor property "factory.ignore" "true";
+public class LoanRequest
+{
+    public int amount;
+    public boolean approved;
+    public com.example.loan.Borrower borrower;
+    public readonly boolean highRisk
+                property "factory.ignore" "true";
+    public readonly java.util.Collection messages domain 0,* class string;
+    public LoanRequest(int amount, com.example.loan.Borrower borrower)
+                property "ilog.rules.engine.dataio.forConversion" "true";
+    public LoanRequest();
+    public void addMessage(string arg);
+}
+
+public final class RiskLevel
+        extends java.lang.Enum
+{
+    domain {static LOW, static HIGH}
+    public static final readonly com.example.loan.RiskLevel LOW;
+    public static final readonly com.example.loan.RiskLevel HIGH;
+}
 ```
 
-XOM: `public boolean isInKnownTransactionCorridor() { ... }` (no setter, annotated `@JsonIgnore` — see `xom.md`)
-Vocabulary: `...inKnownTransactionCorridor#phrase.navigation = {this} is whitelisted`
+BOM types: `string`, `int`, `double`, `boolean`, fully qualified class names, `java.util.Collection ... domain 0,* class <elemType>`.
 
-Without the BOM declaration, ODM can't resolve the property in rules.
+## Collections
 
-**Only declare a property explicitly when:** you need a special annotation (`factory.ignore`, `readonly`), the XOM breaks standard getter/setter patterns, or you want to hide a property from rules.
+- Declare them `readonly` and give the XOM an `addX(...)` method so rules can add items but never replace the collection.
+- `the X of 'the v' is empty` is **not** valid BAL. Expose `@JsonIgnore public boolean hasAnyX()` in the XOM, declare it in the BOM as a computed boolean (`anyX`), and verbalize it as `{this} has X`.
+- If `add {0} to the <label> of {this}` fails with an unrelated-looking cascade (`The word 'X' is expected in place of 'Y'`, `Variable 'Y' is not declared`) while the declarations look right, rename the collection (proven names: `messages`, `triggeredRules`) instead of debugging the parser.
 
-## Reserved keywords (CRITICAL — discovered from production builds)
+## `.b2xa`
 
-These words cannot be used as XOM/BOM property names — they break compilation:
-
-- **`operator`** is the most common offender. `private Operator operator;` fails; rename to something qualified, e.g. `private Operator airlineOperator;`. Propagate the rename through BOM, vocabulary, and rules.
-- Other known reserved words: `function`, `rule`, `package`, `import`.
-- When you hit one of these as a natural domain term, add a qualifying prefix (`airline operator`, not `operator`) rather than fighting the keyword.
-
-## Property naming consistency across layers
-
-All four layers — XOM field/getter/setter, BOM property, vocabulary phrase, and rule usage — must share the same base name:
-
-```
-XOM field:    private Operator airlineOperator;
-XOM getter:   public Operator getAirlineOperator()
-XOM setter:   public void setAirlineOperator(Operator airlineOperator)
-BOM:          public com.example.Operator airlineOperator;
-Vocabulary:   ComplianceRequest.airlineOperator#phrase.navigation = {airline operator} of {this}
-Rule usage:   the airline operator of 'the request'
-```
-
-## Collections — never check "empty" directly
-
-`the violations of 'the request' is empty` is **not valid** BAL against a raw collection property. Instead expose a computed boolean in XOM:
-
-```java
-@JsonIgnore
-public boolean hasAnyViolations() { return !violations.isEmpty(); }
-```
-
-```
-Vocabulary: ComplianceRequest.anyViolations#phrase.navigation = {this} has violations
-Rule:       it is not true that 'the request' has violations
-```
-
-Collections themselves stay `readonly` in the BOM so rules can only `add`/`remove`, never replace wholesale:
-```
-public readonly java.util.Collection violations domain 0,* class string;
-```
-
-**If `add {0} to the <label> of {this}` fails with a cascading, seemingly-unrelated error** (e.g. `The word 'X' is expected in place of 'Y'`, or a later word in the label reported as `Variable 'Y' is not declared`), and the BOM/vocabulary declarations look syntactically correct, don't assume your own syntax is wrong — some specific collection property names have been observed to fail this way for reasons that didn't reproduce consistently across renames (word order, word choice, and declaration position were all ruled out in one investigation). The fast, reliable fix is to rename the property to something else and retest, rather than debugging the parser further — this is cheap compared to the time spent root-causing it. When in doubt, reuse an already-proven collection name pattern like `messages` or `triggeredRules` rather than inventing a new one for a low-value collection.
-
-## Working BOM structure — recommended declaration order
-
-1. Property block: `loadGetterSetterAsProperties`, `origin`, `uuid`.
-2. `package` declaration.
-3. Per class: simple properties (leave auto-mapped) → computed properties (`factory.ignore`) → collections (`readonly`) → primary constructor (`forConversion`) → default constructor → methods (`add`/`remove`/compute).
-
-## `.b2xa` file (ARL association)
-
-Create `{base-name}.b2xa` in `bom/`. Base name must match the `.bom` and `.voc` (no locale suffix). Validate against `../schemas/b2x.xsd` (JRules 1.3 Translation schema) if the file is rejected:
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<b2x:translation xmlns:b2x="http://schemas.ilog.com/JRules/1.3/Translation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://schemas.ilog.com/JRules/1.3/Translation ilog/rules/schemas/1_3/b2x.xsd">
-    <id>unique-uuid-here</id>
-    <lang>ARL</lang>
-</b2x:translation>
-```
+Generated by `init`. It must share the `.bom` base name. Its schema is `../schemas/b2x.xsd`.
