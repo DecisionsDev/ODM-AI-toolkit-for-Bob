@@ -3,18 +3,19 @@
 This document is written to be **self-contained**. It explains how an IBM Operational Decision Manager
 (ODM) Decision Service project is laid out on disk, what every file type contains, how the files
 reference each other, and which mistakes break the build. Every code excerpt below is copied from a
-project committed under [projects/](projects/) that was compiled successfully with IBM's Build Command
+project committed under [sample_projects/](sample_projects/) that was compiled successfully with IBM's Build Command
 (`rules-compiler.jar`). Companion files:
 
 - [AGENTS.md](AGENTS.md): short do/don't rules and build commands for coding agents.
-- `projects/<Project>/AI_Context.md`: a file-by-file walkthrough of one project.
+- `sample_projects/<Project_Dir>/AI_Context.md`: a file-by-file walkthrough of one project.
+- `tools/odm-report-generator.py`: generates a Markdown documentation + quality-assessment report for any rule project. See `tools/README-ODM-REPORT-GENERATOR.md`.
 
 ## 1. Mental model
 
 A Decision Service is a stack of five layers. A name must stay identical across all five:
 
 ```
-XOM  Java classes (execution object model)       projects/<X>/<x>-xom/src/**/*.java
+XOM  Java classes (execution object model)       sample_projects/<X>/<x>-xom/src/**/*.java
  ↓ mapped by
 BOM  Business Object Model, plain text            <Project>/bom/<base>.bom
  ↓ verbalized by
@@ -36,30 +37,58 @@ Rule                    : the airline operator of 'the request'
 
 ## 2. Project layout on disk
 
-Each directory under `projects/` holds one Decision Service. Two sibling folders matter: the Rule
-Project (name may contain spaces) and the XOM Java project.
+Every Decision Service lives under `sample_projects/<Project_Dir>/`. Inside that directory are two sibling
+folders: the Rule Project (name may contain spaces) and the XOM Java project. Each project dir also
+contains a build properties file and an `AI_Context.md`.
 
 ```
-projects/Loan_Compliance_Service/
-├── Loan Compliance Service/            <- the Rule Project (contains .ruleproject)
-│   ├── .ruleproject                    XML: project identity, XOM/BOM paths, folders
-│   ├── bom/
-│   │   ├── loan-compliance.bom         plain text BOM
-│   │   ├── loan-compliance_en_US.voc   vocabulary, locale suffix required
-│   │   └── loan-compliance.b2xa        tiny XML: BOM→ARL translation id
-│   ├── rules/
-│   │   ├── LoanComplianceParameters.var    XML: ruleset variables (input/output objects)
-│   │   ├── loan-compliance-ruleflow.rfl    XML: execution order of rule packages
-│   │   ├── validation/                     one folder = one rule package
-│   │   │   ├── .rulepackage                XML: package name/uuid/documentation
-│   │   │   └── check-age.brl               XML: one rule (BAL text in CDATA)
-│   │   └── pricing/interest-rate-by-credit-score.dta   XML: decision table
-│   ├── deployment/
-│   │   ├── LoanComplianceOperation.dop     XML: operation (ruleset name, variables, ruleflow)
-│   │   └── <name>.dep                      XML: deployment configuration (RuleApp name, versioning)
-│   ├── queries/  resources/  templates/    usually only .placeholder files
-└── loan-compliance-xom/
-    └── src/com/loan/compliance/*.java      execution classes
+sample_projects/
+├── Loan_Compliance_Service/
+│   ├── Loan Compliance Service/            <- Rule Project (contains .ruleproject)
+│   │   ├── .ruleproject                    XML: project identity, XOM/BOM paths, folders
+│   │   ├── bom/
+│   │   │   ├── loan-compliance.bom         plain text BOM
+│   │   │   ├── loan-compliance_en_US.voc   vocabulary, locale suffix required
+│   │   │   └── loan-compliance.b2xa        tiny XML: BOM→ARL translation id
+│   │   ├── rules/
+│   │   │   ├── LoanComplianceParameters.var    XML: ruleset variables (input/output objects)
+│   │   │   ├── loan-compliance-ruleflow.rfl    XML: execution order of rule packages
+│   │   │   ├── validation/                     one folder = one rule package
+│   │   │   │   ├── .rulepackage
+│   │   │   │   └── check-age.brl
+│   │   │   └── pricing/interest-rate-by-credit-score.dta
+│   │   ├── deployment/
+│   │   │   ├── LoanComplianceOperation.dop
+│   │   │   └── <name>.dep
+│   │   └── queries/  resources/  templates/    usually only .placeholder files
+│   ├── loan-compliance-xom/
+│   │   └── src/com/loan/compliance/*.java
+│   ├── Loan_Compliance_Service.properties  <- Build Command properties (paths relative to here)
+│   ├── AI_Context.md
+│   └── README.md
+└── CrossBorder_Fraud_Detection/            <- example of a fully-committed project
+    ├── CrossBorderFraudDetection/          <- Rule Project name (no spaces in this case)
+    ├── cross-border-fraud-xom/
+    │   ├── lib/   src/   bin/
+    │   └── src/com/fraud/crossborder/*.java
+    └── AI_Context.md
+```
+
+The **build properties file** (`<ProjectName>.properties`) lives at the project-directory level and
+uses paths relative to that same directory. Example (`Aviation_Pollution_Compliance.properties`):
+
+```properties
+project = Aviation Pollution Compliance
+output = Aviation Pollution Compliance/output
+dep = Aviation_Pollution_Compliance
+xom-classpath = aviation-compliance-xom/aviation-compliance-xom.jar
+```
+
+Run the build from the project directory:
+
+```bash
+cd sample_projects/Aviation_Pollution_Compliance
+java -jar ../../buildcommand/rules-compiler/rules-compiler.jar -config Aviation_Pollution_Compliance.properties
 ```
 
 ## 3. Format map
@@ -111,7 +140,21 @@ Excerpt from `Loan Compliance Service/.ruleproject`:
 The message "Classic rule projects are not supported" means `isADecisionService="true"` or the
 `OperationFolder` named `deployment` is missing.
 
-### 4.2 `.bom` (plain text)
+The `origin` attribute in the BOM path entry MUST match the XOM path `name` attribute exactly:
+
+```xml
+<!-- BOMPath entry -->
+<entries ... origin="xom:/CrossBorderFraud/cross-border-fraud-xom"/>
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+                                           MUST match XOM path name below
+
+<!-- XOMPath entry -->
+<entries ... name="cross-border-fraud-xom" url="platform:/cross-border-fraud-xom" kind="JAVA_PROJECT"/>
+```
+
+If `origin` does not match the XOM `name`, Rule Designer silently breaks the BOM-XOM link and the build fails with class-not-found errors.
+
+### 4.2 `.bom` (plain text) — three-pattern BOM/XOM mapping
 
 Excerpt from `bom/loan-compliance.bom`:
 
@@ -143,7 +186,17 @@ public class LoanRequest
 }
 ```
 
-Rules:
+**Three-pattern rule for BOM/XOM method mapping:**
+
+| Pattern | XOM signature | BOM declaration | Vocabulary phrase |
+|---------|--------------|-----------------|-------------------|
+| **1** Standard getter+setter | `getAge()` + `setAge()` | *(omit — auto-mapped)* | `age#phrase.navigation = {age} of {this}` |
+| **2** `is`-prefix getter, no setter | `boolean isEmployed()` | `public readonly boolean employed;` | `employed#phrase.navigation = {this} is employed` |
+| **3** Other-prefix getter, no setter | `boolean hasCompletedKyc()` | `public boolean hasCompletedKyc();` | `hasCompletedKyc()#phrase.navigation = {this} has completed KYC` |
+
+**Pattern 3 error:** Declaring a `has*`/`requires*`/`can*` method as a BOM property (not a method call) produces `[B2X] GBREX0021E: Cannot find attribute 'hasX' in execution class`.
+
+Additional BOM rules:
 
 - With `loadGetterSetterAsProperties "true"`, plain getter/setter pairs auto-map. Declare a property
   explicitly only for special annotations.
@@ -156,6 +209,9 @@ Rules:
 - Constructors used for JSON conversion carry `property "ilog.rules.engine.dataio.forConversion" "true"`.
 - Reserved words that cannot be property names: `operator`, `function`, `rule`, `package`, `import`.
   Rename with a qualifier (`airlineOperator`).
+- **Constructor synchronisation**: before declaring a constructor in BOM, verify the matching constructor
+  (same parameter count, types, order) exists in XOM. Missing constructors produce
+  `GBRET0009E: Failed to transform usage of constructor`.
 
 ### 4.3 `.voc` (vocabulary)
 
@@ -177,7 +233,20 @@ com.loan.compliance.LoanRequest.addViolation(java.lang.String)#phrase.action = a
 - File name: `<base>_<LOCALE>.voc`, default `en_US`. Locale suffix is mandatory.
 - `#phrase.navigation` creates read expressions; `#phrase.action` creates write expressions.
 - Method phrases use `{0}`, `{1}` for arguments, and their key includes the Java signature.
+- Pattern 3 methods (non-`is` prefix, no setter) require `()` in the key: `hasCompletedKyc()#phrase.navigation = …`
 - Two phrases that begin with the same token sequence produce `Ambiguous sentence`.
+
+**Vocabulary unsafe tokens** — never use inside `{…}` phrase label curly braces:
+
+| Unsafe token | Why | Safe replacement |
+|---|---|---|
+| `score` | ODM built-in operator | `{scoring}` |
+| `risk` (standalone) | Parser conflict | `{country tier}`, `{risk level}` |
+| `elapsed`, `km`, `distance`, `travel`, `speed` | ODM arithmetic/unit tokens | descriptive alternatives |
+| `increase`, `decrease`, `by`, `points` | ODM arithmetic action tokens | `record`, `log`, `tally` |
+| `to`, `from`, `at`, `with` | BAL prepositions in action phrases | use verb-first phrases |
+
+All tokens inside `{…}` must be **all-lowercase** — case mismatch causes `"The word 'XYZ' is expected in place of 'xyz'"`.
 
 ### 4.4 `.b2xa`
 
@@ -195,11 +264,13 @@ com.loan.compliance.LoanRequest.addViolation(java.lang.String)#phrase.action = a
 <ilog.rules.studio.model.base:VariableSet xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
   <name>LoanComplianceParameters</name>
   <uuid>f1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c</uuid>
-  <variables name="request" type="com.loan.compliance.LoanRequest" initialValue="" verbalization="the request"/>
+  <variables name="request" type="com.loan.compliance.LoanRequest" initialValue="new com.loan.compliance.LoanRequest()" verbalization="the request"/>
 </ilog.rules.studio.model.base:VariableSet>
 ```
 
 `name` has no spaces (the `.dop` refers to it). `verbalization` is what rules quote: `'the request'`.
+**`initialValue` must be the fully-qualified constructor call** — never `""` or `"null"` (a null reference
+causes NullPointerException before the first rule fires).
 
 ### 4.6 `.brl` (one rule, XML wrapper around BAL)
 
@@ -219,6 +290,10 @@ then
     add "Age requirement not met - applicant is under 18" to the violations of 'the request' ;]]></definition>
 </ilog.rules.studio.model.brl:ActionRule>
 ```
+
+**CRITICAL: never put `/* */` comments inside `<definition><![CDATA[…]]>`** — BAL has no comment syntax.
+The `/*` is parsed as two unknown tokens, causing every subsequent token to be reported as
+`"The word 'X' is not required"`. Put descriptions in the `<name>` element and surrounding XML comments.
 
 Variants seen in committed projects:
 
@@ -309,8 +384,20 @@ The ruleflow is XML that wraps an inner `<Ruleflow>` document. Each `RuleTask` r
 Tasks are chained by `<Transition Source="node_1" Target="node_2"/>` between `StartTask` and `StopTask`.
 `<Properties><imports><![CDATA[use com.loan.compliance;]]></imports></Properties>` imports the BOM package.
 
-Execution modes used: `Fastpath` (sequential, no inference: most projects), `RetePlus` (pattern-matching
-inference: used where one rule's effect must trigger others, e.g. AML, Luggage fees, Loan pricing).
+**Execution mode guidance:**
+- `Fastpath`: sequential, no inference — use for data enrichment, validation, ordered checks, and any package where rule B reads what rule A writes.
+- `RetePlus`: pattern-matching inference — use only where rules are truly independent (scoring, classification). Every rule in a RetePlus package that sets the final decision **must** guard on the initial decision value (e.g., `fraudDecision is "PENDING"`) to prevent two rules from both firing.
+
+**Conditional transitions** — use to skip packages when a hard block is already set:
+
+```xml
+<Transition Identifier="t_skip_scoring" Source="node_3" Target="node_8">
+  <Condition><![CDATA[the fraud decision of 'the transaction' is "BLOCK"]]></Condition>
+</Transition>
+<Transition Identifier="t_continue" Source="node_3" Target="node_4">
+  <Condition><![CDATA[it is not true that the fraud decision of 'the transaction' is "BLOCK"]]></Condition>
+</Transition>
+```
 
 ### 4.10 `.dop` (operation) and `.dep` (deployment)
 
@@ -324,6 +411,7 @@ inference: used where one rule's effect must trigger others, e.g. AML, Luggage f
     <variableSet href="../rules/LoanComplianceParameters.var#f1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c"/>
   </referencedVariables>
   <ruleflow href="../rules/loan-compliance-ruleflow.rfl#b9c0d1e2-f3a4-5b6c-7d8e-9f0a1b2c3d4e"/>
+  <extractor xsi:type="ilog.rules.studio.model.query.extractor:QueryExtractor" name="LoanComplianceOperation_extractor" validator="Default Validator"/>
   <targetRuleProject href="../../Loan%20Compliance%20Service#a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d"/>
 </com.ibm.rules.studio.model.decisionservice:Operation>
 ```
@@ -343,7 +431,15 @@ inference: used where one rule's effect must trigger others, e.g. AML, Luggage f
 </com.ibm.rules.studio.model.decisionservice:Deployment>
 ```
 
-The `dep` **element `<name>`** is what the build's `dep =` property must equal.
+The `dep` **element `<name>`** is what the build's `dep =` property must equal (not the ruleApp name).
+
+**UUID consistency chain** — the `.dop` `<uuid>` is the single source of truth:
+
+```
+.dop   <uuid>DOP_UUID</uuid>                              ← source of truth
+.dep   <operation href="…Operation.dop#DOP_UUID"/>        ← must match
+.ruleproject  MigratedToOperationId="DOP_UUID"            ← must match
+```
 
 ### 4.11 XOM (Java)
 
@@ -367,8 +463,10 @@ public class Cardholder {
 
 - Do not implement `Serializable`. (Loan Compliance is an older project that still does.)
 - Annotate computed accessors (`isX()`, `hasX()` with no setter) with `@JsonIgnore` so JSON round trips work.
-- Provide a no-argument constructor.
-- Domain vocabulary for such a method: `Cardholder.hasPriorTransactionIn(java.lang.String)#phrase.navigation = {this} has previously transacted in {0}`.
+- Provide a no-argument constructor that initialises all nested objects and collections.
+- **Never instantiate objects inside BAL rules.** All three in-rule forms (`a new ClassName`, `a ClassName`, `a concept label`) are unreliable. Initialise nested objects in the XOM default constructor instead.
+- Compile with `--release 21`: `javac --release 21 -cp "lib/*" -d bin src/**/*.java`
+- Domain vocabulary for a `@JsonIgnore` method: `Cardholder.hasPriorTransactionIn(java.lang.String)#phrase.navigation = {this} has previously transacted in {0}`.
 
 ## 5. Cross-file linkage checklist
 
@@ -378,29 +476,47 @@ public class Cardholder {
 | `.dop` `<ruleflow href="…rfl#UUID"/>` and `ruleflowName` | `.rfl` `<uuid>` and `<name>` |
 | `.dop` `<variableSet href="…var#UUID"/>`, `variableName`, `variableSetName` | `.var` `<uuid>`, `variables/@name`, `<name>` |
 | `.dep` `<operation href="Op.dop#UUID"/>` and `operationName` | `.dop` `<uuid>` and `<name>` |
+| `.dep` `dep =` build property | `.dep` `<name>` element value |
 | `.rfl` `<Package Name="x"/>` | folder `rules/x/` |
 | `.ruleproject` BOM `origin` and `.bom` `property origin` | `xom:/<Project name>/<xom project>` |
+| `.ruleproject` BOM `origin` | XOM path `name` attribute (exact string) |
 | `.bom`, `.voc`, `.b2xa` base name | identical (voc adds `_en_US`) |
 | Rule text `'the request'` | `.var` `verbalization` |
 | Voc member keys | Java class + member names in the BOM |
+| `.ruleproject` `MigratedToOperationId` | `.dop` `<uuid>` |
 
 ## 6. Verified build status
 
-Building is the only proof of correctness. Command (JDK 21):
+Building is the only proof of correctness. Run from the project directory (JDK 21):
 
-```
-java -jar rules-compiler.jar -config <Project>.properties
+```bash
+cd sample_projects/<Project_Dir>
+java -jar ../../buildcommand/rules-compiler/rules-compiler.jar -config <ProjectName>.properties
 ```
 
-```
-project = <absolute path to Rule Project folder>
-output = <output dir>
+Properties file format (`sample_projects/<Project_Dir>/<ProjectName>.properties`, paths relative to that dir):
+
+```properties
+project = <Rule Project folder name>
+output = <Rule Project folder name>/output
 dep = <the .dep <name> value>
-xom-classpath = <path to a single XOM jar>
+xom-classpath = <domain>-xom/<domain>-xom.jar
 ```
 
-Note: `xom-classpath` accepted one jar in testing. If the XOM needs Jackson, put the dependency classes
-in the same jar (a "fat" XOM jar). A `:`-joined list failed with "could not be found or is not a file".
+Note: `xom-classpath` accepts one jar. If the XOM needs Jackson, bundle the Jackson classes into the
+XOM jar (a "fat jar"). A `:`-joined list failed with "could not be found or is not a file".
+
+**JDK version compatibility:**
+
+| JDK | Result | Symptom |
+|-----|--------|---------|
+| **21** (OpenJDK / Semeru / Adoptium) | ✅ Required | — |
+| 26+ | ❌ FAIL | `GBREX0011E: Cannot find method 'resume()' in java.lang.Thread` |
+| 18–25 | ❌ FAIL | `UnsupportedClassVersionError` — rules-compiler.jar needs class v65.0 |
+| 17 | ⚠️ May work | Not tested; use 21 |
+| 8, 11 | ❌ FAIL | `UnsupportedClassVersionError` |
+
+XOM must be compiled with `--release 21` even when building with JDK 26+; omitting it targets a class file version that JDK 21 cannot load during B2X transformation.
 
 Result of building every committed project with IBM Semeru JDK 21 (XOM compiled from source):
 
@@ -415,51 +531,140 @@ Result of building every committed project with IBM Semeru JDK 21 (XOM compiled 
 | Mineral_Classification | SUCCESS | |
 | Loan_Compliance_Service | **FAILURE** | has no `.dep`; error: `The deployment configuration named "…" was not found in rule project`. Its XOM still implements `Serializable` and its vocabulary has phrases with no BOM member (`hasCoSigner`, `combinedCreditScore`). Treat as a partial example. |
 
-JDK matters: with JDK 25 every build failed with `GBREX0011E: Cannot find method 'resume()' in execution class 'java.lang.Thread'`
-(B2X mapping over removed JDK methods). Use JDK 17 or 21.
+The compiler stops at the first broken rule package (alphabetical by package name). A clean report for
+other packages does not prove they are valid; rebuild until `BUILD SUCCESS`.
 
 ## 7. BAL syntax rules and common errors
 
 | Wrong | Right | Compiler symptom |
 |---|---|---|
 | `x >= 5`, `x <= 5`, `x > 5`, `x < 5` | `is at least 5`, `is at most 5`, `is more than 5`, `is less than 5` | word expected/not required |
-| `is equal to` | plain `is` / `is not` (`the decision of 'the request' is "PENDING"`) | `The word 'January' is expected in place of 'equal'` |
+| `is equal to "X"` on strings | plain `is "X"` / `it is not true that … is "X"` | `The word 'January' is expected in place of 'equal'` |
 | `is in { … }` | `is one of { "A", "B" }` | word expected |
 | `'the var' is not active` | `it is not true that 'the var' is active` | word expected |
 | `is not defined` | `is null` / `is not null` | word expected |
 | `set … ;` missing final `;` | every action ends with ` ;` | parse error |
+| `/* comment */` inside CDATA | remove — put description in `<name>` | `"The word '/' is not required"` + cascading errors |
 | `the violations of 'the request' is empty` | expose a computed boolean (`hasViolations`) with `@JsonIgnore` and a vocabulary phrase | invalid expression |
 | Boolean BOM property declared `isPregnant` | `pregnant` | `GBREX0021E Cannot find attribute … in execution class` |
+| `has*`/`requires*`/`can*` getter declared as BOM property | use method syntax: `public boolean hasX();` | `GBREX0021E Cannot find attribute 'hasX'` |
 | Two phrases starting `add {0} to the …` sharing a prefix | make the full phrase unique | `Ambiguous sentence` |
 | Phrase label `speed`, `distance`, `minutes`, `points`, `increase`, `decrease`, `by`, `elapsed`, `location` | choose another word (`prior`, `gap`, `offset`, `tally`) | `The word 'X' is missing` |
+| Uppercase token in `{…}` phrase label (`{IP location}`) | all-lowercase: `{ip location}` | `"The word 'IP' is expected in place of 'ip'"` |
 | `.dep` without `ruleAppName` | set `ruleAppName="…"` | `A RuleApp name cannot be empty` |
 | Missing `isADecisionService` / `deployment` OperationFolder | add them in `.ruleproject` | `Classic rule projects are not supported` |
 | Property named `operator` | `airlineOperator` | build breaks at BOM |
 | Copied UUIDs | one new UUID per file | `Cannot load operation` |
-
-The compiler stops at the first broken rule package (alphabetical by package name). A clean report for
-other packages does not prove they are valid; rebuild until `BUILD SUCCESS`.
+| BOM constructor signature doesn't match XOM | add matching constructor to XOM | `GBRET0009E: Failed to transform usage of constructor` |
+| In-rule object creation (`a new X`, `a X`) | initialise in XOM constructor | `"The word 'each' is expected in place of 'a'"` |
 
 ## 8. Project catalog
 
-Each project's folder has its own `AI_Context.md` with a file-by-file tour.
+Each project's `AI_Context.md` has a file-by-file tour. All projects are under `sample_projects/`.
 
-| Project | Domain / decision | Root object | Ruleflow (mode) | Features shown |
+| Project dir | Domain / decision | Root object | Ruleflow packages (mode) | Features shown |
 |---|---|---|---|---|
-| [Mineral_Classification](projects/Mineral_Classification/AI_Context.md) | Classify a mineral specimen by chemistry, then silicate subtype | `MineralSpecimen` | 2 packages (Fastpath) | One rule per class, two-stage classification, Jackson XOM |
-| [Cardiovascular_Risk_Assessment](projects/Cardiovascular_Risk_Assessment/AI_Context.md) | Patient risk tier: high, medium, low | `Patient` | validation, high-risk (RetePlus), medium, low | Severity-tiered packages, default rule last |
-| [Luggage_Compliance_Service](projects/Luggage_Compliance_Service/AI_Context.md) | Airline baggage limits and fees | `LuggageRequest` | 5 packages (Fastpath/RetePlus) | `definitions` iteration over collection, fee calculation |
-| [Aviation_Pollution_Compliance](projects/Aviation_Pollution_Compliance/AI_Context.md) | Emissions limits, CORSIA offsets, penalties | `ComplianceRequest` | 7 packages | Arithmetic, null-safe navigation, computed boolean |
-| [AML_Detection_service](projects/AML_Detection_service/AI_Context.md) | Anti-money-laundering alerts and escalation | `AMLRequest` | 5 packages (RetePlus + Fastpath) | Alert creation methods, cumulative amounts |
-| [CrossBorder_Fraud_Detection](projects/CrossBorder_Fraud_Detection/AI_Context.md) | Cross-border transaction risk scoring | `Transaction` | 4 packages (Fastpath + RetePlus) | Score accumulation, compliance pre-screening, audit trail |
-| [Geolocation_Fraud_Detection](projects/Geolocation_Fraud_Detection/AI_Context.md) | Geolocation and velocity-based fraud risk scoring | `Transaction` | 4 packages (Fastpath + RetePlus) | Pre-screening anomaly detection, risk scoring, confidence levels |
-| [Loan_Compliance_Service](projects/Loan_Compliance_Service/AI_Context.md) | Loan eligibility and interest pricing | `LoanRequest` | validation (Fastpath), pricing (RetePlus) | Decision table `.dta`; **does not build yet** |
+| [Mineral_Classification](sample_projects/Mineral_Classification/AI_Context.md) | Classify a mineral specimen by chemistry, then silicate subtype | `MineralSpecimen` | 2 (Fastpath) | One rule per class, two-stage classification, Jackson XOM |
+| [Cardiovascular_Risk_Assessment](sample_projects/Cardiovascular_Risk_Assessment/AI_Context.md) | Patient risk tier: high, medium, low | `Patient` | validation, high-risk (RetePlus), medium, low | Severity-tiered packages, default rule last |
+| [Luggage_Compliance_Service](sample_projects/Luggage_Compliance_Service/AI_Context.md) | Airline baggage limits and fees | `LuggageRequest` | 5 (Fastpath/RetePlus) | `definitions` iteration over collection, fee calculation |
+| [Aviation_Pollution_Compliance](sample_projects/Aviation_Pollution_Compliance/AI_Context.md) | Emissions limits, CORSIA offsets, penalties | `ComplianceRequest` | 7 (Fastpath/RetePlus) | Arithmetic, null-safe navigation, computed boolean |
+| [AML_Detection_service](sample_projects/AML_Detection_service/AI_Context.md) | Anti-money-laundering alerts and escalation | `AMLRequest` | 5 (RetePlus + Fastpath) | Alert creation methods, cumulative amounts |
+| [CrossBorder_Fraud_Detection](sample_projects/CrossBorder_Fraud_Detection/AI_Context.md) | Cross-border transaction fraud and compliance | `Transaction` | 4 (Fastpath + RetePlus) | Compliance pre-screening, risk scoring, fraud decision, audit trail |
+| [Geolocation_Fraud_Detection](sample_projects/Geolocation_Fraud_Detection/AI_Context.md) | Geolocation and velocity-based fraud risk scoring | `Transaction` | 4 (Fastpath + RetePlus) | Pre-screening anomaly detection, risk scoring, confidence levels |
+| [Loan_Compliance_Service](sample_projects/Loan_Compliance_Service/AI_Context.md) | Loan eligibility and interest pricing | `LoanRequest` | validation (Fastpath), pricing (RetePlus) | Decision table `.dta`; **does not build yet** |
+
+### CrossBorder_Fraud_Detection — artifact index
+
+| Artifact | Value / Path |
+|----------|------|
+| Project dir | `sample_projects/CrossBorder_Fraud_Detection/` |
+| Rule project folder | `CrossBorderFraudDetection/` (project name `CrossBorderFraudDetection`) |
+| XOM project folder | `cross-border-fraud-xom/` |
+| XOM sources | `cross-border-fraud-xom/src/com/fraud/crossborder/*.java` |
+| Build properties | `sample_projects/CrossBorder_Fraud_Detection/` *(no `.properties` file yet — create one mirroring the Aviation example)* |
+| Rule project UUID | `a712610d-70e8-4caa-9b33-6aae8fcde6de` |
+| Operation UUID (`.dop`) | `d038c2de-0d36-43a6-a685-d8ac3dae673e` |
+| `MigratedToOperationId` | `c8065506-d5f8-49d9-9b07-14cff80ea43e` |
+| Deployment UUID (`.dep`) | `6a98fb71-3889-4453-aa58-51c8a4165246` |
+| RuleApp name | `CrossBorderFraudDetectionDeployment` |
+| `dep =` value | `CrossBorderFraudDetectionDeployment` |
+| Ruleflow | 4 packages: data-enrichment (Fastpath) → compliance-prescreening (RetePlus) → risk-scoring (RetePlus) → fraud-decision (Fastpath) |
+| Project-level docs | `sample_projects/CrossBorder_Fraud_Detection/AI_Context.md` |
 
 ## 9. Recipe: building a new project
 
-1. Write the XOM (Jackson POJOs), compile to a jar.
-2. Write the `.bom` (properties header, `package`, classes) and the `_en_US.voc`.
+1. Write the XOM (Jackson POJOs, `--release 21`), compile to a jar.
+2. Write the `.bom` (properties header, `package`, classes — apply the three-pattern rule for method mapping) and the `_en_US.voc`.
 3. Create the `.ruleproject`, `.b2xa`, `.var`, one `.rulepackage` per package, `.brl` files.
 4. Create the `.rfl`, `.dop` (with correct hrefs), `.dep` (with `ruleAppName`).
 5. Generate a fresh UUID per file (`uuidgen | tr A-Z a-z`).
-6. Build with the compiler, fix one error at a time (rebuild after each), repeat until `BUILD SUCCESS`.
+6. Complete the dependency analysis (§10) before writing any rules.
+7. Build with the compiler, fix one error at a time (rebuild after each), repeat until `BUILD SUCCESS`.
+
+## 10. Dependency analysis (mandatory before writing rules)
+
+Before writing any `.brl` rule or `.rfl` ruleflow, complete the following steps. Skipping them is the
+most common cause of silent runtime bugs: rules fire in the wrong order, guard conditions are never
+true, or competing rules overwrite each other's results without error.
+
+### Four categories of ODM dependencies
+
+| Category | Description | Enforced by |
+|----------|-------------|-------------|
+| **Data-flow** | Package B reads data that package A writes | Ruleflow task order |
+| **State-guard** | Rule R checks a flag that a previous package must have set | Guard condition in BAL `if` clause |
+| **Mutual exclusion** | Two rules in the same RetePlus package must not both fire | Shared guard on a status field (e.g., `fraudDecision is "PENDING"`) |
+| **UUID cross-reference** | `.dop` → `.rfl` → `.var` → `.ruleproject` links via `href` | Consistent UUIDs across all files |
+
+### Workflow
+
+**Step 1 — List every domain object and its mutable fields.**
+
+**Step 2 — Build a Read/Write matrix** for every planned rule:
+
+| Package | Rule | Reads | Writes |
+|---------|------|-------|--------|
+| data-enrichment | set-default-fraud-decision | `fraudDecision` | `fraudDecision ← "ACCEPT"` |
+| geo-ip-checks | geo-ip-country-mismatch | `ipLocation.countryCode`, `merchantLocation.countryCode` | `amlFlagged ← true` |
+| jurisdictional-checks | sanctioned-country-block | `merchantLocation.isSanctioned()` | `fraudDecision ← "BLOCK"` |
+| compliance-overrides | intra-region-exemption | `sanctionsMatched`, `amlFlagged` | `scoring.totalScore -= 10` |
+| risk-scoring | final-disposition | `fraudDecision`, `scoring.totalScore` | `fraudDecision ← "BLOCK"` |
+
+**Step 3 — Derive package execution order.** If package B reads a field written by package A → A must come before B in the ruleflow.
+
+**Step 4 — Identify mutual exclusion groups.** Rules in the same RetePlus package that must not both fire must all guard on the same initial-value check (e.g., `fraudDecision is "PENDING"`).
+
+**Step 5 — Ask the user to validate the ordering** before generating any project files.
+
+### Ruleflow design rules
+
+1. Task order MUST reflect the dependency graph — never assign task numbers arbitrarily.
+2. Use `Fastpath` for packages where rule order matters.
+3. Use `RetePlus` only for packages where rules are truly independent.
+4. Mutual exclusion in RetePlus requires a shared guard on the decision field.
+5. Score aggregators must run after all contributor packages.
+6. Exemption/override packages must run before final disposition.
+7. Flag-setting packages must have a lower task number than the packages that read the flag.
+
+### Dependency documentation file
+
+Every project root MUST contain a `glossary.md` or `DEPENDENCIES.md` that records:
+- Package execution order with rationale
+- Read/Write matrix
+- Mutual exclusion groups
+- Score accumulation chain
+- Guard conditions
+
+`CrossBorderFraud/glossary.md` is the canonical example.
+
+### Pre-generation checklist
+
+- [ ] Read/Write matrix complete for all planned rules
+- [ ] Package execution order derived from the dependency graph
+- [ ] Mutual exclusion groups identified
+- [ ] Score accumulation order confirmed — final disposition runs last
+- [ ] Exemption/override packages run before final disposition
+- [ ] Hard-block packages identified and position confirmed with user
+- [ ] User has validated the package ordering
+- [ ] `.ruleproject` BOM `origin` matches XOM path `name` (exact string)
+- [ ] All UUID cross-references traced: `.dop` → `.rfl`, `.dop` → `.var`, `.dep` → `.dop`, `.ruleproject`
