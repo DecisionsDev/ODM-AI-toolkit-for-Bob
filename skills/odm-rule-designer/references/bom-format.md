@@ -1,6 +1,6 @@
 # BOM (Business Object Model): text BRL, never XML
 
-`odm.py init` writes the header (`loadGetterSetterAsProperties`, `origin`, `uuid`, `package`). Append the class declarations below it.
+`odm init` writes the header (`loadGetterSetterAsProperties`, `origin`, `uuid`, `package`). Append the class declarations below it.
 
 ## Declare every property the rules use
 
@@ -12,7 +12,7 @@ Naming follows the setter without `set`:
 |---|---|
 | `getName()` / `setName()` | `public string name;` |
 | `isPregnant()` / `setPregnant()` | `public boolean pregnant;` (**not** `isPregnant`: that gives `GBREX0021E Cannot find attribute`) |
-| `hasAllergies()` / `setHasAllergies()` | `public boolean hasAllergies;` |
+| `isHasAllergies()` / `setHasAllergies()` | `public boolean hasAllergies;` (a plain `hasAllergies()` getter is not a JavaBean accessor: `GBREX0021E`) |
 | computed `isEligible()`, no setter | `public readonly boolean eligible property "factory.ignore" "true";` |
 | computed `getTotalCm()`, no setter | `public readonly int totalCm property "factory.ignore" "true";` |
 
@@ -55,7 +55,7 @@ BOM types: `string`, `int`, `double`, `boolean`, fully qualified class names, `j
 ## Collections
 
 - Declare them `readonly` and give the XOM an `addX(...)` method so rules can add items but never replace the collection.
-- `the X of 'the v' is empty` is **not** valid BAL. Expose `@JsonIgnore public boolean hasAnyX()` in the XOM, declare it in the BOM as a computed boolean (`anyX`), and verbalize it as `{this} has X`.
+- `the X of 'the v' is empty` is **not** valid BAL. Expose `@JsonIgnore public boolean isHasAnyX()` in the XOM, declare it in the BOM as a computed boolean (`hasAnyX`), and verbalize it as `{this} has X`.
 - If `add {0} to the <label> of {this}` fails with an unrelated-looking cascade (`The word 'X' is expected in place of 'Y'`, `Variable 'Y' is not declared`) while the declarations look right, rename the collection (proven names: `messages`, `triggeredRules`) instead of debugging the parser.
 
 ## `.b2xa`

@@ -49,7 +49,7 @@ https://github.com/user-attachments/assets/c7c9595b-2b05-4fde-aa51-673526783674
 
 - **IBM Bob** - [Install here](https://bob.ibm.com/docs/ide/getting-started/install) (Required)
 - **ODM Rule Designer** - [Install here](https://github.com/DecisionsDev/ruledesigner#installation) (Required)
-- **Java 21+** - IBM Semeru OpenJ9 recommended (for building projects)
+- **Java** - the JDK matching your ODM release: 9.0.x → 17, 9.5.x/9.6.x → 21, 9.7.x → 25 (set `ODM_JAVA_HOME` if it isn't the default). IBM Semeru OpenJ9 recommended
 - **Docker** - For ODM Build Command (optional, auto-downloaded)
 
 ### 1️⃣ Import the ODM Rule Designer Bob Mode

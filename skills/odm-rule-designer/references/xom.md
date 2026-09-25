@@ -1,12 +1,12 @@
 # XOM (eXecution Object Model)
 
-Plain Java POJOs under `<xom>/src/<package path>/`. `odm.py init` creates `.project`, `.classpath` (src → `bin`, Jackson jars in `lib/`) and, with `--fetch-jackson`, downloads Jackson 2.15.2. `odm.py xom <xom-dir>` compiles with `--release 17` (the ODM runtime rejects newer bytecode) and writes `<xom>/<xom>-1.0.0.jar`, which is the jar the build `.properties` points to.
+Plain Java POJOs under `<xom>/src/<package path>/`. `odm init` creates `.project`, `.classpath` (src → `bin`, Jackson jars in `lib/`) and, with `--fetch-jackson`, downloads Jackson 2.15.2. `odm xom <xom-dir>` compiles with `--release 17` (the lowest JDK of any ODM 9.x release, so the jar also loads on an older RES; a `--release` above the JDK of the ODM release in `rules-compiler.jar` is refused) and writes `<xom>/<xom>-1.0.0.jar`, which is the jar the build `.properties` points to. Always build the XOM with `odm xom` (needs only a JDK); never run `mvn`, which may not be installed. `odm init` also writes a `pom.xml` for users who prefer Maven — `mvn package` gives the same jar — but nothing in this skill depends on it.
 
 ## Conventions
 
 - **No `java.io.Serializable`.** Decision Server uses Jackson.
 - `@JsonInclude(JsonInclude.Include.NON_NULL)` on every class.
-- `@JsonIgnore` on every computed getter without a setter (`isX()`, `hasX()`, `getTotalX()`). Without it, JSON round-trips fail with `UnrecognizedPropertyException`.
+- `@JsonIgnore` on every computed getter without a setter (`isX()`, `isHasX()`, `getTotalX()`; never a plain `hasX()`, which B2X can't bind). Without it, JSON round-trips fail with `UnrecognizedPropertyException`.
 - Standard JavaBean getters/setters and a public no-arg constructor. Initialize collections in the constructor.
 - Enums are fine (declare them in the BOM as shown in `bom-format.md`).
 - Avoid reserved property names (`operator`, `function`, `rule`, `package`, `import`).
@@ -44,4 +44,4 @@ Computed values that are expensive can be cached lazily. Guard against zero or n
 
 ## Sync
 
-After any XOM change, run `odm.py xom`, then update the BOM and vocabulary by hand (nothing regenerates automatically), then rebuild.
+After any XOM change, run `odm xom`, then update the BOM and vocabulary by hand (nothing regenerates automatically), then rebuild.

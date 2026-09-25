@@ -15,7 +15,7 @@ This file provides guidance to agents when working with code in this repository.
 
 ## Critical Conventions & Gotchas
 
-- **Java Version**: Requires JDK 17+ (JDK 21 IBM Semeru OpenJ9 recommended); never use JDK 8/11.
+- **Java Version**: Only ODM 9.x is supported; never use JDK 8/11. The rules compiler must run on the exact JDK of its ODM release: 9.0.x → JDK 17, 9.5.x/9.6.x → JDK 21, 9.7.x → JDK 25 (read from `Implementation-Version` in the `rules-compiler.jar` manifest; `odm jdk` shows it). Set `ODM_JAVA_HOME` to choose that JDK. Compile the XOM with `--release 17`. IBM Semeru OpenJ9 recommended.
 - **XOM Serialization**: Do not implement `java.io.Serializable`. Use Jackson POJOs:
   - Add `@JsonInclude(JsonInclude.Include.NON_NULL)` at class level.
   - Add `@JsonIgnore` to all computed getter methods without matching setters (`isX()`, `hasX()`) to prevent JSON round-trip deserialization failure.

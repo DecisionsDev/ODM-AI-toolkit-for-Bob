@@ -2,7 +2,7 @@
 
 Use a decision table for scoring, rating, classification, or range lookups once there are **5+ rules with the same condition/action shape**. For 2–3 unrelated rules, or anything needing nested logic, write `.brl` rules.
 
-Start from `assets/templates/decision-table.dta`: copy it into `rules/<pkg>/<name>.dta`, set a fresh `<uuid>` (`python3 -c "import uuid;print(uuid.uuid4())"`), and adapt it. `odm.py check` includes `.dta` files in its UUID and string-param checks.
+Start from `assets/templates/decision-table.dta`: copy it into `rules/<pkg>/<name>.dta`, set a fresh `<uuid>` (`java -jar <skill>/scripts/odm.jar uuid`), and adapt it. `odm check` includes `.dta` files in its UUID and string-param checks.
 
 ## Structure
 
