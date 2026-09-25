@@ -17,9 +17,6 @@ This file provides guidance to agents when working with code in this repository.
 ├── tools/
 │   ├── odm-report-generator.py      # Markdown report + quality assessment generator
 │   └── README-ODM-REPORT-GENERATOR.md
-├── buildcommand/                    # Shared build tooling (extracted from ODM container)
-│   └── rules-compiler/
-│       └── rules-compiler.jar       # IBM ODM Build Command CLI (~52 MB)
 ├── odm.sh                           # Container manager: start|stop|restart|status
 ├── AGENTS.md                        # ← this file
 └── AI_Context.md                    # ODM file-format reference
@@ -33,41 +30,8 @@ This file provides guidance to agents when working with code in this repository.
 
 ---
 
-## ODM Docker Container — Canonical Runtime
-
-**The local ODM Docker container is the single canonical runtime for all ODM-related tasks in this repository.**
-Never attempt to use a separate ODM installation, a cloud instance, or a temporary `docker run` invocation for any task that the local container can serve.
-
-| Property        | Value                                                |
-|-----------------|------------------------------------------------------|
-| Container name  | `odm`                                                |
-| Image           | `icr.io/cpopen/odm-k8s/odm:latest`                  |
-| HTTP port       | `9060` → `http://localhost:9060`                     |
-| HTTPS port      | `9443` → `https://localhost:9443`                    |
-| Decision Center | `http://localhost:9060/decisioncenter/t/home`         |
-| Credentials     | `odmAdmin` / `odmAdmin`                              |
-| Manager script  | `./odm.sh {start\|stop\|restart\|status}` (repo root)|
-
-### Container rules
-
-1. **Always check container state first.** Run `./odm.sh status` before any ODM operation.
-2. **Download `rules-compiler.jar` from this container — never `docker run` a new one.** `buildcommand.zip` is at `http://localhost:9060/decisioncenter/assets/buildcommand.zip`. Do not re-download if already present and ≥ 10 MB.
-3. **Deploying a RuleApp** — use the Decision Center REST API: `POST http://localhost:9060/decisioncenter-api/v1/deployments` with `Authorization: Basic odmAdmin:odmAdmin`.
-4. **Never `docker rm` or `docker stop` the container** unless the user explicitly requests it.
-5. **Never create a second ODM container** (`odm-buildcmd`, `odm-test`, etc.). Use `./odm.sh restart` instead.
-
----
-
 ## Commands
 
-- **Check container**: `./odm.sh status`
-- **Download buildcommand** (first time only — from the running ODM container):
-  ```bash
-  mkdir -p buildcommand/rules-compiler
-  curl -s http://localhost:9060/decisioncenter/assets/buildcommand.zip --output buildcommand.zip
-  unzip -o buildcommand.zip -d buildcommand 'rules-compiler/*'
-  ls -lh buildcommand/rules-compiler/rules-compiler.jar   # expect ~52 MB
-  ```
 - **Compile XOM** (MUST use `--release 21`):
   `cd sample_projects/<Project_Dir>/<domain>-xom && javac --release 21 -cp "lib/*" -d bin src/<pkg>/*.java`
 - **Package XOM JAR**:
