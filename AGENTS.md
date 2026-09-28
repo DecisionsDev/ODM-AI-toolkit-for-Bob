@@ -85,11 +85,15 @@ This file provides guidance to agents when working with code in this repository.
 
 Before writing a single `.brl` rule or `.rfl` ruleflow, complete a dependency analysis. See [AI_Context.md §10](AI_Context.md) for the full workflow. In brief:
 
-1. Build a **Read/Write matrix** — which package reads and writes which fields.
-2. Derive **package execution order** from the matrix (data-flow dependencies).
-3. Identify **mutual exclusion groups** — rules in the same RetePlus package that must not both fire share a guard on the decision field (e.g., `fraudDecision is "PENDING"`).
-4. Ask the user to validate the ordering before generating any project files.
-5. Create a `glossary.md` or `DEPENDENCIES.md` in the project root documenting the above.
+1. Build a **Read/Write matrix** — which RuleTask reads and writes which fields.
+2. Derive **task execution order** from the matrix (data-flow dependencies between tasks).
+3. Choose the **execution mode** for each RuleTask based on dependencies *within* the task:
+   - `Fastpath` — rules are independent of each other within the task (no intra-task re-evaluation needed). Default mode.
+   - `Sequential` — rules must fire in order within the task but none reacts to another rule's output in the same pass.
+   - `RetePlus` — rules within the task depend on each other's output (rule B reads a field written by rule A in the same task); full Rete re-evaluation after every firing.
+4. Identify **mutual exclusion groups** — rules in the same RetePlus task that must not both fire share a guard on the decision field (e.g., `fraudDecision is "PENDING"`).
+5. Ask the user to validate the ordering before generating any project files.
+6. Create a `glossary.md` or `DEPENDENCIES.md` in the project root documenting the above.
 
 ---
 

@@ -370,23 +370,30 @@ The folder is `rules/pricing/`, so `<name>` is `pricing`. A nested folder is a n
 
 ### 4.9 `.rfl` (ruleflow)
 
-The ruleflow is XML that wraps an inner `<Ruleflow>` document. Each `RuleTask` runs one or more packages:
+The ruleflow is XML that wraps an inner `<Ruleflow>` document. Each `RuleTask` runs one or more rule packages. A **RuleTask** is the unit of execution in the ruleflow; a **rule package** (`<Package Name="…"/>`) is a folder of `.brl`/`.dta` files contained within a RuleTask.
 
 ```xml
 <RuleTask ExecutionMode="Fastpath" ExitCriteria="None" Identifier="task_1" Ordering="Default">
   <RuleList><Package Name="validation"/></RuleList>
 </RuleTask>
-<RuleTask ExecutionMode="RetePlus" ExitCriteria="None" Identifier="task_2" Ordering="Default">
-  <RuleList><Package Name="pricing"/></RuleList>
+<RuleTask ExecutionMode="Sequential" ExitCriteria="None" Identifier="task_2" Ordering="Default">
+  <RuleList><Package Name="enrichment"/></RuleList>
+</RuleTask>
+<RuleTask ExecutionMode="RetePlus" ExitCriteria="None" Identifier="task_3" Ordering="Default">
+  <RuleList><Package Name="scoring"/></RuleList>
 </RuleTask>
 ```
 
 Tasks are chained by `<Transition Source="node_1" Target="node_2"/>` between `StartTask` and `StopTask`.
 `<Properties><imports><![CDATA[use com.loan.compliance;]]></imports></Properties>` imports the BOM package.
 
-**Execution mode guidance:**
-- `Fastpath`: sequential, no inference — use for data enrichment, validation, ordered checks, and any package where rule B reads what rule A writes.
-- `RetePlus`: pattern-matching inference — use only where rules are truly independent (scoring, classification). Every rule in a RetePlus package that sets the final decision **must** guard on the initial decision value (e.g., `fraudDecision is "PENDING"`) to prevent two rules from both firing.
+**RuleTask execution modes — three choices:**
+
+| Mode | Engine behaviour | When to use |
+|------|-----------------|-------------|
+| `Fastpath` | All rules in the task are evaluated **once** at task entry; those whose conditions are true are then executed. No re-evaluation after each firing. | Rules within the task are **independent** of each other — no rule writes data that another rule in the same task reads. The most common and performant mode. |
+| `Sequential` | Rules are evaluated and fired **one by one in order** (top to bottom). No re-evaluation after each firing. | Rule order matters within the task but no rule needs to react to another rule's output in the same pass. |
+| `RetePlus` | Full Rete pattern-matching engine. Rules are **re-evaluated after every firing**, so a rule can react to changes made by a previously fired rule in the same task. | Rules within the task have **dependencies on each other's output** (rule B's condition checks a value written by rule A). More powerful but also more expensive. Every rule in a RetePlus task that sets a shared decision field **must** guard on the initial value of that field (e.g., `fraudDecision is "PENDING"`) to prevent two rules from both firing. |
 
 **Conditional transitions** — use to skip packages when a hard block is already set:
 
@@ -562,15 +569,15 @@ other packages does not prove they are valid; rebuild until `BUILD SUCCESS`.
 
 Each project's `AI_Context.md` has a file-by-file tour. All projects are under `sample_projects/`.
 
-| Project dir | Domain / decision | Root object | Ruleflow packages (mode) | Features shown |
+| Project dir | Domain / decision | Root object | Ruleflow tasks (mode) | Features shown |
 |---|---|---|---|---|
-| [Mineral_Classification](sample_projects/Mineral_Classification/AI_Context.md) | Classify a mineral specimen by chemistry, then silicate subtype | `MineralSpecimen` | 2 (Fastpath) | One rule per class, two-stage classification, Jackson XOM |
-| [Cardiovascular_Risk_Assessment](sample_projects/Cardiovascular_Risk_Assessment/AI_Context.md) | Patient risk tier: high, medium, low | `Patient` | validation, high-risk (RetePlus), medium, low | Severity-tiered packages, default rule last |
-| [Luggage_Compliance_Service](sample_projects/Luggage_Compliance_Service/AI_Context.md) | Airline baggage limits and fees | `LuggageRequest` | 5 (Fastpath/RetePlus) | `definitions` iteration over collection, fee calculation |
-| [Aviation_Pollution_Compliance](sample_projects/Aviation_Pollution_Compliance/AI_Context.md) | Emissions limits, CORSIA offsets, penalties | `ComplianceRequest` | 7 (Fastpath/RetePlus) | Arithmetic, null-safe navigation, computed boolean |
-| [AML_Detection_service](sample_projects/AML_Detection_service/AI_Context.md) | Anti-money-laundering alerts and escalation | `AMLRequest` | 5 (RetePlus + Fastpath) | Alert creation methods, cumulative amounts |
-| [CrossBorder_Fraud_Detection](sample_projects/CrossBorder_Fraud_Detection/AI_Context.md) | Cross-border transaction fraud and compliance | `Transaction` | 4 (Fastpath + RetePlus) | Compliance pre-screening, risk scoring, fraud decision, audit trail |
-| [Geolocation_Fraud_Detection](sample_projects/Geolocation_Fraud_Detection/AI_Context.md) | Geolocation and velocity-based fraud risk scoring | `Transaction` | 4 (Fastpath + RetePlus) | Pre-screening anomaly detection, risk scoring, confidence levels |
+| [Mineral_Classification](sample_projects/Mineral_Classification/AI_Context.md) | Classify a mineral specimen by chemistry, then silicate subtype | `MineralSpecimen` | 2 tasks (Fastpath) | One rule per class, two-stage classification, Jackson XOM |
+| [Cardiovascular_Risk_Assessment](sample_projects/Cardiovascular_Risk_Assessment/AI_Context.md) | Patient risk tier: high, medium, low | `Patient` | validation, high-risk (RetePlus), medium, low | Severity-tiered tasks, default rule last |
+| [Luggage_Compliance_Service](sample_projects/Luggage_Compliance_Service/AI_Context.md) | Airline baggage limits and fees | `LuggageRequest` | 5 tasks (Fastpath/RetePlus) | `definitions` iteration over collection, fee calculation |
+| [Aviation_Pollution_Compliance](sample_projects/Aviation_Pollution_Compliance/AI_Context.md) | Emissions limits, CORSIA offsets, penalties | `ComplianceRequest` | 7 tasks (Fastpath/RetePlus) | Arithmetic, null-safe navigation, computed boolean |
+| [AML_Detection_service](sample_projects/AML_Detection_service/AI_Context.md) | Anti-money-laundering alerts and escalation | `AMLRequest` | 5 tasks (RetePlus + Fastpath) | Alert creation methods, cumulative amounts |
+| [CrossBorder_Fraud_Detection](sample_projects/CrossBorder_Fraud_Detection/AI_Context.md) | Cross-border transaction fraud and compliance | `Transaction` | 4 tasks (Fastpath + RetePlus) | Compliance pre-screening, risk scoring, fraud decision, audit trail |
+| [Geolocation_Fraud_Detection](sample_projects/Geolocation_Fraud_Detection/AI_Context.md) | Geolocation and velocity-based fraud risk scoring | `Transaction` | 4 tasks (Fastpath + RetePlus) | Pre-screening anomaly detection, risk scoring, confidence levels |
 | [Loan_Compliance_Service](sample_projects/Loan_Compliance_Service/AI_Context.md) | Loan eligibility and interest pricing | `LoanRequest` | validation (Fastpath), pricing (RetePlus) | Decision table `.dta`; **does not build yet** |
 
 ### CrossBorder_Fraud_Detection — artifact index
@@ -588,7 +595,7 @@ Each project's `AI_Context.md` has a file-by-file tour. All projects are under `
 | Deployment UUID (`.dep`) | `6a98fb71-3889-4453-aa58-51c8a4165246` |
 | RuleApp name | `CrossBorderFraudDetectionDeployment` |
 | `dep =` value | `CrossBorderFraudDetectionDeployment` |
-| Ruleflow | 4 packages: data-enrichment (Fastpath) → compliance-prescreening (RetePlus) → risk-scoring (RetePlus) → fraud-decision (Fastpath) |
+| Ruleflow | 4 tasks: data-enrichment (Fastpath) → compliance-prescreening (RetePlus) → risk-scoring (RetePlus) → fraud-decision (Fastpath) |
 | Project-level docs | `sample_projects/CrossBorder_Fraud_Detection/AI_Context.md` |
 
 ## 9. Recipe: building a new project
@@ -611,9 +618,9 @@ true, or competing rules overwrite each other's results without error.
 
 | Category | Description | Enforced by |
 |----------|-------------|-------------|
-| **Data-flow** | Package B reads data that package A writes | Ruleflow task order |
-| **State-guard** | Rule R checks a flag that a previous package must have set | Guard condition in BAL `if` clause |
-| **Mutual exclusion** | Two rules in the same RetePlus package must not both fire | Shared guard on a status field (e.g., `fraudDecision is "PENDING"`) |
+| **Data-flow** | RuleTask B reads data that RuleTask A writes | Ruleflow task order |
+| **State-guard** | Rule R checks a flag that a previous task must have set | Guard condition in BAL `if` clause |
+| **Mutual exclusion** | Two rules in the same RetePlus task must not both fire | Shared guard on a status field (e.g., `fraudDecision is "PENDING"`) |
 | **UUID cross-reference** | `.dop` → `.rfl` → `.var` → `.ruleproject` links via `href` | Consistent UUIDs across all files |
 
 ### Workflow
@@ -622,7 +629,7 @@ true, or competing rules overwrite each other's results without error.
 
 **Step 2 — Build a Read/Write matrix** for every planned rule:
 
-| Package | Rule | Reads | Writes |
+| RuleTask | Rule | Reads | Writes |
 |---------|------|-------|--------|
 | data-enrichment | set-default-fraud-decision | `fraudDecision` | `fraudDecision ← "ACCEPT"` |
 | geo-ip-checks | geo-ip-country-mismatch | `ipLocation.countryCode`, `merchantLocation.countryCode` | `amlFlagged ← true` |
@@ -630,28 +637,31 @@ true, or competing rules overwrite each other's results without error.
 | compliance-overrides | intra-region-exemption | `sanctionsMatched`, `amlFlagged` | `scoring.totalScore -= 10` |
 | risk-scoring | final-disposition | `fraudDecision`, `scoring.totalScore` | `fraudDecision ← "BLOCK"` |
 
-**Step 3 — Derive package execution order.** If package B reads a field written by package A → A must come before B in the ruleflow.
+**Step 3 — Derive task execution order.** If task B reads a field written by task A → A must come before B in the ruleflow.
 
-**Step 4 — Identify mutual exclusion groups.** Rules in the same RetePlus package that must not both fire must all guard on the same initial-value check (e.g., `fraudDecision is "PENDING"`).
+**Step 4 — Identify mutual exclusion groups.** Rules in the same RetePlus task that must not both fire must all guard on the same initial-value check (e.g., `fraudDecision is "PENDING"`).
 
 **Step 5 — Ask the user to validate the ordering** before generating any project files.
 
 ### Ruleflow design rules
 
 1. Task order MUST reflect the dependency graph — never assign task numbers arbitrarily.
-2. Use `Fastpath` for packages where rule order matters.
-3. Use `RetePlus` only for packages where rules are truly independent.
-4. Mutual exclusion in RetePlus requires a shared guard on the decision field.
-5. Score aggregators must run after all contributor packages.
-6. Exemption/override packages must run before final disposition.
-7. Flag-setting packages must have a lower task number than the packages that read the flag.
+2. Choose the execution mode for each **RuleTask** based on the dependencies *between rules within that task*:
+   - `Fastpath` — rules within the task are independent of each other (each reads only data set before the task started). The default and most common mode.
+   - `Sequential` — rules within the task must fire in a specific order, but no rule reacts to another rule's output in the same pass.
+   - `RetePlus` — rules within the task have dependencies on each other (rule B conditions check a field written by rule A in the same task). Required when intra-task re-evaluation is needed.
+3. Mutual exclusion within a RetePlus task requires a shared guard on the decision field.
+4. Score aggregators must run after all contributor tasks.
+5. Exemption/override tasks must run before final disposition.
+6. Flag-setting tasks must have a lower sequence position than the tasks that read the flag.
 
 ### Dependency documentation file
 
 Every project root MUST contain a `glossary.md` or `DEPENDENCIES.md` that records:
-- Package execution order with rationale
+- RuleTask execution order with rationale (derived from the Read/Write matrix)
+- Execution mode chosen for each RuleTask (Fastpath / Sequential / RetePlus) and why
 - Read/Write matrix
-- Mutual exclusion groups
+- Mutual exclusion groups (RetePlus tasks only)
 - Score accumulation chain
 - Guard conditions
 
@@ -660,11 +670,12 @@ Every project root MUST contain a `glossary.md` or `DEPENDENCIES.md` that record
 ### Pre-generation checklist
 
 - [ ] Read/Write matrix complete for all planned rules
-- [ ] Package execution order derived from the dependency graph
-- [ ] Mutual exclusion groups identified
+- [ ] Task execution order derived from the dependency graph
+- [ ] Execution mode chosen for each RuleTask (Fastpath / Sequential / RetePlus) based on intra-task rule dependencies
+- [ ] Mutual exclusion groups identified (RetePlus tasks only)
 - [ ] Score accumulation order confirmed — final disposition runs last
-- [ ] Exemption/override packages run before final disposition
-- [ ] Hard-block packages identified and position confirmed with user
-- [ ] User has validated the package ordering
+- [ ] Exemption/override tasks run before final disposition
+- [ ] Hard-block tasks identified and position confirmed with user
+- [ ] User has validated the task ordering
 - [ ] `.ruleproject` BOM `origin` matches XOM path `name` (exact string)
 - [ ] All UUID cross-references traced: `.dop` → `.rfl`, `.dop` → `.var`, `.dep` → `.dop`, `.ruleproject`
