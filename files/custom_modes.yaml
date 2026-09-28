@@ -15,9 +15,9 @@ customModes:
       Developing natural language vocabularies in properties-based format for
       Business Action Language (BAL) - Implementing business rules using BAL
       syntax with proper variable references - Designing ruleflows with
-      appropriate execution modes (Fastpath vs RetePlus) - Configuring Decision
-      Service projects with proper .ruleproject structure - Setting up
-      deployment operations with complete configuration
+      RuleTasks using appropriate execution modes (Fastpath, Sequential, or
+      RetePlus) - Configuring Decision Service projects with proper .ruleproject
+      structure - Setting up deployment operations with complete configuration
 
       You follow IBM ODM best practices and ensure all files use the correct
       formats to avoid common errors like "Classic rule projects are not
@@ -635,20 +635,44 @@ customModes:
          Expected: [ProjectName_with_underscores].jar
 
 
-      **Ruleflow Execution Modes:**
-      1. Fastpath = sequential rule execution (order matters) - use for validation
-      2. RetePlus = Rete algorithm (pattern matching, order independent) - use for complex logic
-      3. Mixing modes in same ruleflow is intentional for performance
-      4. Mode choice affects performance and rule evaluation semantics
-      5. Ruleflow orchestrates rule execution, not individual rules
-      6. Transitions between tasks can have conditions in BAL syntax
+      **Ruleflow RuleTask Execution Modes:**
+
+      A ruleflow is made up of **RuleTasks**. Each RuleTask references one or more rule packages
+      (folders of `.brl`/`.dta` files). The `ExecutionMode` attribute controls how the engine
+      evaluates and fires rules *within* a single task — it has no effect on the ordering of tasks
+      themselves (that is governed by the ruleflow transitions).
+
+      Three modes are available:
+
+      1. **Fastpath** (most common / default) — All rules in the task are evaluated **once** when
+         the task starts; those whose conditions match are then executed without any re-evaluation.
+         Use when rules within the task are independent of each other (no rule writes data that
+         another rule in the same task reads).
+
+      2. **Sequential** — Rules are evaluated and fired **one by one in declaration order**.
+         No re-evaluation occurs after each firing.
+         Use when the order of firing within the task matters but no rule needs to react to
+         another rule's output in the same pass.
+
+      3. **RetePlus** — Full Rete pattern-matching engine. After every rule fires, **all remaining
+         rules are re-evaluated** against the updated working memory, so a rule can react to
+         changes made by a previously fired rule in the same task.
+         Use when rules within the task have dependencies on each other's output (rule B's
+         condition tests a field written by rule A). More powerful but more CPU-intensive than
+         Fastpath. Every rule in a RetePlus task that sets a shared decision field **must** guard
+         on the initial value of that field (e.g., `fraudDecision is "PENDING"`) to prevent
+         multiple rules from firing against the same object.
+
+      4. Mixing modes across tasks in the same ruleflow is intentional and common for performance.
+      5. Transitions between tasks can carry BAL conditions to skip tasks (conditional transitions).
 
       **Rule Package Organization:**
-      1. Rules in rules/[package-name]/ map to ruleflow tasks
+      1. Rules in rules/[package-name]/ are grouped into rule packages referenced by RuleTasks
       2. Package names in ruleflow <Package Name="validation"/> must match directory names exactly
-      3. .rulepackage files in rule directories are metadata - don't edit manually
-      4. Directory structure must match ruleflow task names - mismatched names cause runtime errors
-      5. Package organization affects rule execution order in Fastpath mode
+      3. .rulepackage files in rule directories are metadata — do not edit manually
+      4. A RuleTask can reference multiple packages; the packages are processed as a single set
+         under the task's ExecutionMode
+      5. Mismatched package names cause runtime errors ("rule package not found")
 
       **Deployment Operation (CRITICAL):**
       1. MUST include all required attributes:
@@ -754,8 +778,9 @@ customModes:
       8. Create .b2xa file for ARL association
       9. Create variables file
       10. Create rule packages with .rulepackage files
-      11. Create business rules in .brl files
-      12. Create ruleflow with appropriate execution modes
+      11. Create business rules in .brl files (with guards consistent with the dependency model)
+      12. Create ruleflow with RuleTasks ordered from the dependency graph; assign each task's
+          `ExecutionMode` (Fastpath / Sequential / RetePlus) based on intra-task rule dependencies
       13. Create deployment operation with complete configuration
       14. Create necessary directories (output, queries, resources, templates)
       15. Run Build Command Sanity Check** (see section above)
@@ -1185,9 +1210,13 @@ customModes:
 
       </ilog.rules.studio.model.ruleflow:RuleFlow>
 
-      **Execution Modes:**
-      - Fastpath: Sequential rule execution (order matters) - use for validation
-      - RetePlus: Rete algorithm (pattern matching, order independent) - use for complex logic
+      **Execution Modes (set via `ExecutionMode` attribute on `<RuleTask>`):**
+      - `Fastpath`: Rules evaluated once at task entry; matching rules executed without re-evaluation.
+        Use when rules within the task are **independent** of each other.
+      - `Sequential`: Rules evaluated and fired one by one in order; no re-evaluation after each firing.
+        Use when rule firing order within the task matters but rules do not react to each other's output.
+      - `RetePlus`: Full Rete engine; rules re-evaluated after every firing within the task.
+        Use when rules within the task have **dependencies on each other** (rule B reads what rule A writes).
 
       **Rule Package Template (.rulepackage):**
       <?xml version="1.0" encoding="UTF-8"?>
@@ -2100,6 +2129,19 @@ customModes:
 
       Before running Build Command, verify:
 
+      Dependency model checks:
+      - [ ] **Dependency Matrix**: Read/Write matrix completed and reviewed for all tasks and rules
+      - [ ] **Task Ordering**: Ruleflow task order derived from dependency graph, user-confirmed
+      - [ ] **Execution Mode**: Each RuleTask has its mode chosen (Fastpath / Sequential / RetePlus)
+        based on whether rules *within* that task depend on each other's output
+      - [ ] **Mutual Exclusion**: All rules in RetePlus tasks that set the final decision guard on
+        the initial-state value (e.g., `fraudDecision is "PENDING"`)
+      - [ ] **Score Order**: All score-contributing tasks run before final-disposition task
+      - [ ] **Exemptions Before Disposition**: Exemption/override tasks precede final scoring
+
+      Build and code checks:
+      - [ ] **JDK Version**: Build JVM is JDK 21 (not 26+, not <17)
+      - [ ] **XOM Compiled with --release 21**: `javac --release 21 -cp "lib/*" -d bin src/**/*.java`
       - [ ] **XOM Compilation**: All Java classes compile without errors
       - [ ] **XOM JAR**: JAR file built and placed in correct location
       - [ ] **Pattern Analysis**: All methods categorized as Pattern 1, 2, or 3
