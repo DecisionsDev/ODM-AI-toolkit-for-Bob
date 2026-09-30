@@ -31,7 +31,7 @@ com.example.loan.Location.distanceTo(com.example.loan.Location)#phrase.navigatio
    the borrower of 'the request' is not null
    and the credit score of the borrower of 'the request' is less than 500
    ```
-6. **Mixing and/or:** precedence isn't standard. Put each condition on its own line and add explicit parentheses.
+6. **No `or`, no `else`, no `print`:** use only `and` conditions, and write one rule per alternative instead of `or`. Instead of `else`, write a positive rule and a negative rule. `print` is for temporary debugging only. `odm check` warns about all three (see `best-practices.md`). If a user explicitly wants an `or`, remember that `and`/`or` precedence isn't standard: put each condition on its own line and add explicit parentheses.
 7. **Numeric computed values:** never use `{x} of {this}` navigation (it clashes with the length operator). Use a method phrase such as `gap from {this} to {0}`. Wrap navigation arguments in parentheses: `gap from (the origin of 'the trip') to (the destination of 'the trip')`.
 8. **Method phrase start:** if a phrase starts with a label token, rules write `the ...`. If it starts with `{this}`, rules don't write `the`.
 9. **Multi-argument methods / reserved tokens:** in method phrases, don't use these as label words: `elapsed, km/h, distance, travel, speed, minutes, velocity, span, geolocation, increase, decrease, by, points, notifications, add, remove`. Safe substitutes: `prior, gap, offset, delta, measure, count, tally, record, log`. If a multi-argument method can't be phrased safely, add single-argument XOM overloads for BAL (then run `odm xom` and update the BOM and vocabulary).
@@ -51,11 +51,11 @@ if
   and it is not true that 'the request' has violations
 then
   add ( the offset deficit of the airline operator of 'the request' * 100 ) to the penalty amount of the airline operator of 'the request' ;
-  add "Deficit of " + the offset deficit of the airline operator of 'the request' + " t" to the violations of 'the request' ;
-  make it true that 'the request' is flagged ;
 ```
 
 Arithmetic needs parentheses, and strings are concatenated with `+`.
+
+Keep one action phrase per rule. If the penalty always comes with a violation message and the `flagged` status, don't chain three actions. Declare a virtual BOM method (for example `penalize {this} with {0} because {1}`) whose B2X body does all three, and use that single phrase. See `best-practices.md`.
 
 ## Rule packages
 

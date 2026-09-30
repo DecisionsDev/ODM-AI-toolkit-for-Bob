@@ -17,3 +17,6 @@ Start from `assets/templates/decision-table.dta`: copy it into `rules/<pkg>/<nam
 2. Keep `Check.Overlap.ErrorLevel` set to `Error`.
 3. Cover both open ends so no input falls through, and test values exactly at each boundary.
 4. Give columns meaningful `HeaderText`, since that's what business users see.
+5. **At most 500 rows** (`odm check` warns above that), and ideally few enough that users don't scroll through several pages. Split a large table by its leading condition, for example one table per product or region, in the same package.
+6. **No sparse tables.** If many cells are empty because a condition column only matters for some rows, split the table into several tables, each with only the condition columns its rows need.
+7. Don't set a rule priority on a table. Order tables with the ruleflow. See `best-practices.md`.

@@ -9,7 +9,8 @@
  *   ruleflow  Rewrite the ruleflow as a sequence of rule tasks (keeps its name and UUID).
  *   xom    Compile the XOM with --release 17 and package <xom>-1.0.0.jar (in-process javac).
  *   jdk    Show the ODM release of rules-compiler.jar and the JDK it must run on.
- *   build  Run the ODM rules compiler on the JDK its ODM release requires and print only the relevant lines.
+ *   build  Run the ODM rules compiler on the JDK its ODM release requires (XOM always embedded in the RuleApp).
+ *   export Zip the rule project + its compiled XOM for import into Decision Center (decisionServicesImport).
  *   uuid   Print a fresh UUID (for hand-made .dta files).
  *
  * Run:    java -jar odm.jar <subcommand> -h        (any JDK 17+; or, without the jar: java Odm.java <subcommand> ...)
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.jar.Attributes;
@@ -49,6 +51,8 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import javax.tools.JavaCompiler;
 import javax.tools.ToolProvider;
@@ -107,6 +111,7 @@ public class Odm {
             case "xom": return cmdXom(Args.parse(XOM, rest));
             case "jdk": return cmdJdk(Args.parse(JDK, rest));
             case "build": return cmdBuild(Args.parse(BUILD, rest));
+            case "export": return cmdExport(Args.parse(EXPORT, rest));
             case "uuid": System.out.println(newUuid()); return 0;
             default: throw new Fail("unknown subcommand '" + cmd + "'\n\n" + USAGE, 2);
         }
@@ -257,16 +262,18 @@ public class Odm {
 
     record Pkg(String name, String mode) {}
 
-    static final Set<String> MODES = Set.of("Fastpath", "RetePlus");
+    /** Every generated rule task uses the Fastpath algorithm. */
+    static final String MODE = "Fastpath";
 
-    /** "validation:Fastpath,scoring+pricing:RetePlus" -> tasks; mode defaults to Fastpath. */
+    /** "validation,scoring+pricing" (or "validation:Fastpath,...") -> tasks; the mode is always Fastpath. */
     static List<Pkg> parsePkgs(String specs) {
         List<Pkg> pkgs = new ArrayList<>();
         for (String spec : specs.split(",", -1)) {
             int i = spec.indexOf(':');
-            String p = (i < 0 ? spec : spec.substring(0, i)).strip(), mode = i < 0 ? "Fastpath" : spec.substring(i + 1).strip();
+            String p = (i < 0 ? spec : spec.substring(0, i)).strip(), mode = i < 0 ? MODE : spec.substring(i + 1).strip();
             if (p.isEmpty()) throw new Fail("empty package name in --packages '" + specs + "'");
-            if (!MODES.contains(mode)) throw new Fail("unknown execution mode '" + mode + "' (use " + String.join(", ", new TreeSet<>(MODES)) + ")");
+            if (!mode.equals(MODE)) throw new Fail("execution mode '" + mode + "' is not allowed: every rule task uses " + MODE
+                    + ". If rules chain inside a package, split it into sequential packages (see 'odm deps')");
             pkgs.add(new Pkg(p, mode));
         }
         return pkgs;
@@ -466,7 +473,7 @@ public class Odm {
         Path props = (a.get("props") != null ? Paths.get(a.get("props")) : root.resolve(name + ".properties")).toAbsolutePath().normalize();
         Path pdir = props.getParent();
         write(props, "project = " + relTo(rp, pdir) + "\noutput = " + relTo(rp.resolve("output"), pdir) + "\ndep = " + name + "\n"
-                + "xom-classpath = " + relTo(xomDir.resolve(xom + "-1.0.0.jar"), pdir) + "\nruleapp-name = " + name + "\n", f);
+                + "xom-classpath = " + relTo(xomDir.resolve(xom + "-1.0.0.jar"), pdir) + "\nembedded-xom = true\n", f);
         System.out.println("\nNext: write XOM classes in " + xomDir.resolve("src") + ", fill the .bom/.voc, add rules with "
                 + "`odm rule`, then `odm xom " + rel(xomDir) + "`, `odm check " + rp + "` and `odm build " + props + "`.");
         return 0;
@@ -524,8 +531,132 @@ public class Odm {
         if (m.find()) {
             List<String> stmts = m.group(1).strip().lines().map(String::strip).filter(s -> !s.isEmpty()).collect(Collectors.toList());
             if (!stmts.isEmpty() && !stmts.get(stmts.size() - 1).endsWith(";")) out.add("last 'then' statement must end with ';'");
+            long actions = m.group(1).chars().filter(c -> c == ';').count();
+            if (actions > 1) out.add("best practice: " + actions + " actions in 'then' — keep one action phrase per rule; "
+                    + "wrap actions that always go together in a virtual BOM method");
+            if (BAL_PRINT.matcher(m.group(1)).find()) out.add("best practice: remove 'print' (debugging only)");
+            if (m.group(2) != null && !m.group(2).isEmpty()) out.add("best practice: no 'else' — write a positive rule and a negative rule");
         }
+        String cond = BAL_IF_PART.matcher(body).find() ? group(BAL_IF_PART, body, 1) : "";
+        if (BAL_OR.matcher(cond).find()) out.add("best practice: 'or' in conditions — split into one rule per alternative (conjunctions only)");
         return out;
+    }
+
+    static final Pattern BAL_PRINT = Pattern.compile("\\bprint\\b", Pattern.CASE_INSENSITIVE);
+    static final Pattern BAL_OR = Pattern.compile("\\bor\\b", Pattern.CASE_INSENSITIVE);
+    static final Pattern BAL_IF_PART = Pattern.compile("\\bif\\b(.*?)\\bthen\\b", Pattern.DOTALL | Pattern.CASE_INSENSITIVE);
+
+    static final int MAX_DT_ROWS = 500, MAX_B2X_STATEMENTS = 5, MAX_FLOW_TASKS = 10, MAX_FLOW_COMPLEXITY = 5;
+    static final Pattern CDATA = Pattern.compile("<!\\[CDATA\\[(.*?)\\]\\]>", Pattern.DOTALL);
+    static final Pattern PRIORITY = Pattern.compile("<priority>\\s*([^<\\s][^<]*)</priority>");
+    static final Pattern RULE_TASK = Pattern.compile("<RuleTask\\b([^>]*)>(.*?)</RuleTask>", Pattern.DOTALL);
+
+    static boolean isRuleArtifact(Path p) {
+        String n = p.getFileName().toString();
+        return Files.isRegularFile(p) && (n.endsWith(".brl") || n.endsWith(".dta"));
+    }
+
+    /** Design best practices (WARN only): package layout, rule style, decision tables, B2X, parameters, ruleflow. */
+    static void bestPractices(Path rp, List<String> warns) throws IOException {
+        Path rules = rp.resolve("rules");
+        if (!Files.isDirectory(rules)) return;
+        String bp = "best practice: ";
+
+        List<Path> dirs;
+        try (Stream<Path> s = Files.walk(rules)) {
+            dirs = s.filter(Files::isDirectory).filter(d -> !d.getFileName().toString().startsWith(".")).sorted().collect(Collectors.toList());
+        }
+        Map<String, List<String>> byName = new TreeMap<>();
+        for (Path d : dirs) {
+            List<Path> direct;
+            try (Stream<Path> s = Files.list(d)) {
+                direct = s.filter(Odm::isRuleArtifact).sorted().collect(Collectors.toList());
+            }
+            String rd = relSlash(d, rp);
+            if (d.equals(rules)) {
+                for (Path p : direct) warns.add(relSlash(p, rp) + ": " + bp + "rule artifact at the rules/ root — move it into a rule package");
+            } else if (Files.exists(d.resolve(".rulepackage"))) {
+                boolean hasChildPkg, hasAny;
+                try (Stream<Path> s = Files.list(d)) {
+                    hasChildPkg = s.anyMatch(c -> Files.isDirectory(c) && Files.exists(c.resolve(".rulepackage")));
+                }
+                try (Stream<Path> s = Files.walk(d)) {
+                    hasAny = s.anyMatch(Odm::isRuleArtifact);
+                }
+                if (!hasAny) warns.add(rd + ": " + bp + "empty rule package — add rules or delete it");
+                if (hasChildPkg && !direct.isEmpty()) warns.add(rd + ": " + bp + "package has sub-packages and rules — put rules in leaf packages only");
+            }
+            for (Path p : direct) {
+                String t = read(p), r = relSlash(p, rp);
+                String n = group(NAME, t, 1);
+                if (n != null) byName.computeIfAbsent(n.strip(), k -> new ArrayList<>()).add(r);
+                String prio = group(PRIORITY, t, 1);
+                if (prio != null && !prio.strip().equals("0")) warns.add(r + ": " + bp + "rule priority '" + prio.strip()
+                        + "' — order rules with the ruleflow (or a task's rule list) instead");
+                if (r.endsWith(".dta")) {
+                    int rows = findAllWords(Pattern.compile("<ActionSet\\b"), t).size();
+                    if (rows > MAX_DT_ROWS) warns.add(r + ": " + bp + rows + " rows (> " + MAX_DT_ROWS + ") — split the decision table");
+                }
+            }
+        }
+        byName.forEach((n, fs) -> {
+            if (fs.size() > 1) warns.add(bp + "rule name '" + n + "' is used " + fs.size() + " times: " + String.join(", ", fs));
+        });
+
+        for (Path p : glob(rp.resolve("bom"), ".b2xa")) {
+            Matcher m = CDATA.matcher(read(p));
+            while (m.find()) {
+                String code = STRING_LITERAL.matcher(m.group(1)).replaceAll("\"\"");
+                long stmts = code.chars().filter(c -> c == ';').count();
+                if (stmts > MAX_B2X_STATEMENTS) {
+                    String first = code.strip().lines().findFirst().orElse("").strip();
+                    warns.add(relSlash(p, rp) + ": " + bp + "B2X body with " + stmts + " statements (> " + MAX_B2X_STATEMENTS
+                            + ") — move the logic into the XOM: " + first.substring(0, Math.min(60, first.length())));
+                }
+            }
+        }
+
+        int vars = 0;
+        for (Path p : glob(rules, ".var")) vars += findAllWords(Pattern.compile("<variables\\b"), read(p)).size();
+        if (vars > 2) warns.add(bp + vars + " variables in the project — keep ruleset parameters to one input and one output object");
+        for (Path p : glob(rp.resolve("deployment"), ".dop")) {
+            String t = read(p);
+            long in = findAllWords(Pattern.compile("direction=\"(IN|IN_OUT)\""), t).size();
+            long out = findAllWords(Pattern.compile("direction=\"(OUT|IN_OUT)\""), t).size();
+            if (in > 1 || out > 1) warns.add(relSlash(p, rp) + ": " + bp + in + " input / " + out
+                    + " output parameters — prefer one input and one output object");
+        }
+
+        for (Path p : glob(rules, ".rfl")) {
+            String t = read(p), r = relSlash(p, rp);
+            Set<String> modes = new TreeSet<>();
+            Matcher m = RULE_TASK.matcher(t);
+            int tasks = 0;
+            while (m.find()) {
+                tasks++;
+                String attrs = m.group(1), body = m.group(2);
+                String id = group(Pattern.compile("Identifier=\"([^\"]*)\""), attrs, 1);
+                String mode = group(Pattern.compile("ExecutionMode=\"([^\"]*)\""), attrs, 1);
+                modes.add(mode == null ? "RetePlus" : mode);
+                String exit = group(Pattern.compile("ExitCriteria=\"([^\"]*)\""), attrs, 1);
+                if (exit != null && !exit.equals("None")) warns.add(r + ": " + bp + id + " uses ExitCriteria=" + exit + " — hidden from business users");
+                String ord = group(Pattern.compile("Ordering=\"([^\"]*)\""), attrs, 1);
+                if (ord != null && !ord.equals("Default")) warns.add(r + ": " + bp + id + " uses Ordering=" + ord + " — hidden from business users");
+                if (body.contains("<Select")) warns.add(r + ": " + bp + id + " has a dynamic filter (<Select>) — use packages instead");
+                if (body.contains("<InitialActions") || body.contains("<FinalActions")) {
+                    warns.add(r + ": " + bp + id + " has initial/final actions — hidden from business users");
+                }
+                if (body.contains("<Rule ")) warns.add(r + ": " + bp + id + " lists individual rules — reference packages unless the order is intentional");
+            }
+            modes.remove(MODE);
+            if (!modes.isEmpty()) warns.add(r + ": " + bp + "rule tasks use " + modes + " — every task must use " + MODE
+                    + " (rewrite with 'odm ruleflow')");
+            int nodes = findAllWords(Pattern.compile("<(TaskNode|ForkNode|JoinNode|BranchNode)\\b"), t).size();
+            int edges = findAllWords(Pattern.compile("<Transition\\b"), t).size();
+            int complexity = edges - nodes + 2;
+            if (tasks > MAX_FLOW_TASKS || complexity > MAX_FLOW_COMPLEXITY) warns.add(r + ": " + bp + tasks + " rule tasks, cyclomatic complexity "
+                    + complexity + " — split into subflows (max " + MAX_FLOW_TASKS + " tasks, complexity " + MAX_FLOW_COMPLEXITY + ")");
+        }
     }
 
     static final Set<String> UUID_EXTS = Set.of(".brl", ".var", ".rfl", ".dop", ".dep", ".ruleproject", ".rulepackage", ".dta",
@@ -704,6 +835,8 @@ public class Odm {
                 }
             }
         }
+
+        if (lint) bestPractices(rp, warns);
 
         for (String w : warns) System.out.println("WARN  " + w);
         for (String e : errs) System.out.println("ERROR " + e);
@@ -1158,9 +1291,9 @@ public class Odm {
             for (int i = 0; i < flow.size(); i++) {
                 Task t = flow.get(i);
                 List<String> own = t.pkgs.stream().filter(intra::containsKey).collect(Collectors.toList());
-                if (!own.isEmpty() && !t.mode.equals("RetePlus")) {
+                if (!own.isEmpty()) {
                     warns.add("task " + (i + 1) + " (" + String.join("+", t.pkgs) + ", " + t.mode + "): rules read what other rules of the same "
-                            + "task write (see 'dependencies inside a package'); a " + t.mode + " task does not guarantee they see the change");
+                            + "task write (see 'dependencies inside a package'); split the package so the order is explicit");
                 }
                 Map<String, Set<String>> setters = new java.util.TreeMap<>();
                 for (RuleInfo r : rules) {
@@ -1198,14 +1331,13 @@ public class Odm {
             List<String> comp = new ArrayList<>(comps.get(c));
             comp.sort(Comparator.comparingInt((String p) -> taskOf.getOrDefault(p, Integer.MAX_VALUE)).thenComparing(p -> p));
             boolean inner = comp.size() > 1 || comp.stream().anyMatch(intra::containsKey);
-            String mode = inner ? "RetePlus" : comp.stream().filter(taskOf::containsKey).map(p -> flow.get(taskOf.get(p)).mode).findFirst().orElse("Fastpath");
-            spec.add(String.join("+", comp) + ":" + mode);
+            spec.add(String.join("+", comp) + ":" + MODE);
             if (comp.size() > 1) {
-                notes.add(String.join(" and ", comp) + " depend on each other; they share one RetePlus task. To keep them separate, "
-                        + "move the rules behind the backward edges above so the dependency runs one way.");
+                notes.add(String.join(" and ", comp) + " depend on each other; they share one task for now. Move the rules behind the "
+                        + "backward edges above so the dependency runs one way, then give each package its own task.");
             } else if (inner) {
-                notes.add(comp.get(0) + " has rules depending on each other; it runs as RetePlus. To make the order explicit instead, "
-                        + "split it: " + layers(comp.get(0), rules, edges));
+                notes.add(comp.get(0) + " has rules depending on each other; Fastpath does not re-evaluate them, so split it: "
+                        + layers(comp.get(0), rules, edges));
             }
             for (int d : cg.getOrDefault(c, Set.of())) if (--indeg[d] == 0) ready.add(d);
         }
@@ -1541,9 +1673,91 @@ public class Odm {
         return 0;
     }
 
+    static final Pattern RULEAPP_NAME = Pattern.compile("ruleAppName=\"([^\"]*)\"");
+    static final Pattern RULESET_XML = Pattern.compile("<ruleset>.*?<ruleset-name>([^<]+)</ruleset-name>.*?<ruleset-version>([^<]+)</ruleset-version>(.*?)</ruleset>", Pattern.DOTALL);
+    static final Pattern MANAGED_XOM = Pattern.compile("ruleset\\.managedxom\\.uris</ruleset-property-name>\\s*<ruleset-property-value>([^<]*)<");
+
     static int cmdBuild(Args a) throws IOException {
         Path props = Paths.get(a.pos(0)).toAbsolutePath().normalize();
         if (!Files.isRegularFile(props)) throw new Fail("config not found: " + props);
+        Path pdir = props.getParent();
+        java.util.Properties cfg = new java.util.Properties();
+        try (InputStream in = Files.newInputStream(props)) {
+            cfg.load(in);
+        }
+
+        // The XOM is embedded in the RuleApp, so a stale XOM jar would be validated and deployed with stale classes.
+        for (String cp : cfg.getProperty("xom-classpath", "").split(",")) {
+            if (cp.isBlank()) continue;
+            Path xomJar = pdir.resolve(cp.trim()).normalize();
+            if (!Files.isRegularFile(xomJar)) throw new Fail("XOM jar not found: " + xomJar + ": run `odm xom <xom-dir>` first");
+            Path xomSrc = xomJar.getParent().resolve("src");
+            if (newest(xomSrc, ".java") > Files.getLastModifiedTime(xomJar).toMillis()) {
+                throw new Fail(rel(xomJar) + " is older than the sources in " + rel(xomSrc) + ": run `odm xom " + rel(xomJar.getParent()) + "` first");
+            }
+        }
+        Path ruleapp = ruleappJar(pdir, cfg);
+        if (ruleapp != null) Files.deleteIfExists(ruleapp);
+
+        // Always embed the XOM so the RuleApp deploys to RES on its own. A config without it (made before odm init
+        // wrote the key) is built from a copy next to the original, so its relative paths still resolve.
+        Path config = props;
+        if (!"true".equalsIgnoreCase(cfg.getProperty("embedded-xom", "").trim())) {
+            config = pdir.resolve("." + props.getFileName().toString().replaceFirst("\\.properties$", "") + ".embedded.properties");
+            String body = read(props).lines().filter(l -> !l.strip().startsWith("embedded-xom")).collect(Collectors.joining("\n"));
+            Files.writeString(config, body + "\nembedded-xom = true\n", StandardCharsets.UTF_8);
+        }
+        int rc;
+        try {
+            rc = runCompiler(config, a);
+        } finally {
+            if (!config.equals(props)) Files.deleteIfExists(config);
+        }
+        if (rc == 0 && ruleapp != null) describeRuleapp(ruleapp);
+        return rc;
+    }
+
+    /** <output>/<ruleAppName>.jar for the config's dep, or null when the config or .dep doesn't say. */
+    static Path ruleappJar(Path pdir, java.util.Properties cfg) throws IOException {
+        String project = cfg.getProperty("project", "").trim(), output = cfg.getProperty("output", "").trim(), dep = cfg.getProperty("dep", "").trim();
+        if (project.isEmpty() || output.isEmpty() || dep.isEmpty()) return null;
+        Path d = pdir.resolve(project).resolve("deployment").resolve(dep + ".dep");
+        String app = Files.isRegularFile(d) ? group(RULEAPP_NAME, read(d), 1) : null;
+        return app == null || app.isBlank() ? null : pdir.resolve(output).resolve(app + ".jar").normalize();
+    }
+
+    /** Prints the RuleApp path, its embedded XOM and its ruleset paths, as RES will see them. */
+    static void describeRuleapp(Path ruleapp) throws IOException {
+        if (!Files.isRegularFile(ruleapp)) {
+            System.out.println("WARN  no RuleApp at " + ruleapp);
+            return;
+        }
+        String archive;
+        List<String> xoms = new ArrayList<>();
+        try (JarFile jf = new JarFile(ruleapp.toFile())) {
+            JarEntry e = jf.getJarEntry("META-INF/archive.xml");
+            if (e == null) throw new Fail(ruleapp + " has no META-INF/archive.xml: not a RuleApp archive");
+            try (InputStream in = jf.getInputStream(e)) {
+                archive = new String(in.readAllBytes(), StandardCharsets.UTF_8);
+            }
+            jf.stream().map(JarEntry::getName).filter(n -> !n.contains("/") && n.endsWith(".jar")).forEach(xoms::add);
+        }
+        String app = group(Pattern.compile("<ruleapp-name>([^<]+)</ruleapp-name>"), archive, 1);
+        String version = group(Pattern.compile("<ruleapp-version>([^<]+)</ruleapp-version>"), archive, 1);
+        System.out.println("ruleapp: " + ruleapp);
+        System.out.println("RuleApp " + app + "/" + version + ", embedded XOM " + (xoms.isEmpty() ? "(none)" : String.join(", ", xoms)));
+        Matcher m = RULESET_XML.matcher(archive);
+        boolean missing = xoms.isEmpty();
+        while (m.find()) {
+            String uris = group(MANAGED_XOM, m.group(3), 1);
+            System.out.println("  ruleset /" + app + "/" + version + "/" + m.group(1) + "/" + m.group(2) + "  managed XOM " + (uris == null ? "(none)" : uris));
+            missing |= uris == null;
+        }
+        if (missing) System.out.println("WARN  the XOM is not embedded: RES will not find the XOM classes unless they are deployed separately");
+    }
+
+    /** Runs the rules compiler on props (options jar, max-lines, full) and prints the relevant lines; returns its exit code. */
+    static int runCompiler(Path props, Args a) throws IOException {
         Path jar = compilerJar(a);
         // The compiler must run on the exact JDK of its ODM release (e.g. a 9.6 compiler on Java 25 fails in the
         // B2X mapping), so it runs in its own process with that JDK instead of in this JVM.
@@ -1578,6 +1792,142 @@ public class Odm {
         return rc;
     }
 
+    // ------------------------------------------------------------------------- export
+
+    /** Rule project files left out of the Decision Center archive (build output, local files, the XOM library we regenerate). */
+    static boolean exportSkip(Path r) {
+        String first = r.getName(0).toString(), last = r.getFileName().toString();
+        if (first.equals("output") || first.equals("reports")) return true;
+        if (Paths.get("resources", "xom-libraries").equals(r.getParent())) return true;
+        return last.equals(".DS_Store") || last.equals(".gitignore") || last.equals(".syncEntries");
+    }
+
+    static void zipFile(ZipOutputStream zip, String name, Path file) throws IOException {
+        ZipEntry e = new ZipEntry(name);
+        e.setLastModifiedTime(Files.getLastModifiedTime(file));
+        zip.putNextEntry(e);
+        Files.copy(file, zip);
+        zip.closeEntry();
+    }
+
+    /** Adds dir under prefix/ (directory entries included, so empty folders such as queries/ survive), minus skipped paths. */
+    static int zipTree(ZipOutputStream zip, Path dir, String prefix, java.util.function.Predicate<Path> skip) throws IOException {
+        List<Path> entries;
+        try (Stream<Path> s = Files.walk(dir)) {
+            entries = s.filter(p -> !p.equals(dir) && !skip.test(dir.relativize(p))).sorted().collect(Collectors.toList());
+        }
+        int n = 0;
+        for (Path p : entries) {
+            String name = prefix + "/" + dir.relativize(p).toString().replace(File.separatorChar, '/');
+            if (Files.isDirectory(p)) {
+                zip.putNextEntry(new ZipEntry(name + "/"));
+                zip.closeEntry();
+            } else {
+                zipFile(zip, name, p);
+                n++;
+            }
+        }
+        return n;
+    }
+
+    /** The managed XOM as Decision Center stores it: a plain zip of the compiled classes (resources/xom-libraries/<xom>.zip). */
+    static byte[] xomLibrary(Path bin) throws IOException {
+        List<Path> files;
+        try (Stream<Path> s = Files.walk(bin)) {
+            files = s.filter(Files::isRegularFile).filter(p -> !p.getFileName().toString().equals(".DS_Store")).sorted().collect(Collectors.toList());
+        }
+        ByteArrayOutputStream buf = new ByteArrayOutputStream();
+        try (ZipOutputStream zip = new ZipOutputStream(buf)) {
+            for (Path p : files) zipFile(zip, bin.relativize(p).toString().replace(File.separatorChar, '/'), p);
+        }
+        return buf.toByteArray();
+    }
+
+    /** Newest modification time of the *suffix files under dir, recursively (0 if none). */
+    static long newest(Path dir, String suffix) throws IOException {
+        if (!Files.isDirectory(dir)) return 0;
+        long t = 0;
+        try (Stream<Path> s = Files.walk(dir)) {
+            for (Path p : s.filter(p -> p.toString().endsWith(suffix)).collect(Collectors.toList())) {
+                t = Math.max(t, Files.getLastModifiedTime(p).toMillis());
+            }
+        }
+        return t;
+    }
+
+    static int cmdExport(Args a) throws IOException {
+        Path rp = Paths.get(a.pos(0)).toAbsolutePath().normalize();
+        if (!Files.exists(rp.resolve(".ruleproject"))) throw new Fail("no .ruleproject in " + rp);
+        String name = rp.getFileName().toString();
+        String rpText = read(rp.resolve(".ruleproject"));
+        String declared = group(NAME, rpText, 1);
+        if (declared != null && !declared.equals(name)) {
+            throw new Fail("folder '" + name + "' and .ruleproject name '" + declared + "' differ: Decision Center needs them equal");
+        }
+
+        // Decision Center imports a broken project and only fails when it builds the RuleApp, so gate on check errors here.
+        if (!a.flag("no-check") && cmdCheck(Args.parse(CHECK, new String[] {rp.toString(), "--no-lint"})) != 0) {
+            throw new Fail("export: fix the check errors first (or pass --no-check)");
+        }
+
+        Path src = xomSrc(rp, a.get("xom"));
+        if (src == null) throw new Fail("XOM project not found next to " + rp + " (pass --xom <xom-dir>)");
+        Path xd = src.getFileName().toString().equals("src") ? src.getParent() : src;
+        String xom = xd.getFileName().toString();
+        if (!rpText.contains("url=\"platform:/" + xom + "\"")) {
+            System.out.println("WARN  .ruleproject has no XOM entry platform:/" + xom + ": Decision Center will not link the XOM library");
+        }
+        Path bin = xd.resolve("bin");
+        long classes = newest(bin, ".class");
+        if (classes == 0) throw new Fail("no compiled XOM in " + rel(bin) + ": run `odm xom " + rel(xd) + "` first");
+        if (newest(xd.resolve("src"), ".java") > classes) {
+            throw new Fail("XOM classes in " + rel(bin) + " are older than the sources: run `odm xom " + rel(xd) + "` first");
+        }
+        for (Path d : glob(rp.resolve("deployment"), ".dep")) {
+            if (!read(d).contains("managingXom=\"true\"")) {
+                System.out.println("WARN  " + relSlash(d, rp) + ": managingXom is not true, so deploying from Decision Center will not ship the XOM");
+            }
+        }
+
+        Path out = (a.get("out") != null ? Paths.get(a.get("out")) : rp.resolveSibling(name + ".zip")).toAbsolutePath().normalize();
+        if (out.startsWith(rp) || out.startsWith(xd)) throw new Fail("--out must be outside the projects it zips: " + out);
+        if (out.getParent() != null) Files.createDirectories(out.getParent());
+        byte[] lib = xomLibrary(bin);
+        int nRules, nXom = 0;
+        Path tmp = out.resolveSibling(out.getFileName() + ".part");
+        try (OutputStream fo = Files.newOutputStream(tmp); ZipOutputStream zip = new ZipOutputStream(fo)) {
+            nRules = zipTree(zip, rp, name, Odm::exportSkip);
+            // Same layout as a Rule Designer publish: the managed XOM travels inside the rule project.
+            for (String d : List.of("resources/", "resources/xom-libraries/")) {
+                if (!Files.isDirectory(rp.resolve(d))) {
+                    zip.putNextEntry(new ZipEntry(name + "/" + d));
+                    zip.closeEntry();
+                }
+            }
+            zip.putNextEntry(new ZipEntry(name + "/resources/xom-libraries/" + xom + ".zip"));
+            zip.write(lib);
+            zip.closeEntry();
+            // The XOM Java project (sources only) keeps the archive importable in Rule Designer too.
+            for (String f : List.of(".project", ".classpath", "pom.xml")) {
+                if (Files.isRegularFile(xd.resolve(f))) {
+                    zipFile(zip, xom + "/" + f, xd.resolve(f));
+                    nXom++;
+                }
+            }
+            if (Files.isDirectory(xd.resolve("src"))) {
+                nXom += zipTree(zip, xd.resolve("src"), xom + "/src", r -> r.getFileName().toString().equals(".DS_Store"));
+            }
+        }
+        Files.move(tmp, out, StandardCopyOption.REPLACE_EXISTING);
+
+        System.out.println("exported " + name + " (" + nRules + " files) + XOM library " + xom + ".zip (" + lib.length + " bytes) + "
+                + xom + " sources (" + nXom + " files)");
+        System.out.println("archive: " + out);
+        System.out.println("Decision Center: decisionServicesImport with file=" + out
+                + " (or branchImport to update an existing decision service)");
+        return 0;
+    }
+
     // ------------------------------------------------------------------------- arguments
 
     /** Option spec: name, takes a value, repeatable, required, default, help. */
@@ -1595,7 +1945,7 @@ public class Odm {
             Opt.req("base", "base name shared by .bom/.b2xa/.voc (e.g. loan-approval)"),
             Opt.req("package", "Java package of the XOM (e.g. com.example.loan)"),
             new Opt("var", true, true, true, null, "ruleset parameter name:Type[:IN|OUT|IN_OUT] (repeatable; default IN_OUT)"),
-            Opt.req("packages", "ordered rule packages with mode, e.g. validation:Fastpath,scoring:RetePlus"),
+            Opt.req("packages", "ordered rule packages, one Fastpath task each, e.g. validation,scoring,decision"),
             Opt.val("ruleflow", "main-ruleflow", "ruleflow name"),
             Opt.val("locale", "en_US", "vocabulary locale"),
             Opt.val("version", "1.0", "ruleset.version in the .dep"),
@@ -1608,8 +1958,8 @@ public class Odm {
             Opt.val("file", null, "file containing the BAL body (default: stdin)"),
             Opt.val("locale", "en_US", "rule locale"),
             Opt.flag("force", "overwrite an existing rule")));
-    static final Cmd CHECK = new Cmd("check", "consistency + lint checks", List.of("project"), List.of(
-            Opt.flag("no-lint", "skip BAL/decision-table lint")));
+    static final Cmd CHECK = new Cmd("check", "consistency, lint and best-practice checks", List.of("project"), List.of(
+            Opt.flag("no-lint", "skip BAL/decision-table lint and best-practice warnings")));
     static final Cmd DEPS = new Cmd("deps", "rule dependencies (who writes what others read) vs the ruleflow order",
             List.of("project"), List.of(
             Opt.val("xom", null, "XOM project or source dir (default: the XOM named in .ruleproject)"),
@@ -1617,7 +1967,7 @@ public class Odm {
             Opt.flag("verbose", "also print what each rule reads and writes")));
     static final Cmd RULEFLOW = new Cmd("ruleflow", "rewrite the ruleflow as ordered rule tasks (keeps name + UUID)",
             List.of("project"), List.of(
-            Opt.req("packages", "ordered tasks with mode, e.g. validation:Fastpath,scoring+pricing:RetePlus ('+' = same task)"),
+            Opt.req("packages", "ordered Fastpath tasks, e.g. validation,scoring+pricing,decision ('+' = same task)"),
             Opt.val("name", null, "ruleflow name (default: the one the .dop uses)"),
             Opt.flag("force", "replace a non-linear ruleflow, or leave out packages that have rules")));
     static final String JAR_HELP = "rules-compiler.jar (default: $ODM_RULES_COMPILER or <skill>/tools/rules-compiler.jar)";
@@ -1626,14 +1976,18 @@ public class Odm {
             Opt.val("jar", null, JAR_HELP)));
     static final Cmd JDK = new Cmd("jdk", "show the ODM release and the JDK the rules compiler needs", List.of(), List.of(
             Opt.val("jar", null, JAR_HELP)));
-    static final Cmd BUILD = new Cmd("build", "run the rules compiler on the JDK of its ODM release", List.of("config"), List.of(
+    static final Cmd BUILD = new Cmd("build", "run the rules compiler (XOM embedded in the RuleApp) on the JDK of its ODM release", List.of("config"), List.of(
             Opt.val("jar", null, JAR_HELP),
             Opt.val("max-lines", "40", "max relevant lines to print"),
             Opt.flag("full", "print the full compiler log")));
+    static final Cmd EXPORT = new Cmd("export", "zip rule project + compiled XOM for Decision Center import", List.of("project"), List.of(
+            Opt.val("out", null, "archive path (default: <project>.zip next to the project)"),
+            Opt.val("xom", null, "XOM project dir (default: the XOM named in .ruleproject)"),
+            Opt.flag("no-check", "skip the `odm check` errors gate")));
 
-    static final String USAGE = "usage: odm <init|rule|check|deps|ruleflow|xom|jdk|build|uuid> [options]   (odm <subcommand> -h for details)\n\n"
-            + "ODM Decision Service helper " + VERSION + ": scaffold boilerplate, add rules, check consistency, build.\n"
-            + Stream.of(INIT, RULE, CHECK, DEPS, RULEFLOW, XOM, JDK, BUILD).map(c -> String.format("  %-8s %s", c.name, c.help)).collect(Collectors.joining("\n"))
+    static final String USAGE = "usage: odm <init|rule|check|deps|ruleflow|xom|jdk|build|export|uuid> [options]   (odm <subcommand> -h for details)\n\n"
+            + "ODM Decision Service helper " + VERSION + ": scaffold boilerplate, add rules, check consistency, build, export.\n"
+            + Stream.of(INIT, RULE, CHECK, DEPS, RULEFLOW, XOM, JDK, BUILD, EXPORT).map(c -> String.format("  %-8s %s", c.name, c.help)).collect(Collectors.joining("\n"))
             + "\n  uuid     print a fresh UUID";
 
     static final class Args {

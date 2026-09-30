@@ -1,6 +1,6 @@
 ---
 name: odm-rule-designer
-description: Build and fix IBM ODM (Operational Decision Manager) Decision Services — XOM, BOM, vocabulary, BAL rules, decision tables, ruleflows, deployment — and compile them locally; analyse dependencies between rules and design the ruleflow from them. Use for anything about IBM ODM, business rules, BOM/XOM/BAL, .ruleproject, rules-compiler, ruleset build errors, rule order or a rule that never fires, or turning business requirements into executable rules — in any language (e.g. French "règles métier", "dépendances entre les règles", "ruleflow", "ordre d'exécution des règles").
+description: Build and fix IBM ODM (Operational Decision Manager) Decision Services — XOM, BOM, vocabulary, BAL rules, decision tables, ruleflows, deployment — and compile them locally; export a rule project and deploy it to Decision Center; build a RuleApp archive and deploy it to the Rule Execution Server (RES console); analyse dependencies between rules and design the ruleflow from them; review a rule project against ODM design best practices. Use for anything about IBM ODM, business rules, BOM/XOM/BAL, .ruleproject, rules-compiler, ruleset build errors, Decision Center import/deploy, RuleApp deployment to RES, rule order or a rule that never fires, or turning business requirements into executable rules — in any language (e.g. French "règles métier", "dépendances entre les règles", "ruleflow", "ordre d'exécution des règles").
 ---
 
 # IBM ODM Rule Designer
@@ -25,14 +25,15 @@ Run `odm` with any **JDK 17+** (not a JRE: `xom` needs `javac`). If `odm.jar` is
 
 `build` launches the compiler as a separate process on that JDK, so `odm` itself can run on any JDK. The JDK is looked up in this order: `$ODM_JAVA_HOME`, `/usr/libexec/java_home -v <n>` (macOS), SDKMAN, `$JAVA_HOME`. A JDK with the wrong version is refused, never used. Run `odm jdk` before the first build to see the ODM release and the JDK it resolved. If the required JDK is missing, report the error to the user (install that JDK, or set `ODM_JAVA_HOME`). Don't work around it with another JDK.
 
-1. **Names.** camelCase rule project (`LoanApproval`), kebab XOM project (`loan-approval-xom`), kebab base name (`loan-approval`), locale `en_US` unless told otherwise.
+1. **Names.** camelCase rule project (`LoanApproval`), kebab XOM project (`loan-approval-xom`), kebab base name (`loan-approval`), locale `en_US` unless told otherwise. Kebab-case `verb-object` rule names (`check-age`), unique across packages.
 2. **Scaffold:**
    ```bash
    java -jar <skill>/scripts/odm.jar init --dir <parent> --name LoanApproval --xom loan-approval-xom \
-     --base loan-approval --package com.example.loan --var request:LoanRequest \
-     --packages validation:Fastpath,scoring:RetePlus --fetch-jackson
+     --base loan-approval --package com.example.loan \
+     --var request:LoanRequest:IN --var decision:LoanDecision:OUT \
+     --packages validation:Fastpath,scoring:Fastpath,decision:Fastpath --fetch-jackson
    ```
-   `--var name:Type[:IN|OUT|IN_OUT]` is repeatable (default `IN_OUT`, verbalized `the <name>`). Packages are ruleflow tasks in order; one mode each (`Fastpath` sequential, `RetePlus` inference).
+   `--var name:Type[:IN|OUT|IN_OUT]` is repeatable (default `IN_OUT`, verbalized `the <name>`). Use one input and one output object, or a single `IN_OUT` object. Packages are ruleflow tasks in order. Every task always uses the **Fastpath** algorithm (the `:Fastpath` suffix is optional; any other mode is refused). Never use RetePlus: when rules chain inside a package, split it into sequential packages.
 3. **XOM** — write classes under `src/`; read `references/xom.md` first. Then `odm xom <xom-dir>` (compiles with `--release 17`, the lowest JDK of any 9.x release, so RES can be older than the compiler, and packages the jar; needs only a JDK — never use `mvn` for the XOM, Maven may not be installed).
 4. **BOM + vocabulary** — append to the generated `bom/<base>.bom` and `bom/<base>_<locale>.voc`; read `references/bom-format.md` and `references/vocabulary-and-bal.md`.
 5. **Rules** — one call per rule, BAL body on stdin:
@@ -44,22 +45,39 @@ Run `odm` with any **JDK 17+** (not a JRE: `xom` needs `javac`). If `odm.jar` is
      add "Amount too high" to the messages of 'the request' ;
    EOF
    ```
-   For 5+ rules with the same shape, use a decision table: `references/decision-tables.md`.
+   Each rule has one action phrase, `and` conditions only, and no `else`, `print` or priority (see **Design best practices** below). For 5+ rules with the same shape, use a decision table: `references/decision-tables.md`.
 6. **Check, then build** — repeat until `BUILD SUCCESS`:
    ```bash
    java -jar <skill>/scripts/odm.jar check <RuleProjectDir>
    java -jar <skill>/scripts/odm.jar build <parent>/<Name>.properties
    ```
-   `check` validates UUID uniqueness and links, file names, ruleflow packages, and lints BAL. `build` runs `tools/rules-compiler.jar` on the JDK its ODM release requires (override the jar with `--jar` or `ODM_RULES_COMPILER`) and prints only error/result lines (`--full` for the whole log). If the jar is missing but a `build_ruleset` MCP tool is connected, use that (`projectPath`, `xomJarPath`, `rulesetName`, optional `decisionOperation`). If neither is available, say so and don't claim the rules are validated.
+   `check` validates UUID uniqueness and links, file names, ruleflow packages, lints BAL, and reports design best-practice violations as `WARN … best practice:` (never errors). On a new project, fix those warnings too. `build` runs `tools/rules-compiler.jar` on the JDK its ODM release requires (override the jar with `--jar` or `ODM_RULES_COMPILER`) and prints only error/result lines (`--full` for the whole log). It always embeds the XOM in the RuleApp (`embedded-xom = true`, also for a `.properties` that lacks the key), refuses a XOM jar older than `<xom>/src`, and on success prints the RuleApp path (`<Name>/output/<RuleAppName>.jar`) and its ruleset paths. If the jar is missing but a `build_ruleset` MCP tool is connected, use that (`projectPath`, `xomJarPath`, `rulesetName`, optional `decisionOperation`). If neither is available, say so and don't claim the rules are validated.
+7. **Deploy to Decision Center** (only when the user asks, and after `BUILD SUCCESS`). Read `references/decision-center-deployment.md` first.
+   ```bash
+   java -jar <skill>/scripts/odm.jar export <parent>/<Name>      # -> <parent>/<Name>.zip, rule project + managed XOM library
+   ```
+   Then, if the ODM Management MCP Server is connected, import the archive with `decisionServicesImport` (use `branchImport` when the decision service already exists), passing the absolute zip path as `file`. Next, get the configuration with `deploymentConfigurations` and run `deploy`. Confirm with the user before you import or deploy. If the server isn't available, give the user the zip path and the manual steps, and don't claim anything was deployed.
+8. **Deploy a RuleApp to the RES console** (only when the user asks, and after `BUILD SUCCESS`). Read `references/decision-server-console-deployment.md` first. The archive is the `ruleapp:` path that `odm build` printed. Then, if the ODM Management MCP Server is connected with its RES tools (`--res-url`), check what exists with `getRuleApps` and deploy with `deployRuleAppArchive`, passing the absolute jar path as `file`. Take the `merging`/`versioning` values from the tool schema. Confirm with the user before you deploy, and say whether an existing version is replaced. If the server or its RES tools aren't available, give the user the jar path and the manual steps, and don't claim anything was deployed.
 
 ## Rule dependencies → ruleflow
 
 To find which rules depend on which, why a rule never fires, or what the ruleflow should be, read `references/ruleflow-design.md`, then:
 ```bash
 java -jar <skill>/scripts/odm.jar deps <RuleProjectDir>        # who writes what others read, checked against the current ruleflow
-java -jar <skill>/scripts/odm.jar ruleflow <RuleProjectDir> --packages a:Fastpath,b:RetePlus   # rewrite the .rfl (keeps name + UUID)
+java -jar <skill>/scripts/odm.jar ruleflow <RuleProjectDir> --packages a:Fastpath,b:Fastpath   # rewrite the .rfl (keeps name + UUID)
 ```
 Also run `deps` after adding rules to a package another task reads from. An `ERROR … reads X before it is written` is a rule that sees only the input value.
+
+## Design best practices (readability for business users)
+
+The full list, its rationale and a tested virtual-method example are in `references/best-practices.md`. Read it before you design a new project or restructure one. In short:
+
+- **Layout:** every rule goes in a leaf rule package, never in the `rules/` root. No empty packages. A package holds cohesive rules (same BOM objects). Use one naming convention, with no duplicate rule names.
+- **Rules:** one action phrase per rule. When actions always go together, use a virtual BOM method with one verbalization. `and` only: split an `or` into several rules. No `else`: write a positive rule and a negative rule. No `print`, no priorities, as few functions as possible.
+- **BOM:** B2X bodies have at most 5 statements; put more logic in the XOM.
+- **Decision tables:** at most 500 rows. Split large or sparse tables.
+- **Ruleflow:** tasks reference packages, not individual rules. Every rule task uses the Fastpath algorithm, always (never RetePlus or Sequential). At most 10 tasks and a cyclomatic complexity of 5, but no trivial subflows. No exit criteria, firing limits, custom ordering, task actions or dynamic filters.
+- **Parameters:** one input and one output object, and as few variables as possible.
 
 ## Vocabulary navigation phrases — label-first, never placeholder-first
 
@@ -111,11 +129,14 @@ The rule: every scalar/object property navigation phrase must begin with a human
 
 ## References (read only what the current step needs)
 
+- `references/best-practices.md`: the 23 design best practices, what `odm check` detects, virtual BOM methods
 - `references/xom.md`: Java class conventions, Jackson, computed properties
 - `references/bom-format.md`: BOM syntax and annotations, a full example, collections
 - `references/vocabulary-and-bal.md`: `.voc` syntax, the full BAL constraint list, and patterns from past builds
 - `references/decision-tables.md` + `assets/templates/decision-table.dta`
 - `references/ruleflow-design.md`: reading `odm deps`, choosing the task order and modes, applying it with `odm ruleflow`
+- `references/decision-center-deployment.md`: `odm export` archive layout, importing and deploying with the ODM Management MCP Server, fallbacks
+- `references/decision-server-console-deployment.md`: the RuleApp that `odm build` produces (embedded XOM), deploying it to the RES console with `deployRuleAppArchive`, fallbacks
 - `schemas/*.ecore`, `schemas/b2x.xsd`: exact ODM metamodels, useful only when a generated file is rejected for an unclear reason. They are large (model.ecore is 67 KB), so `grep` for the class or attribute you need instead of reading them whole.
 
 `tools/` and `schemas/` come from a licensed ODM install and are not committed. If they're missing, ask the user for their ODM Rule Designer path.
