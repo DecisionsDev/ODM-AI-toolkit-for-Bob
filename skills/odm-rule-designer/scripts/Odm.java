@@ -9,6 +9,7 @@
  *   ruleflow  Rewrite the ruleflow as a sequence of rule tasks (keeps its name and UUID).
  *   xom    Compile the XOM with --release 17 and package <xom>-1.0.0.jar (in-process javac).
  *   jdk    Show the ODM release of rules-compiler.jar and the JDK it must run on.
+ *   compiler  Install rules-compiler.jar in the project (from $ODM_HOME, else the ODM Docker image).
  *   build  Run the ODM rules compiler on the JDK its ODM release requires (XOM always embedded in the RuleApp).
  *   export Zip the rule project + its compiled XOM for import into Decision Center (decisionServicesImport).
  *   uuid   Print a fresh UUID (for hand-made .dta files).
@@ -35,6 +36,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -110,6 +112,7 @@ public class Odm {
             case "ruleflow": return cmdRuleflow(Args.parse(RULEFLOW, rest));
             case "xom": return cmdXom(Args.parse(XOM, rest));
             case "jdk": return cmdJdk(Args.parse(JDK, rest));
+            case "compiler": return cmdCompiler(Args.parse(COMPILER, rest));
             case "build": return cmdBuild(Args.parse(BUILD, rest));
             case "export": return cmdExport(Args.parse(EXPORT, rest));
             case "uuid": System.out.println(newUuid()); return 0;
@@ -436,17 +439,7 @@ public class Odm {
         Files.createDirectories(xomDir.resolve("src").resolve(pkg.replace('.', File.separatorChar)));
         Path lib = xomDir.resolve("lib");
         Files.createDirectories(lib);
-        if (a.flag("fetch-jackson")) {
-            for (String[] j : JACKSON) {
-                Path dest = lib.resolve(j[1] + "-" + JACKSON_VERSION + ".jar");
-                if (!Files.exists(dest)) {
-                    String url = "https://repo1.maven.org/maven2/com/fasterxml/jackson/" + j[0] + "/" + j[1] + "/"
-                            + JACKSON_VERSION + "/" + j[1] + "-" + JACKSON_VERSION + ".jar";
-                    download(url, dest);
-                    System.out.println("fetched: " + dest);
-                }
-            }
-        }
+        if (a.flag("fetch-jackson")) fetchJackson(lib);
 
         // Rule project
         write(rp.resolve(".project"),
@@ -476,7 +469,30 @@ public class Odm {
                 + "xom-classpath = " + relTo(xomDir.resolve(xom + "-1.0.0.jar"), pdir) + "\nembedded-xom = true\n", f);
         System.out.println("\nNext: write XOM classes in " + xomDir.resolve("src") + ", fill the .bom/.voc, add rules with "
                 + "`odm rule`, then `odm xom " + rel(xomDir) + "`, `odm check " + rp + "` and `odm build " + props + "`.");
+
+        // Tell now, not at the end, when the build would not be able to run.
+        List<String> tried = new ArrayList<>();
+        Path jar = findCompilerJar(a, root, tried);
+        if (jar != null) {
+            System.out.println("rules compiler: " + jar);
+        } else {
+            System.out.println("\nACTION REQUIRED (`odm build` cannot validate this project yet): " + installHelp(root, tried));
+        }
         return 0;
+    }
+
+    /** Downloads the Jackson jars the XOM annotations need into lib/ (skips those already there). */
+    static void fetchJackson(Path lib) throws IOException {
+        Files.createDirectories(lib);
+        for (String[] j : JACKSON) {
+            Path dest = lib.resolve(j[1] + "-" + JACKSON_VERSION + ".jar");
+            if (!Files.exists(dest)) {
+                String url = "https://repo1.maven.org/maven2/com/fasterxml/jackson/" + j[0] + "/" + j[1] + "/"
+                        + JACKSON_VERSION + "/" + j[1] + "-" + JACKSON_VERSION + ".jar";
+                download(url, dest);
+                System.out.println("fetched: " + dest);
+            }
+        }
     }
 
     static void download(String url, Path dest) throws IOException {
@@ -1455,13 +1471,21 @@ public class Odm {
         // The XOM bytecode must load on the compiler's JDK (and on RES, which may be older): refuse a --release
         // above the JDK of the ODM release when the compiler jar is available.
         int release = Integer.parseInt(a.get("release"));
-        Path jar = a.get("jar") != null ? Paths.get(a.get("jar")).toAbsolutePath() : defaultCompilerJar();
-        if (jar != null && Files.exists(jar)) {
+        Path jar = findCompilerJar(a, xd.getParent(), new ArrayList<>());
+        if (jar != null) {
             OdmRelease r = odmRelease(jar);
             if (release > r.jdk()) {
                 throw new Fail("--release " + release + " is newer than Java " + r.jdk() + " required by ODM " + r.version()
                         + ": the XOM would not load (bad major version). Use --release 17.");
             }
+        }
+
+        // The XOM classes use Jackson annotations: fetch the jars when init ran without --fetch-jackson.
+        boolean usesJackson = false;
+        for (String src : srcs) usesJackson |= read(Paths.get(src)).contains("com.fasterxml.jackson");
+        if (usesJackson && glob(xd.resolve("lib"), ".jar").stream().noneMatch(p -> p.getFileName().toString().startsWith("jackson-annotations"))) {
+            System.out.println("no Jackson jars in " + rel(xd.resolve("lib")) + ": fetching Jackson " + JACKSON_VERSION);
+            fetchJackson(xd.resolve("lib"));
         }
 
         Path bin = xd.resolve("bin");
@@ -1522,11 +1546,40 @@ public class Odm {
         }
     }
 
-    static Path defaultCompilerJar() {
+    static final Path PROJECT_COMPILER = Paths.get("buildcommand", "rules-compiler", "rules-compiler.jar");
+
+    /**
+     * The rules-compiler.jar to use, or null. Search order: buildcommand/rules-compiler/ in the working directory and in
+     * the project root (never in parent directories), --jar, $ODM_RULES_COMPILER, <skill>/tools. Every path looked at
+     * is added to tried.
+     */
+    static Path findCompilerJar(Args a, Path projectRoot, List<String> tried) {
+        Set<Path> dirs = new LinkedHashSet<>();
+        dirs.add(Paths.get("").toAbsolutePath().normalize());
+        if (projectRoot != null) dirs.add(projectRoot.toAbsolutePath().normalize());
+        List<Path> candidates = new ArrayList<>();
+        for (Path d : dirs) candidates.add(d.resolve(PROJECT_COMPILER));
+        if (a.get("jar") != null) candidates.add(Paths.get(a.get("jar")).toAbsolutePath());
         String env = System.getenv("ODM_RULES_COMPILER");
-        if (env != null && !env.isEmpty()) return Paths.get(env);
+        if (env != null && !env.isEmpty()) candidates.add(Paths.get(env).toAbsolutePath());
         Path sd = skillDir();
-        return sd == null ? null : sd.resolve("tools").resolve("rules-compiler.jar");
+        if (sd != null) candidates.add(sd.resolve("tools").resolve("rules-compiler.jar"));
+        for (Path c : candidates) {
+            if (Files.isRegularFile(c)) return c;
+            tried.add(c.toString());
+        }
+        return null;
+    }
+
+    /** What to do when no compiler is found: one command, so agents don't search the disk or improvise. */
+    static String installHelp(Path projectRoot, List<String> tried) {
+        Path root = (projectRoot != null ? projectRoot : Paths.get("")).toAbsolutePath().normalize();
+        Path sd = skillDir();
+        String odm = sd == null ? "odm" : "java -jar " + sd.resolve("scripts").resolve("odm.jar");
+        return "no rules compiler found. Tried:\n  - " + String.join("\n  - ", tried)
+                + "\nDo NOT search the file system for rules-compiler.jar. Install it now with:\n  " + odm + " compiler --dir " + root
+                + "\nIt copies it from $ODM_HOME when set, otherwise extracts it from the ODM Docker image, into "
+                + root.resolve(PROJECT_COMPILER).getParent() + ".";
     }
 
     static final Pattern RELEVANT = Pattern.compile("ERROR|Error|BUILD|RuleApp|Exception|aborted|WARN");
@@ -1654,16 +1707,15 @@ public class Odm {
                 + "\nInstall a JDK " + want + " or set ODM_JAVA_HOME to one.");
     }
 
-    static Path compilerJar(Args a) {
-        Path jar = a.get("jar") != null ? Paths.get(a.get("jar")).toAbsolutePath() : defaultCompilerJar();
-        if (jar == null || !Files.exists(jar)) {
-            throw new Fail("compiler not found: " + jar + " (set --jar or ODM_RULES_COMPILER, or use the build_ruleset MCP tool)");
-        }
+    static Path compilerJar(Args a, Path start) {
+        List<String> tried = new ArrayList<>();
+        Path jar = findCompilerJar(a, start, tried);
+        if (jar == null) throw new Fail(installHelp(start, tried));
         return jar;
     }
 
     static int cmdJdk(Args a) throws IOException {
-        Path jar = compilerJar(a);
+        Path jar = compilerJar(a, null);
         OdmRelease r = odmRelease(jar);
         System.out.println("rules compiler: " + jar);
         System.out.println("ODM version:    " + r.version());
@@ -1671,6 +1723,107 @@ public class Odm {
         Path home = findJdk(r.jdk(), r.version());
         System.out.println("JDK:            " + home);
         return 0;
+    }
+
+    static final String ODM_IMAGE = "icr.io/cpopen/odm-k8s/odm";
+    static final String ODM_IMAGE_BUILDCOMMAND = "/opt/ibm/wlp/usr/servers/defaultServer/apps/decisioncenter.war/assets/buildcommand.zip";
+
+    /** Installs rules-compiler.jar into <dir>/buildcommand/rules-compiler: from $ODM_HOME if it has one, else from the ODM Docker image. */
+    static int cmdCompiler(Args a) throws IOException {
+        Path root = Paths.get(a.get("dir")).toAbsolutePath().normalize();
+        Path dest = root.resolve(PROJECT_COMPILER);
+        if (Files.isRegularFile(dest) && !a.flag("force")) {
+            System.out.println("already installed: " + dest + " (ODM " + odmRelease(dest).version() + "; --force to replace)");
+            return 0;
+        }
+        Files.createDirectories(dest.getParent());
+        Path part = dest.resolveSibling(dest.getFileName() + ".part");
+
+        String home = a.get("odm-home") != null ? a.get("odm-home") : System.getenv("ODM_HOME");
+        Path fromHome = home == null || home.isEmpty() ? null : Paths.get(home).toAbsolutePath().resolve(PROJECT_COMPILER);
+        if (fromHome != null && Files.isRegularFile(fromHome)) {
+            Files.copy(fromHome, part, StandardCopyOption.REPLACE_EXISTING);
+            System.out.println("copied from ODM install: " + fromHome);
+        } else {
+            System.out.println(fromHome == null ? "ODM_HOME not set" : "no rules-compiler.jar under ODM_HOME (" + fromHome + ")");
+            String tag = imageTag(a.get("tag"));
+            String image = ODM_IMAGE + ":" + tag;
+            String docker = containerTool();
+            System.out.println("extracting it from the ODM Docker image " + image + " (" + docker + "; pulls it when the registry has a newer one, starts no server)");
+            // create (not run) a container: the zip is a plain file of the image, so no server, ports or startup wait
+            // tags move (latest, and each 9.x tag with its fix packs): always check the registry so a stale local copy is not used
+            String id = exec(docker, "create", "--pull", "always", image).strip();
+            Path zip = Files.createTempFile("buildcommand", ".zip");
+            try {
+                exec(docker, "cp", id + ":" + ODM_IMAGE_BUILDCOMMAND, zip.toString());
+                try (java.util.zip.ZipFile zf = new java.util.zip.ZipFile(zip.toFile())) {
+                    ZipEntry e = zf.getEntry("rules-compiler/rules-compiler.jar");
+                    if (e == null) throw new Fail("no rules-compiler/rules-compiler.jar in buildcommand.zip of " + image);
+                    try (InputStream in = zf.getInputStream(e)) {
+                        Files.copy(in, part, StandardCopyOption.REPLACE_EXISTING);
+                    }
+                }
+            } finally {
+                Files.deleteIfExists(zip);
+                try {
+                    exec(docker, "rm", id);
+                } catch (Fail ignored) {
+                    System.out.println("WARN  could not remove container " + id);
+                }
+            }
+        }
+        OdmRelease r = odmRelease(part);
+        Files.move(part, dest, StandardCopyOption.REPLACE_EXISTING);
+        System.out.println("rules compiler: " + dest);
+        System.out.println("ODM version:    " + r.version());
+        System.out.println("required Java:  " + r.jdk());
+        try {
+            System.out.println("JDK:            " + findJdk(r.jdk(), r.version()));
+        } catch (Fail f) {
+            System.out.println("WARN  " + f.getMessage());
+        }
+        System.out.println("Do not commit buildcommand/rules-compiler/: it is IBM-licensed.");
+        return 0;
+    }
+
+    /** "latest" (no version asked), or the release tag major.minor of a 9.x version: 9.5.0.1 -> 9.5. */
+    static String imageTag(String v) {
+        if (v == null || v.isBlank() || v.equalsIgnoreCase("latest")) return "latest";
+        Matcher m = Pattern.compile("^(\\d+)\\.(\\d+)").matcher(v.strip());
+        if (!m.find() || !m.group(1).equals("9")) {
+            throw new Fail("--tag '" + v + "': use latest or an ODM 9.x release (9.0, 9.5, 9.6, ...); only ODM 9.x is supported");
+        }
+        return m.group(1) + "." + m.group(2);
+    }
+
+    /** docker, else podman: the first one that answers. */
+    static String containerTool() {
+        for (String t : List.of("docker", "podman")) {
+            try {
+                Process p = new ProcessBuilder(t, "version").redirectErrorStream(true).start();
+                p.getInputStream().readAllBytes();
+                if (p.waitFor() == 0) return t;
+            } catch (IOException | InterruptedException e) {
+                // not installed or not running: try the next one
+            }
+        }
+        throw new Fail("no ODM_HOME and no working docker or podman: set ODM_HOME to an ODM install, "
+                + "or start Docker (or Podman), then run `odm compiler` again");
+    }
+
+    /** Runs a command; stderr goes to the console (pull progress), stdout is returned. */
+    static String exec(String... cmd) throws IOException {
+        Process p = new ProcessBuilder(cmd).redirectError(ProcessBuilder.Redirect.INHERIT).start();
+        p.getOutputStream().close();
+        String out = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+        try {
+            if (p.waitFor() != 0) throw new Fail(String.join(" ", cmd) + " failed (exit " + p.exitValue() + ")");
+        } catch (InterruptedException e) {
+            p.destroy();
+            Thread.currentThread().interrupt();
+            throw new Fail("interrupted: " + String.join(" ", cmd));
+        }
+        return out;
     }
 
     static final Pattern RULEAPP_NAME = Pattern.compile("ruleAppName=\"([^\"]*)\"");
@@ -1758,7 +1911,8 @@ public class Odm {
 
     /** Runs the rules compiler on props (options jar, max-lines, full) and prints the relevant lines; returns its exit code. */
     static int runCompiler(Path props, Args a) throws IOException {
-        Path jar = compilerJar(a);
+        Path jar = compilerJar(a, props.getParent());
+        System.out.println("rules compiler: " + jar);
         // The compiler must run on the exact JDK of its ODM release (e.g. a 9.6 compiler on Java 25 fails in the
         // B2X mapping), so it runs in its own process with that JDK instead of in this JVM.
         OdmRelease r = odmRelease(jar);
@@ -1970,12 +2124,18 @@ public class Odm {
             Opt.req("packages", "ordered Fastpath tasks, e.g. validation,scoring+pricing,decision ('+' = same task)"),
             Opt.val("name", null, "ruleflow name (default: the one the .dop uses)"),
             Opt.flag("force", "replace a non-linear ruleflow, or leave out packages that have rules")));
-    static final String JAR_HELP = "rules-compiler.jar (default: $ODM_RULES_COMPILER or <skill>/tools/rules-compiler.jar)";
+    static final String JAR_HELP = "rules-compiler.jar (used when there is no buildcommand/rules-compiler/rules-compiler.jar in the"
+            + " working directory or the project root; then $ODM_RULES_COMPILER, then <skill>/tools/rules-compiler.jar)";
     static final Cmd XOM = new Cmd("xom", "compile XOM (--release 17) and package its jar", List.of("xom_dir"), List.of(
             Opt.val("release", "17", "javac --release level (must not exceed the JDK of the ODM release)"),
             Opt.val("jar", null, JAR_HELP)));
     static final Cmd JDK = new Cmd("jdk", "show the ODM release and the JDK the rules compiler needs", List.of(), List.of(
             Opt.val("jar", null, JAR_HELP)));
+    static final Cmd COMPILER = new Cmd("compiler", "install rules-compiler.jar in <dir>/buildcommand/rules-compiler ($ODM_HOME, else the ODM Docker image)", List.of(), List.of(
+            Opt.val("dir", ".", "project root"),
+            Opt.val("odm-home", null, "ODM install directory (default: $ODM_HOME)"),
+            Opt.val("tag", "latest", "ODM release of the " + ODM_IMAGE + " image used when there is no ODM install: latest, or the version the user asked for (9.0, 9.5, 9.6; 9.5.0.1 is read as 9.5)"),
+            Opt.flag("force", "replace a jar already installed")));
     static final Cmd BUILD = new Cmd("build", "run the rules compiler (XOM embedded in the RuleApp) on the JDK of its ODM release", List.of("config"), List.of(
             Opt.val("jar", null, JAR_HELP),
             Opt.val("max-lines", "40", "max relevant lines to print"),
@@ -1985,9 +2145,9 @@ public class Odm {
             Opt.val("xom", null, "XOM project dir (default: the XOM named in .ruleproject)"),
             Opt.flag("no-check", "skip the `odm check` errors gate")));
 
-    static final String USAGE = "usage: odm <init|rule|check|deps|ruleflow|xom|jdk|build|export|uuid> [options]   (odm <subcommand> -h for details)\n\n"
+    static final String USAGE = "usage: odm <init|rule|check|deps|ruleflow|xom|jdk|compiler|build|export|uuid> [options]   (odm <subcommand> -h for details)\n\n"
             + "ODM Decision Service helper " + VERSION + ": scaffold boilerplate, add rules, check consistency, build, export.\n"
-            + Stream.of(INIT, RULE, CHECK, DEPS, RULEFLOW, XOM, JDK, BUILD, EXPORT).map(c -> String.format("  %-8s %s", c.name, c.help)).collect(Collectors.joining("\n"))
+            + Stream.of(INIT, RULE, CHECK, DEPS, RULEFLOW, XOM, JDK, COMPILER, BUILD, EXPORT).map(c -> String.format("  %-8s %s", c.name, c.help)).collect(Collectors.joining("\n"))
             + "\n  uuid     print a fresh UUID";
 
     static final class Args {
