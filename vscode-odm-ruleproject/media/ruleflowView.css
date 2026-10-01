@@ -1,0 +1,204 @@
+/* Shares the base look (colors, header, buttons) with the rule view. */
+@import url('ruleView.css');
+
+main { max-width: 1140px; }
+
+.summary {
+  color: var(--muted);
+  font-size: 14px;
+  margin: var(--cds-spacing-02) 0 var(--cds-spacing-04);
+}
+
+/* Carbon Inline Notification / Callout Style */
+.callout {
+  border-left: 3px solid var(--else);
+  background: var(--card);
+  padding: var(--cds-spacing-03) var(--cds-spacing-04);
+  margin-bottom: var(--cds-spacing-05);
+  font-size: 13px;
+  border-top: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.diagram {
+  position: relative;
+  padding: var(--cds-spacing-03) 0 var(--cds-spacing-07);
+}
+
+.edges {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+.edge {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 1.5;
+}
+.arrow-tip { fill: var(--muted); }
+
+/* Carbon Tag-like Edge Label */
+.edge-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  max-width: 260px;
+  height: 22px;
+  padding: 0 var(--cds-spacing-03);
+  display: inline-flex;
+  align-items: center;
+  border-radius: 11px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg);
+  color: var(--fg);
+  font-size: 12px;
+  letter-spacing: 0.32px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 1;
+}
+
+.layer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: var(--cds-spacing-07);
+  margin-bottom: var(--cds-spacing-08);
+}
+.layer:last-child { margin-bottom: 0; }
+
+.node { position: relative; z-index: 1; }
+
+/* Start/End Terminals: Pill with bold uppercase text */
+.node-terminal {
+  padding: 4px var(--cds-spacing-05);
+  border-radius: 14px;
+  border: 1px solid var(--border-subtle);
+  background: var(--card);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+}
+
+/* Decision Branch Diamond / Trapezoid */
+.node-branch {
+  padding: var(--cds-spacing-03) var(--cds-spacing-05);
+  background: var(--card);
+  border: 1px solid var(--else);
+  border-radius: 0px;
+  transform: skewX(-12deg);
+  font-weight: 600;
+  font-size: 13px;
+}
+.node-branch span { display: inline-block; transform: skewX(12deg); }
+
+/* Fork / Join synchronization bar */
+.node-bar {
+  min-width: 240px;
+  padding: var(--cds-spacing-01) var(--cds-spacing-04);
+  border-top: 3px solid var(--muted);
+  border-bottom: 3px solid var(--muted);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Rule Task Node: Carbon Structured Tile */
+.node-task {
+  width: 320px;
+  max-width: calc(100vw - 48px);
+  box-sizing: border-box;
+  background: var(--card);
+  border: 1px solid var(--border-subtle);
+  border-top: 3px solid var(--then);
+  border-radius: 0px;
+  padding: var(--cds-spacing-03) var(--cds-spacing-04);
+  transition: box-shadow 150ms ease;
+}
+
+.task-head h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.16px;
+}
+.step {
+  color: var(--then);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.task-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: var(--cds-spacing-01) 0 var(--cds-spacing-02);
+  color: var(--muted);
+  font-size: 12px;
+}
+.mode {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 0px;
+  border: 1px solid var(--border-subtle);
+  background: var(--vscode-badge-background, rgba(128, 128, 128, 0.1));
+  cursor: help;
+}
+
+.pkg + .pkg {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: var(--cds-spacing-02);
+  padding-top: var(--cds-spacing-02);
+}
+.pkg-name { font-weight: 600; font-size: 13px; }
+.pkg-doc { margin: var(--cds-spacing-01) 0 var(--cds-spacing-02); font-size: 13px; }
+
+.rules summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 500;
+}
+.rules summary:hover {
+  text-decoration: underline;
+}
+.rules ul {
+  margin: var(--cds-spacing-01) 0 0;
+  padding-left: var(--cds-spacing-05);
+}
+.rules li { font-size: 13px; padding: 2px 0; }
+
+.rule-link {
+  font-family: var(--cds-font-sans);
+  font-size: 13px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--fg);
+  text-align: left;
+  cursor: pointer;
+}
+.rule-link:hover { color: var(--accent); text-decoration: underline; }
+
+.actions {
+  margin: var(--cds-spacing-01) 0 0;
+  white-space: pre-wrap;
+  font-family: var(--cds-font-mono, monospace);
+  font-size: 12px;
+}
+
+.warn {
+  color: var(--vscode-editorWarning-foreground, var(--else));
+  font-size: 12px;
+  margin: var(--cds-spacing-01) 0;
+}

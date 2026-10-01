@@ -1,0 +1,157 @@
+{
+  "name": "odm-ruleproject",
+  "displayName": "IBM ODM Rule Project & Decision Service",
+  "description": "IBM Operational Decision Manager (ODM) — visual editors, syntax highlighting, ruleflow viewer, and vocabulary navigation for ODM Decision Services and Rule Projects (.brl, .bom, .rfl, .dop, .dep).",
+  "version": "0.1.0",
+  "publisher": "ibm-odm",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DecisionsDev/ODM-AI-toolkit-for-Bob.git",
+    "directory": "vscode-odm-ruleproject"
+  },
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets"
+  ],
+  "keywords": [
+    "ODM",
+    "BRL",
+    "BAL",
+    "IBM",
+    "rules",
+    "business rules"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "brl",
+        "aliases": [
+          "BRL",
+          "ODM Rule",
+          "BAL"
+        ],
+        "extensions": [
+          ".brl"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/brl-light.svg",
+          "dark": "./icons/brl-dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "brl",
+        "scopeName": "source.brl",
+        "path": "./syntaxes/brl.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "brl",
+        "path": "./snippets/brl.json"
+      }
+    ],
+    "customEditors": [
+      {
+        "viewType": "odm-ruleproject.ruleView",
+        "displayName": "ODM Rule View",
+        "selector": [
+          {
+            "filenamePattern": "*.brl"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "odm-ruleproject.bomView",
+        "displayName": "ODM Business Vocabulary",
+        "selector": [
+          {
+            "filenamePattern": "*.bom"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "odm-ruleproject.ruleflowView",
+        "displayName": "ODM Ruleflow",
+        "selector": [
+          {
+            "filenamePattern": "*.rfl"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "odm-ruleproject.operationView",
+        "displayName": "ODM Decision Operation",
+        "selector": [
+          {
+            "filenamePattern": "*.dop"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "odm-ruleproject.deploymentView",
+        "displayName": "ODM Deployment Configuration",
+        "selector": [
+          {
+            "filenamePattern": "*.dep"
+          }
+        ],
+        "priority": "default"
+      }
+    ],
+    "commands": [
+      {
+        "command": "odm-ruleproject.openRuleView",
+        "title": "Open Business View",
+        "category": "ODM",
+        "icon": "$(preview)"
+      },
+      {
+        "command": "odm-ruleproject.openAsXml",
+        "title": "Open as Text",
+        "category": "ODM",
+        "icon": "$(code)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "odm-ruleproject.openRuleView",
+          "when": "resourceExtname =~ /^\\.(brl|bom|rfl|dop|dep)$/ && activeEditor == workbench.editors.files.textFileEditor",
+          "group": "navigation"
+        },
+        {
+          "command": "odm-ruleproject.openAsXml",
+          "when": "activeCustomEditorId =~ /^odm-ruleproject\\./",
+          "group": "navigation"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "20.x",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.5"
+  }
+}

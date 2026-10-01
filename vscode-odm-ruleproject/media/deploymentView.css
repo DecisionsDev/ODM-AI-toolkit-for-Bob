@@ -1,0 +1,168 @@
+/* Shares the base look (colors, header, buttons, cards) with the rule view. */
+@import url('ruleView.css');
+
+.card-flow { border-left-color: var(--then); }
+.card-params { border-left-color: var(--if); }
+.card-ok { border-left-color: var(--then); }
+.card-bad { border-left-color: var(--error); }
+.card-bad .card-hint { color: var(--error); }
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--cds-spacing-02) var(--cds-spacing-05);
+  margin: var(--cds-spacing-02) 0;
+  font-size: 13px;
+}
+.facts dt { color: var(--muted); font-weight: 500; }
+.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+
+.path, .java {
+  font-family: var(--cds-font-mono, monospace);
+  font-size: 12px;
+}
+.path {
+  padding: 1px 6px;
+  border-radius: 2px;
+  background: var(--vscode-textCodeBlock-background, rgba(128, 128, 128, 0.12));
+}
+.java { color: var(--muted); font-size: 11px; }
+
+.link { color: var(--accent); text-decoration: none; }
+.link:hover { text-decoration: underline; }
+
+/* Carbon Data Table for Operation Parameters */
+.params {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: var(--cds-spacing-02);
+}
+.params th {
+  text-align: left;
+  background: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.05));
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: var(--cds-spacing-03) var(--cds-spacing-03);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.params td {
+  padding: var(--cds-spacing-03) var(--cds-spacing-03);
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.params tr:hover td {
+  background: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.06));
+}
+.params tr:last-child td { border-bottom: none; }
+
+.chip-var {
+  background: var(--vscode-textBlockQuote-background, rgba(128, 128, 128, 0.15));
+  border-radius: 2px;
+  padding: 1px 6px;
+  font-weight: 600;
+  font-family: var(--cds-font-sans);
+}
+.type-label { font-weight: 600; }
+.type-label::first-letter { text-transform: uppercase; }
+
+/* Carbon Tag for Parameter Direction (IN, OUT, IN_OUT) */
+.dir {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--cds-spacing-03);
+  border-radius: 11px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.32px;
+  border: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.dir-input {
+  border-color: var(--if);
+  color: var(--if);
+  background: rgba(69, 137, 255, 0.1);
+}
+.dir-output {
+  border-color: var(--then);
+  color: var(--then);
+  background: rgba(66, 190, 101, 0.1);
+}
+.dir-input-output {
+  border-color: var(--defs);
+  color: var(--defs);
+  background: rgba(190, 149, 255, 0.1);
+}
+
+.op + .op {
+  border-top: 1px solid var(--border-subtle);
+  margin-top: var(--cds-spacing-03);
+  padding-top: var(--cds-spacing-03);
+}
+.op-name { font-weight: 600; margin-bottom: var(--cds-spacing-01); font-size: 14px; }
+.note { display: block; margin-top: var(--cds-spacing-02); }
+
+.policies, .plain, .checks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+}
+.policies li {
+  padding: var(--cds-spacing-03) 0;
+}
+.policies li + li {
+  border-top: 1px solid var(--border-subtle);
+}
+.policies li:not(.default) .policy-title { color: var(--muted); }
+.policy-title {
+  font-weight: 600;
+  display: flex;
+  gap: var(--cds-spacing-03);
+  align-items: center;
+}
+.policy-desc {
+  margin: var(--cds-spacing-01) 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+.plain li { padding: var(--cds-spacing-01) 0; }
+
+.badge {
+  font-size: 11px;
+  font-weight: 400;
+  padding: 1px 6px;
+  border-radius: 0px;
+  background: var(--vscode-badge-background, rgba(128, 128, 128, 0.15));
+  color: var(--vscode-badge-foreground, var(--fg));
+  border: 1px solid var(--border-subtle);
+}
+
+.checks li {
+  display: flex;
+  gap: var(--cds-spacing-03);
+  padding: var(--cds-spacing-02) 0;
+  align-items: baseline;
+}
+.check-icon {
+  width: 16px;
+  font-weight: 700;
+}
+.checks .ok .check-icon { color: var(--then); }
+.checks .bad .check-icon,
+.checks .bad .check-detail { color: var(--error); }
+.check-label {
+  min-width: 140px;
+  color: var(--muted);
+  font-weight: 500;
+}
+.check-detail { overflow-wrap: anywhere; }
+
+@media (max-width: 600px) {
+  .params th:nth-child(4), .params td:nth-child(4) { display: none; }
+  .check-label { min-width: 0; }
+}

@@ -1,0 +1,333 @@
+/* Carbon Design System - Design tokens and theme bridge for VS Code Webviews */
+:root {
+  /* Carbon Typography: IBM Plex Sans & IBM Plex Mono with VS Code fallbacks */
+  --cds-font-sans: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  --cds-font-mono: 'IBM Plex Mono', 'Menlo', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Courier New', monospace;
+
+  /* Carbon Spacing Tokens (2x Grid) */
+  --cds-spacing-01: 2px;
+  --cds-spacing-02: 4px;
+  --cds-spacing-03: 8px;
+  --cds-spacing-04: 12px;
+  --cds-spacing-05: 16px;
+  --cds-spacing-06: 24px;
+  --cds-spacing-07: 32px;
+  --cds-spacing-08: 40px;
+  --cds-spacing-09: 48px;
+
+  /* Carbon Core Colors mapped to theme tokens */
+  --cds-blue-60: #0f62fe;
+  --cds-blue-70: #0043ce;
+  --cds-blue-50: #4589ff;
+  --cds-blue-40: #78a9ff;
+  --cds-purple-60: #8a3ffc;
+  --cds-purple-40: #be95ff;
+  --cds-teal-50: #009d9a;
+  --cds-teal-40: #08bdba;
+  --cds-green-50: #198038;
+  --cds-green-40: #42be65;
+  --cds-orange-40: #ff832b;
+  --cds-red-60: #da1e28;
+  --cds-red-50: #fa4d56;
+  --cds-gray-70: #525252;
+  --cds-gray-30: #c6c6c6;
+
+  /* Carbon Semantic Themes mapped with VS Code system adaptors */
+  --fg: var(--vscode-editor-foreground, #161616);
+  --muted: var(--vscode-descriptionForeground, #525252);
+  --bg: var(--vscode-editor-background, #ffffff);
+  --card: var(--vscode-editorWidget-background, var(--vscode-sideBar-background, rgba(128, 128, 128, 0.08)));
+  --border-subtle: var(--vscode-panel-border, var(--vscode-widget-border, rgba(128, 128, 128, 0.2)));
+  --border-strong: var(--vscode-focusBorder, var(--cds-blue-60));
+  --accent: var(--vscode-textLink-foreground, var(--cds-blue-60));
+  --focus: var(--vscode-focusBorder, var(--cds-blue-60));
+
+  /* Carbon Section Indicators & Badges */
+  --if: var(--vscode-charts-blue, var(--cds-blue-50));
+  --then: var(--vscode-charts-green, var(--cds-green-40));
+  --else: var(--vscode-charts-orange, var(--cds-orange-40));
+  --defs: var(--vscode-charts-purple, var(--cds-purple-40));
+  --error: var(--vscode-errorForeground, var(--cds-red-50));
+}
+
+/* Base Body Styles - Carbon Type & Metrics */
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--cds-font-sans);
+  font-size: 14px;
+  line-height: 1.42857; /* Carbon body-compact-01 ratio */
+  letter-spacing: 0.16px;
+  padding: 0 var(--cds-spacing-05) var(--cds-spacing-09);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+main {
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+/* Header & Breadcrumb */
+.top {
+  padding-top: var(--cds-spacing-06);
+  margin-bottom: var(--cds-spacing-05);
+  border-bottom: 1px solid var(--border-subtle);
+  padding-bottom: var(--cds-spacing-04);
+}
+
+.crumbs {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.32px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--cds-spacing-02);
+  margin-bottom: var(--cds-spacing-02);
+}
+.crumbs span + span::before {
+  content: '/';
+  margin-right: var(--cds-spacing-02);
+  color: var(--muted);
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--cds-spacing-05);
+  flex-wrap: wrap;
+}
+
+/* Carbon Heading-04 / Heading-03 */
+h1 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: 0;
+  margin: 0;
+}
+
+/* Carbon Button Groups */
+.actions {
+  display: flex;
+  gap: var(--cds-spacing-03);
+  align-items: center;
+}
+
+/* Carbon Button Styles: 32px height, sharp 0px radius, standard padding */
+.btn {
+  font-family: var(--cds-font-sans);
+  font-size: 14px;
+  font-weight: 400;
+  letter-spacing: 0.16px;
+  line-height: 1;
+  height: 32px;
+  padding: 0 var(--cds-spacing-04);
+  border-radius: 0px; /* Carbon strict flat edges */
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 70ms cubic-bezier(0, 0, 0.38, 0.9), border-color 70ms cubic-bezier(0, 0, 0.38, 0.9);
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.btn:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+.btn-primary {
+  background: var(--vscode-button-background, var(--cds-blue-60));
+  color: var(--vscode-button-foreground, #ffffff);
+}
+.btn-primary:hover {
+  background: var(--vscode-button-hoverBackground, var(--cds-blue-70));
+}
+
+.btn-secondary {
+  background: var(--vscode-button-secondaryBackground, rgba(128, 128, 128, 0.15));
+  color: var(--vscode-button-secondaryForeground, var(--fg));
+  border: 1px solid var(--border-subtle);
+}
+.btn-secondary:hover {
+  background: var(--vscode-button-secondaryHoverBackground, rgba(128, 128, 128, 0.25));
+}
+
+/* Body / Description Text */
+.description {
+  color: var(--fg);
+  font-size: 14px;
+  line-height: 1.42857;
+  margin: var(--cds-spacing-04) 0 var(--cds-spacing-05);
+  max-width: 72ch;
+}
+
+/* Key-Value Definition Lists (Carbon Data layout) */
+.fields {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--cds-spacing-02) var(--cds-spacing-05);
+  margin: 0 0 var(--cds-spacing-06);
+  font-size: 13px;
+  background: var(--card);
+  padding: var(--cds-spacing-04);
+  border: 1px solid var(--border-subtle);
+}
+.fields dt {
+  color: var(--muted);
+  font-weight: 500;
+}
+.fields dd {
+  margin: 0;
+}
+
+/* Carbon Tag Component (24px height, 12px pill radius, compact padding) */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding: 0 var(--cds-spacing-03);
+  margin: 0 var(--cds-spacing-02) var(--cds-spacing-02) 0;
+  border-radius: 11px;
+  background: var(--vscode-badge-background, rgba(15, 98, 254, 0.15));
+  color: var(--vscode-badge-foreground, var(--fg));
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.32px;
+  border: 1px solid transparent;
+}
+
+/* Carbon Tile / Card Pattern with high-contrast indicator border */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border-subtle);
+  border-left: 3px solid var(--accent);
+  border-radius: 0px; /* Carbon flat tiles */
+  padding: var(--cds-spacing-04) var(--cds-spacing-05);
+  margin-bottom: var(--cds-spacing-04);
+  box-sizing: border-box;
+}
+.card-definitions { border-left-color: var(--defs); }
+.card-if { border-left-color: var(--if); }
+.card-then { border-left-color: var(--then); }
+.card-else { border-left-color: var(--else); }
+
+.card-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--cds-spacing-03);
+  margin-bottom: var(--cds-spacing-03);
+}
+.card-label {
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.card-definitions .card-label { color: var(--defs); }
+.card-if .card-label { color: var(--if); }
+.card-then .card-label { color: var(--then); }
+.card-else .card-label { color: var(--else); }
+.card-hint {
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.16px;
+}
+
+/* BAL Statement Rows */
+.statements {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.statement {
+  display: flex;
+  gap: var(--cds-spacing-03);
+  padding: var(--cds-spacing-02) 0;
+  align-items: baseline;
+}
+.statement + .statement {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.conj {
+  flex: 0 0 36px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Syntax Tokens */
+.tok-var {
+  background: var(--vscode-textBlockQuote-background, rgba(128, 128, 128, 0.15));
+  border-radius: 2px;
+  padding: 1px 6px;
+  font-weight: 600;
+  color: var(--fg);
+  font-family: var(--cds-font-sans);
+}
+.tok-string {
+  color: var(--vscode-debugTokenExpression-string, #ce9178);
+  font-family: var(--cds-font-mono, monospace);
+}
+.tok-number, .tok-literal {
+  color: var(--vscode-debugTokenExpression-number, #b5cea8);
+  font-weight: 600;
+  font-family: var(--cds-font-mono, monospace);
+}
+.tok-op {
+  color: var(--accent);
+  font-weight: 600;
+}
+.tok-kw {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* Carbon TextInput / Textarea */
+.editor {
+  border-left-color: var(--accent);
+}
+.editor-text {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--cds-font-mono, monospace);
+  font-size: 13px;
+  line-height: 1.5;
+  background: var(--vscode-input-background, #ffffff);
+  color: var(--vscode-input-foreground, #161616);
+  border: 1px solid var(--vscode-input-border, var(--border-subtle));
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0px;
+  padding: var(--cds-spacing-03) var(--cds-spacing-04);
+  resize: vertical;
+}
+.editor-text:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+.editor-bar {
+  display: flex;
+  gap: var(--cds-spacing-03);
+  align-items: center;
+  margin-top: var(--cds-spacing-03);
+}
+.editor-bar .card-hint {
+  flex: 1;
+}
+
+.empty {
+  color: var(--muted);
+  font-style: italic;
+  padding: var(--cds-spacing-05);
+  background: var(--card);
+  border: 1px solid var(--border-subtle);
+}

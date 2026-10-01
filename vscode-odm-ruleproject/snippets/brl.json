@@ -1,0 +1,166 @@
+{
+  "BAL Rule — basic": {
+    "prefix": ["rule", "brule"],
+    "description": "Basic BAL rule skeleton with if/then",
+    "body": [
+      "rule \"${1:rule-name}\"",
+      "\tif",
+      "\t\t${2:condition}",
+      "\tthen",
+      "\t\t${3:action} ;",
+      ""
+    ]
+  },
+
+  "BAL Rule — with definitions": {
+    "prefix": ["ruledef", "ruleDef"],
+    "description": "BAL rule with definitions block",
+    "body": [
+      "rule \"${1:rule-name}\"",
+      "\tdefinitions",
+      "\t\tset '${2:variable}' to ${3:expression} ;",
+      "\tif",
+      "\t\t${4:condition}",
+      "\tthen",
+      "\t\t${5:action} ;",
+      ""
+    ]
+  },
+
+  "BAL Rule — null-safe navigation": {
+    "prefix": ["rulenull", "nullsafe"],
+    "description": "Rule with null-safe navigation pattern",
+    "body": [
+      "rule \"${1:rule-name}\"",
+      "\tif",
+      "\t\tthe ${2:nestedObject} of '${3:the variable}' is not null",
+      "\t\tand ${4:condition on nested object}",
+      "\tthen",
+      "\t\t${5:action} ;",
+      ""
+    ]
+  },
+
+  "BAL — is one of (set membership)": {
+    "prefix": ["isoneof", "oneof"],
+    "description": "Set membership check: is one of { \"A\", \"B\" }",
+    "body": [
+      "the ${1:property} of '${2:the variable}' is one of { ${3:\"VALUE1\", \"VALUE2\"} }"
+    ]
+  },
+
+  "BAL — is more than": {
+    "prefix": ["morethan"],
+    "description": "Numeric greater-than comparison",
+    "body": [
+      "the ${1:property} of '${2:the variable}' is more than ${3:0}"
+    ]
+  },
+
+  "BAL — is less than": {
+    "prefix": ["lessthan"],
+    "description": "Numeric less-than comparison",
+    "body": [
+      "the ${1:property} of '${2:the variable}' is less than ${3:0}"
+    ]
+  },
+
+  "BAL — is at least": {
+    "prefix": ["atleast"],
+    "description": "Numeric greater-than-or-equal comparison",
+    "body": [
+      "the ${1:property} of '${2:the variable}' is at least ${3:0}"
+    ]
+  },
+
+  "BAL — is at most": {
+    "prefix": ["atmost"],
+    "description": "Numeric less-than-or-equal comparison",
+    "body": [
+      "the ${1:property} of '${2:the variable}' is at most ${3:0}"
+    ]
+  },
+
+  "BAL — it is not true that (negation)": {
+    "prefix": ["nottruehat", "negation"],
+    "description": "ODM negation pattern: it is not true that",
+    "body": [
+      "it is not true that ${1:condition}"
+    ]
+  },
+
+  "BAL — set property action": {
+    "prefix": ["setprop", "setProperty"],
+    "description": "Set a property value in the then block",
+    "body": [
+      "set the ${1:property} of '${2:the variable}' to ${3:value} ;"
+    ]
+  },
+
+  "BAL — add to collection": {
+    "prefix": ["addto", "addToCollection"],
+    "description": "Add an element to a collection",
+    "body": [
+      "add ${1:\"message\"} to the ${2:messages} of '${3:the variable}' ;"
+    ]
+  },
+
+  "BAL — make it true/false (boolean)": {
+    "prefix": ["makeit"],
+    "description": "Set a boolean property",
+    "body": [
+      "make it ${1|true,false|} that '${2:the variable}' is ${3:approved} ;"
+    ]
+  },
+
+  "BAL — definitions set variable": {
+    "prefix": ["setvar"],
+    "description": "Bind a navigation expression to a local variable in definitions",
+    "body": [
+      "set '${1:var}' to ${2:expression} ;"
+    ]
+  },
+
+  "BOM — class declaration": {
+    "prefix": ["bomclass"],
+    "description": "BOM class declaration template",
+    "body": [
+      "public class ${1:ClassName}",
+      "{",
+      "\tpublic ${2:string} ${3:propertyName};",
+      "\tpublic ${1:ClassName}();",
+      "}"
+    ]
+  },
+
+  "BOM — readonly computed property": {
+    "prefix": ["bomcomputed", "readonly"],
+    "description": "BOM readonly computed property (no setter in XOM)",
+    "body": [
+      "public readonly ${1|boolean,int,double,string|} ${2:propertyName}",
+      "\t\t\tproperty \"factory.ignore\" \"true\";"
+    ]
+  },
+
+  "BOM — collection property": {
+    "prefix": ["bomcollection"],
+    "description": "BOM collection property declaration",
+    "body": [
+      "public readonly java.util.Collection ${1:items} domain 0,* class ${2:string};"
+    ]
+  },
+
+  "BOM — enum class": {
+    "prefix": ["bomenum"],
+    "description": "BOM enum class declaration",
+    "body": [
+      "public final class ${1:EnumName}",
+      "\t\textends java.lang.Enum",
+      "{",
+      "\tdomain {static ${2:VALUE1}, static ${3:VALUE2}}",
+      "\tpublic static final readonly ${1:EnumName} ${2:VALUE1};",
+      "\tpublic static final readonly ${1:EnumName} ${3:VALUE2};",
+      "}"
+    ]
+  }
+}

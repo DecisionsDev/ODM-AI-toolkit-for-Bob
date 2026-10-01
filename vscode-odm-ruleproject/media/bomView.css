@@ -1,0 +1,242 @@
+/* Shares the base look (colors, header, buttons, cards) with the rule view. */
+@import url('ruleView.css');
+
+main { max-width: 1040px; }
+
+.summary {
+  color: var(--muted);
+  font-size: 14px;
+  margin: var(--cds-spacing-02) 0 var(--cds-spacing-04);
+}
+
+/* Carbon Search Input */
+.search {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--cds-font-sans);
+  font-size: 14px;
+  height: 40px; /* Carbon standard input height */
+  padding: 0 var(--cds-spacing-05);
+  margin-bottom: var(--cds-spacing-04);
+  background: var(--vscode-input-background, #ffffff);
+  color: var(--vscode-input-foreground, #161616);
+  border: 1px solid var(--vscode-input-border, var(--border-subtle));
+  border-bottom: 1px solid var(--border-strong);
+  border-radius: 0px;
+}
+.search:focus {
+  outline: 2px solid var(--focus);
+  outline-offset: -2px;
+}
+
+/* Carbon Tag / Chip Container */
+.index {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--cds-spacing-02);
+  margin-bottom: var(--cds-spacing-06);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 var(--cds-spacing-03);
+  border-radius: 12px;
+  font-size: 12px;
+  letter-spacing: 0.32px;
+  white-space: nowrap;
+}
+.chip-index {
+  font-family: var(--cds-font-sans);
+  font-size: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--card);
+  color: var(--fg);
+  cursor: pointer;
+  border-radius: 12px;
+  transition: border-color 70ms ease, background-color 70ms ease;
+}
+.chip-index:hover {
+  border-color: var(--accent);
+  background: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.15));
+}
+.chip-index-enum {
+  border-style: dashed;
+}
+.chip-concept {
+  background: var(--vscode-textBlockQuote-background, rgba(128, 128, 128, 0.15));
+  font-weight: 600;
+  font-size: 13px;
+  border-radius: 2px;
+  padding: 1px 6px;
+  height: auto;
+}
+.chip-value {
+  border: 1px dashed var(--muted);
+  color: var(--muted);
+  font-style: italic;
+  border-radius: 2px;
+  padding: 1px 6px;
+  height: auto;
+}
+.chip-enum {
+  background: var(--vscode-badge-background, rgba(138, 63, 252, 0.15));
+  color: var(--vscode-badge-foreground, var(--fg));
+  margin: 0 var(--cds-spacing-02) var(--cds-spacing-02) 0;
+}
+
+.card {
+  border-left-color: var(--if);
+  scroll-margin-top: var(--cds-spacing-04);
+  transition: box-shadow 150ms ease;
+}
+.card-enum { border-left-color: var(--defs); }
+.card.flash {
+  box-shadow: 0 0 0 2px var(--focus);
+}
+
+.card-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--cds-spacing-03);
+  margin-bottom: var(--cds-spacing-03);
+}
+.card-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.card-header h2::first-letter { text-transform: uppercase; }
+.kind {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.java {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 12px;
+  font-family: var(--cds-font-mono, monospace);
+}
+
+/* Carbon DataTable Style */
+.attrs {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-top: var(--cds-spacing-02);
+}
+.attrs th {
+  text-align: left;
+  background: var(--vscode-editorWidget-background, rgba(128, 128, 128, 0.05));
+  color: var(--fg);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: var(--cds-spacing-03) var(--cds-spacing-03);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.attrs td {
+  padding: var(--cds-spacing-03) var(--cds-spacing-03);
+  vertical-align: top;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.attrs tr:hover td {
+  background: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.06));
+}
+.attrs tr:last-child td { border-bottom: none; }
+.attrs .type {
+  white-space: nowrap;
+  color: var(--muted);
+  font-family: var(--cds-font-mono, monospace);
+  font-size: 12px;
+}
+.type-link {
+  color: var(--accent);
+  text-decoration: none;
+}
+.type-link:hover {
+  text-decoration: underline;
+}
+.badges {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.badge {
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 0px;
+  border: 1px solid var(--border-subtle);
+  background: var(--vscode-badge-background, rgba(128, 128, 128, 0.1));
+  color: var(--muted);
+}
+
+.term {
+  font-weight: 600;
+}
+
+.action-line {
+  margin-top: var(--cds-spacing-01);
+  color: var(--muted);
+  font-size: 12px;
+}
+.action-label {
+  display: inline-block;
+  min-width: 52px;
+  margin-right: var(--cds-spacing-02);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card h3 {
+  margin: var(--cds-spacing-04) 0 var(--cds-spacing-02);
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.methods {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 13px;
+}
+.methods li {
+  padding: var(--cds-spacing-02) 0;
+}
+.methods li + li {
+  border-top: 1px solid var(--border-subtle);
+}
+
+.hidden-members {
+  margin-top: var(--cds-spacing-03);
+  color: var(--muted);
+  font-size: 12px;
+}
+.hidden-members summary {
+  cursor: pointer;
+  font-weight: 500;
+}
+.hidden-members summary:hover {
+  color: var(--accent);
+}
+.hidden-members p {
+  margin: var(--cds-spacing-02) 0 0;
+  font-family: var(--cds-font-mono, monospace);
+}
+
+@media (max-width: 600px) {
+  .java { margin-left: 0; }
+  .attrs th:nth-child(3), .attrs td:nth-child(3) { display: none; }
+}
