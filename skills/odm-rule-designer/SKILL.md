@@ -1,6 +1,29 @@
 ---
 name: odm-rule-designer
-description: Build and fix IBM ODM (Operational Decision Manager) Decision Services — XOM, BOM, vocabulary, BAL rules, decision tables, ruleflows, deployment — and compile them locally; export a rule project and deploy it to Decision Center; build a RuleApp archive and deploy it to the Rule Execution Server (RES console); analyse dependencies between rules and design the ruleflow from them; review a rule project against ODM design best practices. Use for anything about IBM ODM, business rules, BOM/XOM/BAL, .ruleproject, rules-compiler, ruleset build errors, Decision Center import/deploy, RuleApp deployment to RES, rule order or a rule that never fires, or turning business requirements into executable rules — in any language (e.g. French "règles métier", "dépendances entre les règles", "ruleflow", "ordre d'exécution des règles").
+description: >
+  Build and fix IBM ODM (Operational Decision Manager) Decision Services — XOM, BOM, vocabulary,
+  BAL rules, decision tables, ruleflows, deployment — and compile them locally; export a rule
+  project and deploy it to Decision Center; build a RuleApp archive and deploy it to the Rule
+  Execution Server (RES console); analyse dependencies between rules and design the ruleflow from
+  them; review a rule project against ODM design best practices. Use for anything about IBM ODM,
+  business rules, BOM/XOM/BAL, .ruleproject, rules-compiler, ruleset build errors, Decision Center
+  import/deploy, RuleApp deployment to RES, rule order or a rule that never fires, or turning
+  business requirements into executable rules — in any language (e.g. French "règles métier",
+  "dépendances entre les règles", "ruleflow", "ordre d'exécution des règles").
+license: Apache-2.0
+metadata:
+  version: 1.0.0
+  display_name: IBM ODM Rule Designer
+  short_description: Build IBM ODM Decision Services — XOM/BOM/BAL authoring, ruleflow design, dependency analysis, Decision Center deploy, and RES RuleApp deployment.
+  example_prompts:
+    - "Create an ODM decision service for loan approval from scratch"
+    - "Add a new BAL rule to check if the transaction country is sanctioned"
+    - "Analyse rule dependencies and generate the ruleflow"
+    - "Deploy my rule project to Decision Center"
+    - "Build a RuleApp and deploy it to the Rule Execution Server"
+    - "My rule never fires — help me debug it"
+    - "Review my ODM project against design best practices"
+    - "Génère un service de décision ODM pour valider une demande de crédit"
 ---
 
 # IBM ODM Rule Designer
