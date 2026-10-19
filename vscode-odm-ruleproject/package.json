@@ -1,7 +1,7 @@
 {
   "name": "odm-ruleproject",
   "displayName": "IBM ODM Rule Project & Decision Service",
-  "description": "IBM Operational Decision Manager (ODM) — visual editors, syntax highlighting, ruleflow viewer, and vocabulary navigation for ODM Decision Services and Rule Projects (.brl, .bom, .rfl, .dop, .dep).",
+  "description": "IBM Operational Decision Manager (ODM) \u2014 visual editors, syntax highlighting, ruleflow viewer, and vocabulary navigation for ODM Decision Services and Rule Projects (.brl, .bom, .rfl, .dop, .dep).",
   "version": "0.1.0",
   "publisher": "ibm-odm",
   "license": "Apache-2.0",
@@ -44,6 +44,69 @@
           "light": "./icons/brl-light.svg",
           "dark": "./icons/brl-dark.svg"
         }
+      },
+      {
+        "id": "odm-voc",
+        "aliases": [
+          "ODM Vocabulary"
+        ],
+        "extensions": [
+          ".voc"
+        ],
+        "configuration": "./voc-language-configuration.json"
+      },
+      {
+        "id": "odm-var",
+        "aliases": [
+          "ODM Variable Set"
+        ],
+        "extensions": [
+          ".var"
+        ],
+        "configuration": "./odm-xml-language-configuration.json"
+      },
+      {
+        "id": "odm-rulepackage",
+        "aliases": [
+          "ODM Rule Package"
+        ],
+        "extensions": [
+          ".rulepackage"
+        ],
+        "filenames": [
+          ".rulepackage"
+        ],
+        "configuration": "./odm-xml-language-configuration.json"
+      },
+      {
+        "id": "odm-ruleproject",
+        "aliases": [
+          "ODM Rule Project"
+        ],
+        "filenames": [
+          ".ruleproject"
+        ],
+        "configuration": "./odm-xml-language-configuration.json"
+      },
+      {
+        "id": "odm-b2xa",
+        "aliases": [
+          "ODM BOM to ARL Translation"
+        ],
+        "extensions": [
+          ".b2xa"
+        ],
+        "configuration": "./odm-xml-language-configuration.json"
+      },
+      {
+        "id": "odm-dta",
+        "aliases": [
+          "ODM Decision Table"
+        ],
+        "extensions": [
+          ".dta"
+        ],
+        "configuration": "./odm-xml-language-configuration.json"
       }
     ],
     "grammars": [
@@ -51,6 +114,36 @@
         "language": "brl",
         "scopeName": "source.brl",
         "path": "./syntaxes/brl.tmLanguage.json"
+      },
+      {
+        "language": "odm-voc",
+        "scopeName": "source.odm-voc",
+        "path": "./syntaxes/voc.tmLanguage.json"
+      },
+      {
+        "language": "odm-var",
+        "scopeName": "text.xml.odm-var",
+        "path": "./syntaxes/var.tmLanguage.json"
+      },
+      {
+        "language": "odm-rulepackage",
+        "scopeName": "text.xml.odm-rulepackage",
+        "path": "./syntaxes/rulepackage.tmLanguage.json"
+      },
+      {
+        "language": "odm-ruleproject",
+        "scopeName": "text.xml.odm-ruleproject",
+        "path": "./syntaxes/ruleproject.tmLanguage.json"
+      },
+      {
+        "language": "odm-b2xa",
+        "scopeName": "text.xml.odm-b2xa",
+        "path": "./syntaxes/b2xa.tmLanguage.json"
+      },
+      {
+        "language": "odm-dta",
+        "scopeName": "text.xml.odm-dta",
+        "path": "./syntaxes/dtable.tmLanguage.json"
       }
     ],
     "snippets": [
@@ -109,6 +202,46 @@
           }
         ],
         "priority": "default"
+      },
+      {
+        "viewType": "odm-ruleproject.vocView",
+        "displayName": "ODM Vocabulary Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.voc"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "odm-ruleproject.varView",
+        "displayName": "ODM Variable Set Editor",
+        "selector": [
+          {
+            "filenamePattern": "*.var"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "odm-ruleproject.rulepackageView",
+        "displayName": "ODM Rule Package",
+        "selector": [
+          {
+            "filenamePattern": ".rulepackage"
+          }
+        ],
+        "priority": "default"
+      },
+      {
+        "viewType": "odm-ruleproject.dtableView",
+        "displayName": "ODM Decision Table",
+        "selector": [
+          {
+            "filenamePattern": "*.dta"
+          }
+        ],
+        "priority": "default"
       }
     ],
     "commands": [
@@ -129,7 +262,7 @@
       "editor/title": [
         {
           "command": "odm-ruleproject.openRuleView",
-          "when": "resourceExtname =~ /^\\.(brl|bom|rfl|dop|dep)$/ && activeEditor == workbench.editors.files.textFileEditor",
+          "when": "resourceExtname =~ /^\\.(brl|bom|rfl|dop|dep|voc|var|dta)$/ && activeEditor == workbench.editors.files.textFileEditor",
           "group": "navigation"
         },
         {

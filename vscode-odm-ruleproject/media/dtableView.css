@@ -1,0 +1,158 @@
+/* Decision Table view — inherits all base tokens from deploymentView.css */
+@import url('deploymentView.css');
+
+/* ── Decision table wrapper ──────────────────────────────────────────── */
+.dt-wrap {
+  overflow-x: auto;
+  margin-top: var(--cds-spacing-04);
+  border: 1px solid var(--border-subtle);
+}
+
+.dt {
+  border-collapse: collapse;
+  font-size: 13px;
+  min-width: 100%;
+  table-layout: auto;
+}
+
+/* ── All header cells share these base styles ────────────────────────── */
+.dt thead th {
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--vscode-editorWidget-background, rgba(128,128,128,0.05));
+}
+
+/* ── Row 1: group headers (Conditions / Actions) ─────────────────────── */
+.dt thead tr.group-row th {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: var(--cds-spacing-02) var(--cds-spacing-04);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.dt thead tr.group-row th.col-cond { color: var(--if); }
+.dt thead tr.group-row th.col-act  { color: var(--then); }
+
+/* ── Row 2: column headers ───────────────────────────────────────────── */
+.dt thead tr.col-header-row th {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.32px;
+  padding: var(--cds-spacing-02) var(--cds-spacing-04);
+  border-bottom: 1px dashed var(--border-subtle);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 220px;
+}
+
+/* ── Row 3: param sub-headers ────────────────────────────────────────── */
+.dt thead tr.param-header-row th {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--muted);
+  font-style: italic;
+  padding: var(--cds-spacing-01) var(--cds-spacing-03);
+  border-bottom: 2px solid var(--border-subtle);
+  white-space: nowrap;
+}
+/* Sub-cell divider inside a column group */
+.dt thead tr.param-header-row th.col-cond:not(:last-of-type),
+.dt thead tr.param-header-row th.col-act:not(:last-of-type) {
+  border-right: 1px dotted var(--border-subtle);
+}
+/* Full template when no placeholders */
+.dt thead tr.param-header-row th.param-hdr-only {
+  font-size: 10px;
+  font-style: normal;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Condition / action tinting for all header cells */
+.dt th.col-cond { border-right: 1px solid var(--border-subtle); }
+.dt th.col-act  { /* no extra right border */ }
+
+/* ── Row number gutter ───────────────────────────────────────────────── */
+.dt td.row-num,
+.dt th.row-num {
+  width: 36px;
+  min-width: 36px;
+  text-align: right;
+  color: var(--muted);
+  font-size: 11px;
+  border-right: 1px solid var(--border-subtle);
+  padding-right: var(--cds-spacing-03);
+  background: var(--vscode-editorWidget-background, rgba(128,128,128,0.04));
+  user-select: none;
+}
+
+/* ── Body cells ──────────────────────────────────────────────────────── */
+.dt td {
+  padding: var(--cds-spacing-03) var(--cds-spacing-04);
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-subtle);
+  overflow-wrap: anywhere;
+  line-height: 1.4;
+}
+
+.dt tbody tr:hover td {
+  background: var(--vscode-list-hoverBackground, rgba(128,128,128,0.06));
+}
+
+/* Condition cells */
+.dt td.col-cond {
+  background: rgba(69, 137, 255, 0.04);
+  font-weight: 500;
+}
+/* Action cells */
+.dt td.col-act {
+  background: rgba(66, 190, 101, 0.04);
+}
+
+/* Sub-cells: no trailing border on last param, border between siblings */
+.dt td.cell-param {
+  border-right: 1px dotted var(--border-subtle);
+  min-width: 60px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--cds-font-mono, monospace);
+  font-size: 12px;
+}
+.dt td.cell-param-last {
+  border-right: 1px solid var(--border-subtle);  /* group divider */
+}
+/* Single-cell (no placeholders): full width within its column */
+.dt td.cell-only {
+  border-right: 1px solid var(--border-subtle);
+}
+
+/* Empty cell dash */
+.dt-empty {
+  color: var(--muted);
+  font-style: italic;
+  font-size: 11px;
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────── */
+.dt-empty-state {
+  color: var(--muted);
+  font-style: italic;
+  padding: var(--cds-spacing-05);
+  background: var(--card);
+  border: 1px solid var(--border-subtle);
+  margin-top: var(--cds-spacing-04);
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────── */
+@media (max-width: 800px) {
+  .dt td.cell-param,
+  .dt td.cell-param-last {
+    font-size: 11px;
+    padding: var(--cds-spacing-02) var(--cds-spacing-02);
+  }
+}

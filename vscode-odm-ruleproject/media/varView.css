@@ -1,0 +1,11 @@
+/* Shares the base look with the vocabulary view (cards, table, inputs, checks). */
+@import url('vocView.css');
+
+.var-table td { vertical-align: middle; }
+.var-table .row-error td:first-child { box-shadow: inset 3px 0 0 var(--error); }
+select.cell-input { min-width: 160px; }
+
+@media (max-width: 900px) {
+  .var-table th:nth-child(4), .var-table td:nth-child(4),
+  .var-table th:nth-child(5), .var-table td:nth-child(5) { display: none; }
+}

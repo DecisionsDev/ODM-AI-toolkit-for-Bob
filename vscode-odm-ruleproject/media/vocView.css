@@ -1,0 +1,48 @@
+/* Shares the base look (colors, header, buttons, cards, table) with the deployment view. */
+@import url('deploymentView.css');
+
+.card-warn { border-left-color: var(--else); }
+.card-warn .card-hint { color: var(--else); }
+.summary-line { margin: var(--cds-spacing-02) 0; font-size: 13px; }
+
+.editor-bar {
+  display: flex;
+  gap: var(--cds-spacing-04);
+  align-items: center;
+  margin: var(--cds-spacing-03) 0;
+  flex-wrap: wrap;
+}
+.add-row .cell-input { flex: 1; min-width: 180px; }
+.search { flex: 1; min-width: 200px; }
+.check-toggle { font-size: 13px; color: var(--muted); white-space: nowrap; }
+
+.cell-input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: var(--cds-spacing-02) var(--cds-spacing-03);
+  font: inherit;
+  font-size: 13px;
+  color: var(--vscode-input-foreground, var(--fg));
+  background: var(--vscode-input-background, transparent);
+  border: 1px solid var(--vscode-input-border, var(--border-subtle));
+  border-radius: 0;
+}
+.cell-input:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: -1px;
+}
+
+.btn-small { padding: 2px var(--cds-spacing-03); font-size: 12px; }
+
+.voc-table td { vertical-align: middle; }
+.voc-table .row-error td:first-child { box-shadow: inset 3px 0 0 var(--error); }
+.voc-table .row-warn td:first-child { box-shadow: inset 3px 0 0 var(--else); }
+.issues { min-width: 140px; }
+.issue { font-size: 12px; }
+.issue-error { color: var(--error); }
+.issue-warning { color: var(--else); }
+
+@media (max-width: 760px) {
+  .voc-table th:nth-child(1), .voc-table td:nth-child(1),
+  .voc-table th:nth-child(3), .voc-table td:nth-child(3) { display: none; }
+}

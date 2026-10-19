@@ -1,0 +1,14 @@
+# Dependencies
+node_modules/
+
+# Compiled output
+out/
+dist/
+
+# Extension packages
+*.vsix
+
+# Logs & temp
+*.log
+.vscode-test/
+.DS_Store

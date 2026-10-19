@@ -1,0 +1,36 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ODM Decision Table",
+  "scopeName": "text.xml.odm-dta",
+  "patterns": [
+    {
+      "comment": "CDATA section containing BAL template text",
+      "begin": "<!\\[CDATA\\[",
+      "end": "\\]\\]>",
+      "name": "string.unquoted.cdata.xml",
+      "patterns": [
+        {
+          "comment": "Placeholder tokens like <credit score>",
+          "match": "<[^>/]+>",
+          "name": "variable.parameter.placeholder.odm-dta"
+        }
+      ]
+    },
+    {
+      "comment": "Decision table structural element names",
+      "match": "(?<=</?)(ConditionDefinition|ActionDefinition|Condition|ActionSet|Action|Partition|Structure|Contents|DT|Body)(?=[\\s/>])",
+      "name": "entity.name.tag.structure.odm-dta"
+    },
+    {
+      "comment": "Important attribute names in the DT body",
+      "match": "\\b(DefId|Id|Version)(?==)",
+      "name": "support.type.property-name.odm-dta"
+    },
+    {
+      "comment": "ODM envelope elements",
+      "match": "(?<=</?)(model\\.dt:DecisionTable|name|uuid|locale|categories|definition|documentation)(?=[\\s/>])",
+      "name": "support.function.envelope.odm-dta"
+    },
+    { "include": "text.xml" }
+  ]
+}

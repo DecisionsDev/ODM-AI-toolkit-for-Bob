@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ODM Vocabulary",
+  "scopeName": "source.odm-voc",
+  "patterns": [
+    { "include": "#comment" },
+    { "include": "#uuid" },
+    { "include": "#entry" }
+  ],
+  "repository": {
+    "comment": {
+      "match": "^\\s*#.*$",
+      "name": "comment.line.number-sign.odm-voc"
+    },
+    "uuid": {
+      "match": "^(uuid)(\\s*=\\s*)(.*)$",
+      "captures": {
+        "1": { "name": "keyword.other.uuid.odm-voc" },
+        "2": { "name": "keyword.operator.assignment.odm-voc" },
+        "3": { "name": "constant.other.uuid.odm-voc" }
+      }
+    },
+    "entry": {
+      "begin": "^(?=\\s*[^#=\\s])",
+      "end": "$",
+      "patterns": [
+        {
+          "match": "\\G\\s*([\\w.$]+?)(?:\\.(\\w+)(\\([^)#=]*\\))?)?(#)(concept\\.label|phrase\\.navigation|phrase\\.action|instance\\.label|[\\w.]+)",
+          "captures": {
+            "1": { "name": "entity.name.type.class.odm-voc" },
+            "2": { "name": "variable.other.member.odm-voc" },
+            "3": { "name": "meta.signature.odm-voc" },
+            "4": { "name": "punctuation.separator.hash.odm-voc" },
+            "5": { "name": "keyword.other.phrase-kind.odm-voc" }
+          }
+        },
+        {
+          "match": "=",
+          "name": "keyword.operator.assignment.odm-voc"
+        },
+        {
+          "match": "\\{this\\}",
+          "name": "variable.language.this.odm-voc"
+        },
+        {
+          "match": "\\{\\d+\\}",
+          "name": "variable.parameter.argument.odm-voc"
+        },
+        {
+          "match": "\\{[^}]+\\}",
+          "name": "variable.other.placeholder.odm-voc"
+        }
+      ]
+    }
+  }
+}

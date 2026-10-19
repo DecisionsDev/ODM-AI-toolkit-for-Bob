@@ -1,0 +1,65 @@
+/* Rule Package view — reuses the shared card / table / button styles. */
+@import url('deploymentView.css');
+
+/* ── Kind badges ────────────────────────────────────────────────────── */
+.kind-badge {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 var(--cds-spacing-03);
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.32px;
+  border: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.kind-action {
+  border-color: var(--if);
+  color: var(--if);
+  background: rgba(69, 137, 255, 0.10);
+}
+.kind-dt {
+  border-color: var(--defs);
+  color: var(--defs);
+  background: rgba(190, 149, 255, 0.10);
+}
+
+/* ── Package table ──────────────────────────────────────────────────── */
+.pkg-table { table-layout: auto; }
+.pkg-table td { vertical-align: top; }
+.rule-name {
+  font-weight: 600;
+  font-size: 13px;
+  white-space: nowrap;
+  min-width: 120px;
+}
+.rule-doc {
+  color: var(--muted);
+  font-size: 12px;
+  max-width: 200px;
+}
+
+/* ── BAL code preview ───────────────────────────────────────────────── */
+.bal-preview {
+  margin: 0;
+  font-family: var(--cds-font-mono, monospace);
+  font-size: 11px;
+  color: var(--fg);
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-width: 420px;
+  max-height: 120px;
+  overflow: hidden;
+  /* Fade out the bottom when truncated */
+  -webkit-mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+  mask-image: linear-gradient(to bottom, black 70%, transparent 100%);
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .pkg-table th:nth-child(4), .pkg-table td:nth-child(4) { display: none; }
+}
+@media (max-width: 640px) {
+  .pkg-table th:nth-child(3), .pkg-table td:nth-child(3) { display: none; }
+}

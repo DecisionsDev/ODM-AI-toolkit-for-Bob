@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ODM Variable Set",
+  "scopeName": "text.xml.odm-var",
+  "patterns": [
+    {
+      "match": "(<uuid>)([^<]*)(</uuid>)",
+      "captures": {
+        "1": { "name": "meta.tag.xml" },
+        "2": { "name": "constant.other.uuid.odm-var" },
+        "3": { "name": "meta.tag.xml" }
+      }
+    },
+    {
+      "match": "\\b(name|type|initialValue|verbalization)(=)(\"[^\"]*\")",
+      "captures": {
+        "1": { "name": "entity.other.attribute-name.odm-var" },
+        "2": { "name": "punctuation.separator.key-value.xml" },
+        "3": { "name": "string.quoted.double.xml" }
+      }
+    },
+    { "include": "text.xml" }
+  ]
+}

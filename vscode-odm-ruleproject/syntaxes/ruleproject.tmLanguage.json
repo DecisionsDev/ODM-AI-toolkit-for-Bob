@@ -1,0 +1,24 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "ODM Rule Project",
+  "scopeName": "text.xml.odm-ruleproject",
+  "patterns": [
+    {
+      "match": "(<uuid>)([^<]*)(</uuid>)",
+      "captures": {
+        "1": { "name": "meta.tag.xml" },
+        "2": { "name": "constant.other.uuid.odm-ruleproject" },
+        "3": { "name": "meta.tag.xml" }
+      }
+    },
+    {
+      "match": "(<name>)([^<]*)(</name>)",
+      "captures": {
+        "1": { "name": "meta.tag.xml" },
+        "2": { "name": "entity.name.namespace.odm-ruleproject" },
+        "3": { "name": "meta.tag.xml" }
+      }
+    },
+    { "include": "text.xml" }
+  ]
+}
