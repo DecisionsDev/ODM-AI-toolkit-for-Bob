@@ -1,8 +1,8 @@
 {
   "name": "odm-ruleproject",
   "displayName": "IBM ODM Rule Project & Decision Service",
-  "description": "IBM Operational Decision Manager (ODM) \u2014 visual editors, syntax highlighting, ruleflow viewer, and vocabulary navigation for ODM Decision Services and Rule Projects (.brl, .bom, .rfl, .dop, .dep).",
-  "version": "0.1.0",
+  "description": "IBM Operational Decision Manager (ODM) — visual editors, syntax highlighting, ruleflow viewer, and vocabulary navigation for ODM Decision Services and Rule Projects (.brl, .bom, .rfl, .dop, .dep).",
+  "version": "0.2.0",
   "publisher": "ibm-odm",
   "license": "Apache-2.0",
   "repository": {
@@ -280,10 +280,10 @@
     "lint": "eslint src --ext ts"
   },
   "devDependencies": {
-    "@types/vscode": "^1.85.0",
     "@types/node": "20.x",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^7.0.0",
+    "@types/vscode": "^1.85.0",
+    "@typescript-eslint/eslint-plugin": "^8.71.2",
+    "@typescript-eslint/parser": "^8.71.2",
     "eslint": "^8.57.0",
     "typescript": "^5.4.5"
   }
