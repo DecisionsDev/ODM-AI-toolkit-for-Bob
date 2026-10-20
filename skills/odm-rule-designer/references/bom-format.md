@@ -16,7 +16,7 @@ Naming follows the setter without `set`:
 | computed `isEligible()`, no setter | `public readonly boolean eligible property "factory.ignore" "true";` |
 | computed `getTotalCm()`, no setter | `public readonly int totalCm property "factory.ignore" "true";` |
 
-Use the same base name in all four layers: XOM field/getter/setter, BOM property, vocabulary key, and rule phrase. Reserved names (`operator`, `function`, `rule`, `package`, `import`) can't be used as property names. Add a qualifier instead (`airlineOperator`).
+`odm check` compares each BOM attribute with the XOM getters and reports a missing one as an error, with the fix. Use the same base name in all four layers: XOM field/getter/setter, BOM property, vocabulary key, and rule phrase. Reserved names (`operator`, `function`, `rule`, `package`, `import`) can't be used as property names. Add a qualifier instead (`airlineOperator`).
 
 ## Annotations
 

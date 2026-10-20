@@ -61,7 +61,7 @@ import javax.tools.ToolProvider;
 
 public class Odm {
 
-    static final String VERSION = "1.0.0";
+    static final String VERSION = "1.1.0";
     static final String JACKSON_VERSION = "2.15.2";
     static final String[][] JACKSON = {{"core", "jackson-core"}, {"core", "jackson-databind"}, {"core", "jackson-annotations"}};
 
@@ -286,7 +286,9 @@ public class Odm {
         StringBuilder v = new StringBuilder();
         for (Var x : vars) {
             v.append("  <variables name=\"").append(x.name).append("\" type=\"").append(x.type)
-                    .append("\" initialValue=\"\" verbalization=\"the ").append(x.name).append("\"/>\n");
+                    // an OUT object must be created by the ruleset, or the compiler reports GBRED0040E
+                    .append("\" initialValue=\"").append(x.direction.equals("OUT") ? "new " + x.type + "()" : "")
+                    .append("\" verbalization=\"the ").append(x.name).append("\"/>\n");
         }
         return XML + "<ilog.rules.studio.model.base:VariableSet " + NS_XMI + " " + NS_BASE + ">\n  <name>" + name + "</name>\n"
                 + "  <uuid>" + u + "</uuid>\n  <documentation><![CDATA[Variables for " + name + "]]></documentation>\n" + v
@@ -809,6 +811,24 @@ public class Odm {
             }
         }
 
+        // OUT variables must be created by the ruleset, or the compiler reports GBRED0040E
+        Map<String, String> outVars = new HashMap<>(); // variable name -> .dop file
+        for (Path p : glob(rp.resolve("deployment"), ".dop")) {
+            Matcher vm = Pattern.compile("<referencedVariables\\b[^>]*\\bvariableName=\"([^\"]+)\"[^>]*\\bdirection=\"OUT\"").matcher(read(p));
+            while (vm.find()) outVars.put(vm.group(1), p.getFileName().toString());
+        }
+        for (Path p : glob(rp.resolve("rules"), ".var")) {
+            Matcher vm = Pattern.compile("<variables\\b[^>]*>").matcher(read(p));
+            while (vm.find()) {
+                String tag = vm.group(), vn = group(Pattern.compile("\\bname=\"([^\"]+)\""), tag, 1);
+                String type = group(Pattern.compile("\\btype=\"([^\"]+)\""), tag, 1), init = group(Pattern.compile("\\binitialValue=\"([^\"]*)\""), tag, 1);
+                if (vn == null || !outVars.containsKey(vn) || (init != null && !init.isBlank()) || type == null || !type.contains(".")) continue;
+                errs.add(relSlash(p, rp) + ": OUT variable '" + vn + "' has an empty initialValue (GBRED0040E at build) — set initialValue=\"new "
+                        + type + "()\"");
+            }
+        }
+
+        Map<String, JClass> xom = loadXom(xomSrc(rp, null));
         Path bomDir = rp.resolve("bom");
         List<String> b2x = glob(bomDir, ".b2xa").stream().map(Odm::stem).collect(Collectors.toList());
         List<String> vocs = glob(bomDir, ".voc").stream().map(p -> p.getFileName().toString()).collect(Collectors.toList());
@@ -823,8 +843,28 @@ public class Odm {
             }
             String bt = read(bp);
             if (bt.stripLeading().startsWith("<")) errs.add("bom/" + b + ".bom is XML — must be text BRL format");
+            Path b2xaFile = bomDir.resolve(b + ".b2xa");
+            String b2xaText = Files.exists(b2xaFile) ? read(b2xaFile) : "";
+            Set<String> checked = new TreeSet<>();
+            for (String[] at : bomAttributes(bt)) {
+                JClass c = xom.get(at[0]);
+                if (c == null || c.inherits || b2xaText.contains("<name>" + at[1] + "</name>")) continue; // virtual or unknown
+                checked.add(at[1]);
+                String cap = Character.toUpperCase(at[1].charAt(0)) + at[1].substring(1);
+                if (c.hasMethod("get" + cap, 0) || c.hasMethod("is" + cap, 0)) continue;
+                String fix;
+                if (at[1].matches("is[A-Z]\\w*") && c.hasMethod(at[1], 0)) {
+                    fix = "B2X binds " + at[1] + "() to '" + Character.toLowerCase(at[1].charAt(2)) + at[1].substring(3) + "': rename the BOM property and its .voc keys";
+                } else if (c.hasMethod(at[1], 0)) {
+                    fix = at[1] + "() is not a JavaBean getter: rename it is" + cap + "() in the XOM";
+                } else {
+                    fix = "add get" + cap + "()/is" + cap + "() to the XOM, or give it a B2X body in the .b2xa";
+                }
+                errs.add("bom/" + b + ".bom: " + at[0] + "." + at[1] + " has no XOM getter (build fails at B2X mapping) — " + fix);
+            }
             for (String m : findAll(boolIs, bt)) {
-                warns.add("bom/" + b + ".bom: boolean '" + m + "' — BOM name is the setter name without 'set' (drop 'is')");
+                if (checked.contains(m)) continue;
+                warns.add("bom/" + b + ".bom: boolean '" + m + "' — B2X binds isX()/setX() to 'x', so the BOM name drops 'is'");
             }
             for (String m : findAll(reservedProp, bt)) errs.add("bom/" + b + ".bom: reserved keyword '" + m + "' used as a property name");
         }
@@ -858,6 +898,22 @@ public class Odm {
         for (String e : errs) System.out.println("ERROR " + e);
         System.out.println("check: " + errs.size() + " error(s), " + warns.size() + " warning(s), " + ids.size() + " UUIDs");
         return errs.isEmpty() ? 0 : 1;
+    }
+
+    static final Pattern BOM_CLASS = Pattern.compile("^\\s*(?:public\\s+)?(?:(?:final|abstract)\\s+)*(?:class|interface)\\s+(\\w+)");
+    static final Pattern BOM_ATTR = Pattern.compile("^\\s*public\\s+(?!static\\b)(?:final\\s+)?(?:readonly\\s+)?([\\w.$]+)\\s+(\\w+)\\b(?!\\s*\\()");
+
+    /** Instance attributes of a text BOM, as {simple class name, attribute name}. */
+    static List<String[]> bomAttributes(String bom) {
+        List<String[]> out = new ArrayList<>();
+        String cls = null;
+        for (String line : bom.split("\\R")) {
+            Matcher c = BOM_CLASS.matcher(line);
+            if (c.find()) { cls = c.group(1); continue; }
+            Matcher m = BOM_ATTR.matcher(line);
+            if (cls != null && m.find()) out.add(new String[] {cls, m.group(2)});
+        }
+        return out;
     }
 
     static List<String> findAllWords(Pattern p, String s) {
@@ -895,7 +951,12 @@ public class Odm {
         final String name;
         final Set<String> fields = new TreeSet<>();
         final List<String[]> methods = new ArrayList<>(); // {name, arity, body}
+        boolean inherits; // extends another class: getters may live in the superclass
         JClass(String name) { this.name = name; }
+
+        boolean hasMethod(String n, int arity) {
+            return methods.stream().anyMatch(md -> md[0].equals(n) && Integer.parseInt(md[1]) == arity);
+        }
     }
 
     record Task(List<String> pkgs, String mode) {}
@@ -989,6 +1050,8 @@ public class Odm {
             String t = read(f).replaceAll("(?s)/\\*.*?\\*/", " ").replaceAll("//[^\\n]*", " ")
                     .replaceAll("\"(?:\\\\.|[^\"\\\\])*\"", "\"\"").replaceAll("'(?:\\\\.|[^'\\\\])'", "' '");
             JClass c = new JClass(stem(f));
+            c.inherits = Pattern.compile("\\bclass\\s+" + Pattern.quote(c.name) + "\\b[^{]*\\bextends\\b").matcher(t).find()
+                    || t.contains("lombok");
             Matcher m = J_FIELD.matcher(t);
             while (m.find()) if (!m.group(1).matches(".*\\b(static|return|new)\\b.*")) c.fields.add(m.group(2));
             m = J_METHOD.matcher(t);

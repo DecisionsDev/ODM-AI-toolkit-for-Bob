@@ -74,6 +74,7 @@ then
 | # | Practice | Lint |
 |---|---|---|
 | 14 | At most **500 rows**, and preferably few enough that users don't have to scroll through several pages. Split a large table by a leading condition (for example, one table per product or region). | >500 rows |
+| 14b | Put a value lookup (a limit, rate or category per tier, region or band) in **one decision table**, even when it has only 2–4 rows. Business users then maintain the values in a grid instead of editing several near-identical rules. Several rules that set the same attribute and differ only in literals are the sign to look for: `odm deps` reports them as `… is set by N rules`. | — |
 | 15 | No sparse tables. If many cells are empty because a condition column only matters for some rows, split the table into several tables, each with its own set of condition columns. | — |
 
 ## Ruleflow and parameters

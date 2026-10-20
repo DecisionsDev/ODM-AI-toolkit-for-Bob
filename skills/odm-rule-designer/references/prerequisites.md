@@ -25,14 +25,14 @@ If a `build_ruleset` MCP tool is connected, you can use it instead and skip this
 
 ## 0. Check, then install with `odm compiler`
 
-```bash
+```
 cd <project-root>
 java -jar <skill>/scripts/odm.jar jdk             # prints the jar used, its ODM release, and the JDK
 ```
 
-If `odm jdk` prints a jar, an ODM 9.x release and a JDK, go to step 3. If it reports `no rules compiler found`, run the command it prints, without asking first:
+If `odm jdk` prints a jar, an ODM 9.x release and a JDK, go to step 3. If it reports `no rules compiler found`, run the command it prints. Don't ask for permission, but first tell the user that it may pull the ODM Docker image (about 1 GB):
 
-```bash
+```
 java -jar <skill>/scripts/odm.jar compiler --dir <project-root>
 ```
 
@@ -51,7 +51,7 @@ Ask the user only when `odm compiler` fails: no `ODM_HOME` and no working Docker
 
 ## Manual fallback
 
-Use this only if `odm compiler` can't run (for example, no Java process may call Docker). Set the destination first:
+Use this only if `odm compiler` can't run (for example, no Java process may call Docker). `odm compiler` works on every OS; the commands below are POSIX shell, so on Windows run them in Git Bash or WSL. Set the destination first:
 
 ```bash
 DEST=<project-root>/buildcommand/rules-compiler   # project-local (default)
@@ -79,17 +79,19 @@ rm buildcommand.zip
 
 To leave the jar in place (a shared ODM install, several ODM releases side by side), don't copy it. Point `odm` at it instead:
 
-```bash
-export ODM_RULES_COMPILER=/path/to/rules-compiler.jar
+```
+export ODM_RULES_COMPILER=/path/to/rules-compiler.jar          # bash/zsh
+$env:ODM_RULES_COMPILER = "C:\path\to\rules-compiler.jar"      # PowerShell
+set ODM_RULES_COMPILER=C:\path\to\rules-compiler.jar           # cmd
 ```
 
 This only applies when the project has no `buildcommand/rules-compiler/rules-compiler.jar`, because the project-local jar comes first.
 
 ## 3. Verify the install and the JDK
 
-```bash
-ls -lh <project-root>/buildcommand/rules-compiler/rules-compiler.jar   # ~50-60 MB
-cd <project-root> && java -jar <skill>/scripts/odm.jar jdk
+```
+cd <project-root>
+java -jar <skill>/scripts/odm.jar jdk
 ```
 
 `odm jdk` prints the jar it resolved (check it is the one you just installed), reads `Implementation-Version` from the jar's manifest, and prints the ODM release and the JDK it resolved. The JDK must be exactly the one for that release (see the table in `SKILL.md`). If it is missing, the user installs that JDK (IBM Semeru OpenJ9 recommended) or sets `ODM_JAVA_HOME` to it. Never work around it with another JDK: `build` refuses a JDK with the wrong version.

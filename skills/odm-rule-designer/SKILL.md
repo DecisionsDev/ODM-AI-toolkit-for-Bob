@@ -11,34 +11,41 @@ description: >
   business requirements into executable rules — in any language (e.g. French "règles métier",
   "dépendances entre les règles", "ruleflow", "ordre d'exécution des règles").
 license: Apache-2.0
+allowed-tools: Bash(java -jar ${CLAUDE_SKILL_DIR}/scripts/odm.jar *) Bash(java ${CLAUDE_SKILL_DIR}/scripts/Odm.java *)
 metadata:
-  version: 1.0.0
+  version: 1.1.0
   display_name: IBM ODM Rule Designer
   short_description: Build IBM ODM Decision Services — XOM/BOM/BAL authoring, ruleflow design, dependency analysis, Decision Center deploy, and RES RuleApp deployment.
-  example_prompts:
-    - "Create an ODM decision service for loan approval from scratch"
-    - "Add a new BAL rule to check if the transaction country is sanctioned"
-    - "Analyse rule dependencies and generate the ruleflow"
-    - "Deploy my rule project to Decision Center"
-    - "Build a RuleApp and deploy it to the Rule Execution Server"
-    - "My rule never fires — help me debug it"
-    - "Review my ODM project against design best practices"
-    - "Génère un service de décision ODM pour valider une demande de crédit"
+  example_prompts: >-
+    Create an ODM decision service for loan approval from scratch |
+    Add a new BAL rule to check if the transaction country is sanctioned |
+    Analyse rule dependencies and generate the ruleflow |
+    Deploy my rule project to Decision Center |
+    Build a RuleApp and deploy it to the Rule Execution Server |
+    My rule never fires — help me debug it |
+    Review my ODM project against design best practices |
+    Génère un service de décision ODM pour valider une demande de crédit
 ---
 
 # IBM ODM Rule Designer
 
-Layers propagate upward only: **XOM** (Java POJOs) → **BOM** (text BRL + vocabulary) → **Rules** (BAL). The vocabulary is an API contract; BOM does not auto-sync with XOM.
+Layers propagate upward only: **XOM** (Java POJOs) → **BOM** (text BRL + vocabulary) → **Rules** (BAL). The vocabulary is an API contract; the BOM does not auto-sync with the XOM.
 
-`scripts/odm.jar` (`odm` below; source in `scripts/Odm.java`, JDK only, no Python) generates all XML boilerplate with consistent UUIDs and cross-links. **Never hand-write** `.project`, `.classpath`, the XOM `pom.xml`, `.ruleproject`, `.rulepackage`, `.var`, `.rfl`, `.dop`, `.dep`, `.b2xa`, `.brl` wrappers, or the build `.properties`; you only author Java classes, the `.bom` body, the `.voc` body, and BAL rule bodies.
+**`<skill>`** below means the directory that contains this `SKILL.md`. Replace it with that absolute path, exactly as your agent reported it (don't resolve symlinks or make it relative), and start each command with `java -jar <skill>/scripts/odm.jar`: agents that pre-approve `allowed-tools` then run it without a permission prompt.
+
+**One plain command per call.** Write the full path in each command. Don't store the path in a shell variable (`ODM=…; java -jar $ODM`), don't prefix it with `cd … &&` or `VAR=… ;`, and don't chain several `odm` calls with `;` or `&&`. Each of these forms makes the command miss the pre-approval, so the user gets a permission prompt.
+
+`<skill>/scripts/odm.jar` (`odm` below; source in `scripts/Odm.java`) generates all XML boilerplate with consistent UUIDs and cross-links. **Never hand-write** `.project`, `.classpath`, the XOM `pom.xml`, `.ruleproject`, `.rulepackage`, `.var`, `.rfl`, `.dop`, `.dep`, `.b2xa`, `.brl` wrappers, or the build `.properties`. You author only the Java classes, the `.bom` body, the `.voc` body, and BAL rule bodies.
 
 Answer in the user's language. Keep ODM identifiers, BAL, and commands as they are.
 
-## Workflow
+**Commands work in any shell** (bash, zsh, PowerShell, cmd): they are plain `java -jar …` calls. Quote paths that contain spaces. To pass multi-line text (a BAL body), write it to a file and use `--file`, never a shell heredoc.
+
+## JDK
 
 Run `odm` with any **JDK 17+** (not a JRE: `xom` needs `javac`). If `odm.jar` is missing, `java <skill>/scripts/Odm.java <subcommand> …` runs the source directly.
 
-**JDK alignment.** The rules compiler must run on the exact JDK of its ODM release. `odm` reads the release from the `rules-compiler.jar` manifest (`Implementation-Version`), and only ODM 9.x is supported:
+The rules compiler must run on the exact JDK of its ODM release (read from the `rules-compiler.jar` manifest). Only ODM 9.x is supported:
 
 | ODM | Rules compiler JDK | XOM `--release` |
 |---|---|---|
@@ -46,139 +53,108 @@ Run `odm` with any **JDK 17+** (not a JRE: `xom` needs `javac`). If `odm.jar` is
 | 9.5.x, 9.6.x | 21 | 17 |
 | 9.7.x | 25 | 17 |
 
-`build` launches the compiler as a separate process on that JDK, so `odm` itself can run on any JDK. The JDK is looked up in this order: `$ODM_JAVA_HOME`, `/usr/libexec/java_home -v <n>` (macOS), SDKMAN, `$JAVA_HOME`. A JDK with the wrong version is refused, never used. Run `odm jdk` before the first build to see the ODM release and the JDK it resolved. If the required JDK is missing, report the error to the user (install that JDK, or set `ODM_JAVA_HOME`). Don't work around it with another JDK.
+`build` starts the compiler on that JDK, found in this order: `$ODM_JAVA_HOME`, `/usr/libexec/java_home` (macOS), SDKMAN, `$JAVA_HOME`. A JDK with the wrong version is refused. If the required JDK is missing, tell the user to install it (IBM Semeru recommended) or set `ODM_JAVA_HOME`. Never work around it with another JDK.
 
-0. **Rules compiler — do this first, before scaffolding or writing any code.** From the project root (the `<parent>` you'll give `odm init`), run:
-   ```bash
+## Workflow
+
+0. **Rules compiler — first, before any scaffolding.** From the project root (the `<parent>` you'll give `odm init`):
+   ```
    java -jar <skill>/scripts/odm.jar jdk
    ```
-   - It prints `rules compiler: <path>`, the ODM release and the JDK → go on to step 1.
-   - `no rules compiler found` → **install it now, without asking**, with the command it prints:
-     ```bash
+   - It prints `rules compiler: <path>`, the ODM release and the JDK → go to step 1.
+   - `no rules compiler found` → install it with the command it prints, without asking for permission, but **tell the user first** that it may pull the ODM Docker image (about 1 GB, no server started):
+     ```
      java -jar <skill>/scripts/odm.jar compiler --dir <project-root>
      ```
-     It copies the jar from `$ODM_HOME` when set; otherwise it extracts it from the ODM Docker image (`icr.io/cpopen/odm-k8s/odm`; no server is started). **Image tag:** if the user named an ODM version, pass it as `--tag` (`--tag 9.0`, `--tag 9.5`, `--tag 9.6`; a full version like `9.5.0.1` is read as `9.5`). Otherwise leave it out: the default is `latest`. The image is always re-checked against the registry, so you get the newest fix pack of that release. It installs into `<project-root>/buildcommand/rules-compiler/`. **Never search the file system for the jar** (`find ~`, `find /`, `mdfind`, `locate`). Ask the user only if `odm compiler` fails (no `ODM_HOME` and no working Docker/Podman).
-   - Required JDK missing → tell the user to install it or set `ODM_JAVA_HOME` (see **JDK alignment** above).
-   - Continue without a compiler only if the user explicitly says so, and then tell them at the end that the rules were not validated.
-
-   `odm` looks for the jar in this order: `buildcommand/rules-compiler/rules-compiler.jar` in the working directory or the project root (never in parent directories), `--jar`, `$ODM_RULES_COMPILER`, `<skill>/tools/rules-compiler.jar`. `odm init` repeats the check and prints `ACTION REQUIRED` when none is found. Details: `references/prerequisites.md`.
+     If the user named an ODM version, add `--tag 9.0`, `--tag 9.5` or `--tag 9.6`; otherwise the default is `latest`. **Never search the file system for the jar** (`find`, `mdfind`, `locate`, `dir /s`). Ask the user only if `odm compiler` fails (no `ODM_HOME` and no working Docker/Podman). Details and manual fallbacks: `references/prerequisites.md`.
+   - Continue without a compiler only if the user explicitly says so, and then say at the end that the rules were not validated.
 1. **Names.** camelCase rule project (`LoanApproval`), kebab XOM project (`loan-approval-xom`), kebab base name (`loan-approval`), locale `en_US` unless told otherwise. Kebab-case `verb-object` rule names (`check-age`), unique across packages.
 2. **Scaffold:**
-   ```bash
-   java -jar <skill>/scripts/odm.jar init --dir <parent> --name LoanApproval --xom loan-approval-xom \
-     --base loan-approval --package com.example.loan \
-     --var request:LoanRequest:IN --var decision:LoanDecision:OUT \
-     --packages validation:Fastpath,scoring:Fastpath,decision:Fastpath --fetch-jackson
    ```
-   If you forget `--fetch-jackson`, `odm xom` fetches the Jackson jars itself; don't download them by hand.
-   `--var name:Type[:IN|OUT|IN_OUT]` is repeatable (default `IN_OUT`, verbalized `the <name>`). Use one input and one output object, or a single `IN_OUT` object. Packages are ruleflow tasks in order. Every task always uses the **Fastpath** algorithm (the `:Fastpath` suffix is optional; any other mode is refused). Never use RetePlus: when rules chain inside a package, split it into sequential packages.
-3. **XOM** — write classes under `src/`; read `references/xom.md` first. Then `odm xom <xom-dir>` (compiles with `--release 17`, the lowest JDK of any 9.x release, so RES can be older than the compiler, and packages the jar; needs only a JDK — never use `mvn` for the XOM, Maven may not be installed).
-4. **BOM + vocabulary** — append to the generated `bom/<base>.bom` and `bom/<base>_<locale>.voc`; read `references/bom-format.md` and `references/vocabulary-and-bal.md`.
-5. **Rules** — one call per rule, BAL body on stdin:
-   ```bash
-   java -jar <skill>/scripts/odm.jar rule <RuleProjectDir> validation "check amount" <<'EOF'
-   if
-     the amount of 'the request' is more than 1000
-   then
-     add "Amount too high" to the messages of 'the request' ;
-   EOF
+   java -jar <skill>/scripts/odm.jar init --dir <parent> --name LoanApproval --xom loan-approval-xom --base loan-approval --package com.example.loan --var request:LoanRequest:IN --var decision:LoanDecision:OUT --packages validation,scoring,decision --fetch-jackson
    ```
-   Each rule has one action phrase, `and` conditions only, and no `else`, `print` or priority (see **Design best practices** below). For 5+ rules with the same shape, use a decision table: `references/decision-tables.md`.
+   `--var name:Type[:IN|OUT|IN_OUT]` is repeatable (default `IN_OUT`, verbalized `the <name>`). Use one input and one output object, or a single `IN_OUT` object. OUT variables get `initialValue="new <Type>()"`, so the XOM class needs a public no-arg constructor. Packages are ruleflow tasks, in order; every task uses **Fastpath** (any other mode is refused). Never use RetePlus: when rules chain inside a package, split it into sequential packages.
+3. **XOM** — read `references/xom.md`, write classes under `src/`, then `odm xom <xom-dir>`. It compiles with `--release 17` and packages the jar, and it fetches the Jackson jars if they're missing. Never use `mvn` for the XOM.
+4. **BOM + vocabulary** — append to the generated `bom/<base>.bom` and `bom/<base>_<locale>.voc`. Read `references/bom-format.md` and `references/vocabulary-and-bal.md`.
+5. **Rules** — write each BAL body to a file, then one call per rule:
+   ```
+   java -jar <skill>/scripts/odm.jar rule <RuleProjectDir> validation check-amount --file check-amount.bal
+   ```
+   (Piping the body on stdin also works.) Each rule has one action phrase, `and` conditions only, and no `else`, `print` or priority. **Before writing rules, look for lookups:** when the requirement maps the values of one or more inputs to an output value (a limit, rate, score or category per tier, region, band, …), write **one decision table, even for 2–4 rows**, instead of one rule per value. Also use a decision table for 5+ rules with the same condition/action shape. See `references/decision-tables.md`.
 6. **Check, then build — mandatory.** The task is not done until `odm build` prints `BUILD SUCCESS`. Never stop after `check`. Repeat until it succeeds:
-   ```bash
+   ```
    java -jar <skill>/scripts/odm.jar check <RuleProjectDir>
    java -jar <skill>/scripts/odm.jar build <parent>/<Name>.properties
    ```
-   `check` validates UUID uniqueness and links, file names, ruleflow packages, lints BAL, and reports design best-practice violations as `WARN … best practice:` (never errors). On a new project, fix those warnings too. `build` runs the rules compiler (found as in step 0; it prints `rules compiler: <path>`) on the JDK its ODM release requires and prints only error/result lines (`--full` for the whole log). It always embeds the XOM in the RuleApp (`embedded-xom = true`, also for a `.properties` that lacks the key), refuses a XOM jar older than `<xom>/src`, and on success prints the RuleApp path (`<Name>/output/<RuleAppName>.jar`) and its ruleset paths. If the jar is missing but a `build_ruleset` MCP tool is connected, use that (`projectPath`, `xomJarPath`, `rulesetName`, optional `decisionOperation`). If neither is available, say so and don't claim the rules are validated.
-7. **Deploy to Decision Center** (only when the user asks, and after `BUILD SUCCESS`). Read `references/decision-center-deployment.md` first.
-   ```bash
-   java -jar <skill>/scripts/odm.jar export <parent>/<Name>      # -> <parent>/<Name>.zip, rule project + managed XOM library
-   ```
-   Then, if the ODM Management MCP Server is connected, import the archive with `decisionServicesImport` (use `branchImport` when the decision service already exists), passing the absolute zip path as `file`. Next, get the configuration with `deploymentConfigurations` and run `deploy`. Confirm with the user before you import or deploy. If the server isn't available, give the user the zip path and the manual steps, and don't claim anything was deployed.
-8. **Deploy a RuleApp to the RES console** (only when the user asks, and after `BUILD SUCCESS`). Read `references/decision-server-console-deployment.md` first. The archive is the `ruleapp:` path that `odm build` printed. Then, if the ODM Management MCP Server is connected with its RES tools (`--res-url`), check what exists with `getRuleApps` and deploy with `deployRuleAppArchive`, passing the absolute jar path as `file`. Take the `merging`/`versioning` values from the tool schema. Confirm with the user before you deploy, and say whether an existing version is replaced. If the server or its RES tools aren't available, give the user the jar path and the manual steps, and don't claim anything was deployed.
+   `check` validates UUIDs, links and file names, checks every BOM attribute against the XOM getters and every OUT variable's initial value, lints BAL, and reports design issues as `WARN … best practice:`. On a new project, fix the warnings too. `build` prints only error and result lines (`--full` for the whole log), always embeds the XOM in the RuleApp, refuses a XOM jar older than its sources, and on success prints the RuleApp path and its ruleset paths. If the compiler is missing but a `build_ruleset` MCP tool is connected, use that tool. If neither is available, say so and don't claim the rules are validated.
+7. **Deploy to Decision Center** — only when the user asks, after `BUILD SUCCESS`. Follow `references/decision-center-deployment.md` (`odm export`, then the ODM Management MCP Server).
+8. **Deploy a RuleApp to the RES console** — only when the user asks, after `BUILD SUCCESS`. Follow `references/decision-server-console-deployment.md` (the `ruleapp:` path printed by `build`, then the ODM Management MCP Server).
+
+For both deployments: confirm with the user before changing a shared server. If the MCP server or its tools aren't available, give the archive path and the manual steps, and don't claim anything was deployed.
 
 ## Rule dependencies → ruleflow
 
 To find which rules depend on which, why a rule never fires, or what the ruleflow should be, read `references/ruleflow-design.md`, then:
-```bash
-java -jar <skill>/scripts/odm.jar deps <RuleProjectDir>        # who writes what others read, checked against the current ruleflow
-java -jar <skill>/scripts/odm.jar ruleflow <RuleProjectDir> --packages a:Fastpath,b:Fastpath   # rewrite the .rfl (keeps name + UUID)
 ```
-Also run `deps` after adding rules to a package another task reads from. An `ERROR … reads X before it is written` is a rule that sees only the input value.
+java -jar <skill>/scripts/odm.jar deps <RuleProjectDir>
+java -jar <skill>/scripts/odm.jar ruleflow <RuleProjectDir> --packages a,b,c
+```
+`deps` reports who writes what others read, checked against the current ruleflow. `ruleflow` rewrites the `.rfl` and keeps its name and UUID. Also run `deps` after adding rules to a package that another task reads from. `ERROR … reads X before it is written` means the rule sees only the input value.
 
 ## Design best practices (readability for business users)
 
-The full list, its rationale and a tested virtual-method example are in `references/best-practices.md`. Read it before you design a new project or restructure one. In short:
+Read `references/best-practices.md` before you design or restructure a project. In short:
 
-- **Layout:** every rule goes in a leaf rule package, never in the `rules/` root. No empty packages. A package holds cohesive rules (same BOM objects). Use one naming convention, with no duplicate rule names.
-- **Rules:** one action phrase per rule. When actions always go together, use a virtual BOM method with one verbalization. `and` only: split an `or` into several rules. No `else`: write a positive rule and a negative rule. No `print`, no priorities, as few functions as possible.
+- **Layout:** rules only in leaf packages, never in the `rules/` root. No empty packages. Each package holds cohesive rules. One naming convention, no duplicate rule names.
+- **Rules:** one action phrase per rule (use a virtual BOM method when actions always go together). `and` only: split an `or` into several rules. No `else`, `print` or priorities. As few functions as possible.
 - **BOM:** B2X bodies have at most 5 statements; put more logic in the XOM.
-- **Decision tables:** at most 500 rows. Split large or sparse tables.
-- **Ruleflow:** tasks reference packages, not individual rules. Every rule task uses the Fastpath algorithm, always (never RetePlus or Sequential). At most 10 tasks and a cyclomatic complexity of 5, but no trivial subflows. No exit criteria, firing limits, custom ordering, task actions or dynamic filters.
+- **Decision tables:** at most 500 rows, no sparse tables.
+- **Ruleflow:** tasks reference packages; Fastpath only; at most 10 tasks and a cyclomatic complexity of 5, but no trivial subflows; no exit criteria, firing limits, custom ordering, task actions or dynamic filters.
 - **Parameters:** one input and one output object, and as few variables as possible.
 
-## Vocabulary navigation phrases — label-first, never placeholder-first
+## Rules that break builds
 
-Navigation phrases in the `.voc` **must** start with a label token, not a placeholder.
+`odm check` reports the first four. More detail is in `references/vocabulary-and-bal.md`.
 
-| ❌ Breaks at build | ✅ Correct |
-|---|---|
-| `{amount} of {this}` | `the amount of {this}` |
-| `{riskScore} of {this}` | `the risk score of {this}` |
-| `{cardholder} of {this}` | `the cardholder of {this}` |
-
-A placeholder-first navigation phrase causes the rules compiler to fail with `The word '<condition>' is missing` on the **first rule in the first package (alphabetically)** that reads that property — even though the rule body itself is perfectly correct. The error looks like a global parse failure and gives no hint that the vocabulary is the source.
-
-The rule: every scalar/object property navigation phrase must begin with a human-readable label so rules can write `the <label> of 'the variable'`. Boolean adjective phrases (`{this} is blocked`, `{this} has previous transactions in region`) are already label-free by design and are correct as-is.
-
-## Rules that break builds (inline so you rarely need the references)
-
-- **Declare every XOM property in the BOM.** The compiler does not read the XOM to infer properties: an undeclared property fails in rules (e.g. `The word 'length' is expected in place of 'amount'`).
-- Boolean `isX()`/`setX()` → BOM `public boolean x;` (never `isX`). Computed getters with no setter → `public readonly <type> x property "factory.ignore" "true";` plus `@JsonIgnore` in Java.
-- **Computed `isX()` with no setter: never name the BOM property `isX`.** The BOM name must be the setter name minus `set`. For a getter `isCrossBorder()` with no setter, the BOM name is `crossBorder` (from `setCrossBorder`). Naming it `isCrossBorder` in the BOM makes `odm check` warn `boolean 'isCrossBorder' — BOM name is the setter name without 'set' (drop 'is')`. Fix: either rename the XOM getter to `isIsCrossBorder()` so the BOM entry correctly becomes `isCrossBorder`, or use a non-`is` prefix (`getCrossBorder()`) so the BOM entry is simply `crossBorder`.
-- **`hasX()` is not a getter.** B2X only binds `getX()`/`isX()`, so a plain `hasX()` fails with `GBREX0021E: Cannot find attribute 'hasX'`. Name it `isHasX()` → BOM `public boolean hasX;`.
-- Keep the XOM at `--release 17` (the default). `odm xom` refuses a `--release` newer than the ODM release's JDK, because that fails with `bad major version`.
-- BAL comparisons: `is more than`, `is less than`, `is at least`, `is at most`; equality is plain `is` / `is not`. **Never** `is equal to` (fails with `'January' expected`), nor symbols (`>`, `>=`, `==`).
-- `is one of { "A", "B" }`, never `is in`. Negation: `it is not true that <condition>`. `is not null`, never `is not defined`.
-- **Never `X is not (<expression>)`.** `is not` takes a literal or `null`. To compare two navigated values, bind one in `definitions` (`set 'v' to <expr> ;`) and write `it is not true that <X> is 'v'`.
+- **Every BOM attribute needs a XOM getter** `getX()` or `isX()` (or a B2X body). Naming follows the getter without `get`/`is`: `isPregnant()` → `public boolean pregnant;`, never `isPregnant`. A plain `hasX()` is not a getter: rename it `isHasX()` → BOM `hasX`. Computed getters with no setter → `public readonly <type> x property "factory.ignore" "true";` plus `@JsonIgnore` in Java.
+- **OUT variables need an object:** `initialValue="new <pkg>.<Type>()"` in the `.var` (`odm init` writes it).
+- **BAL operators:** `is more than`, `is less than`, `is at least`, `is at most`; equality is plain `is` / `is not`. Never `is equal to`, `is in`, `is not defined`, `not (…)`, or symbols (`>`, `>=`, `==`).
+- **Reserved label words** in method phrases (`points`, `by`, `distance`, …): `odm check` prints the full list.
+- **Declare every XOM property the rules use in the BOM.** The compiler never reads the XOM to find properties.
+- Negation: `it is not true that <condition>`. To compare two navigated values, bind one in `definitions` (`set 'v' to <expr> ;`) and write `it is not true that X is 'v'`.
 - Every statement in `then` ends with ` ;`.
-- Null-check each intermediate object in a navigation chain in its own `and` clause before using it.
+- Null-check each intermediate object of a navigation chain in its own `and` line.
 - Collections: never `is empty`. Expose a computed boolean instead.
-- **OUT variables must be initialised.** `odm init` writes `initialValue=""` for every variable. For OUT (or IN_OUT) variables that hold objects, change it to `new com.example.package.ClassName()` in the `.var` file, or the build fails with `GBRED0040E: The ruleset variable 'X' is read but never written`.
-- Reserved names: `operator`, `function`, `rule`, `package`, `import` can't be property names.
+- Reserved property names: `operator`, `function`, `rule`, `package`, `import`.
 - Phrases must not share an opening token sequence (`Ambiguous sentence`).
-- The compiler stops at the **first failing package** (alphabetical order). A clean report for other packages proves nothing, so fix the first error and rebuild.
+- The compiler stops at the **first failing package** (alphabetical order). A clean report for other packages proves nothing.
 
 ## Error → fix
 
 | Compiler message | Fix |
 |---|---|
-| `Cannot find attribute 'isX' in execution class` | BOM boolean named `x`, not `isX` |
-| `Cannot find attribute 'hasX' in execution class` | rename the XOM getter `hasX()` → `isHasX()` (`hasX()` is not a JavaBean getter) |
-| `The word '<condition>' is missing` (first rule of first alphabetical package; rule body looks correct) | Vocabulary navigation phrase is placeholder-first (`{x} of {this}`). Change to label-first: `the x of {this}`. |
-| lint: `negate with 'it is not true that ...'` | replace `X is not (expr)` with a `definitions` variable: `set 'v' to expr ;` then `it is not true that X is 'v'` |
-| `The word 'length' is expected in place of 'x'` | property `x` not declared in BOM, or numeric computed property used with `{x} of {this}` (use a method phrase) |
+| `While applying business to execution (B2X) model mapping` / `GBREX0021E: Cannot find attribute 'x'` | A BOM attribute has no XOM getter. `odm check` names it: rename `isX` → `x` in the BOM and `.voc`, or `hasX()` → `isHasX()` in the XOM |
+| `GBRED0040E: The ruleset variable 'X' is read but never written` | OUT variable with an empty `initialValue`: set `new <pkg>.<Type>()` in the `.var` |
+| `The word 'length' is expected in place of 'x'` | `x` not declared in the BOM, or a numeric computed property verbalized `{x} of {this}` (use a method phrase) |
 | `The word 'January' is expected in place of 'equal'` | replace `is equal to` with `is` |
-| `The word 'X' is expected / missing / not required` | phrase doesn't match the vocabulary exactly, or reserved token in a phrase |
-| lint: `reserved token(s) ['X'] in method phrase` | a label word in a `.voc` action phrase is a BAL reserved token (e.g. `points`, `by`, `travel`). Rename: `tally {0} points to …` → `tally {0} to …`; see constraint 9 in `references/vocabulary-and-bal.md` for the full list |
-| `GBRED0040E: The ruleset variable 'X' is read but never written` | an OUT variable has `initialValue=""` in the `.var` file. Set it to `new com.example.package.ClassName()` so ODM creates the object, or add an init rule. `odm init` always writes an empty `initialValue`, so fill it for every OUT variable |
+| `The word 'X' is expected / missing / not required` | the rule text doesn't match the `.voc` phrase exactly, or a reserved token is used in a phrase |
 | `Ambiguous sentence` | make phrase openings distinct |
 | `Invalid type 'X', not assignable from 'Y'` | type mismatch between phrase and argument |
 | `Value 'X' is invalid` (decision table) | quote string params: `<![CDATA["X"]]>` |
 | `bad major version` | recompile with `odm xom` |
-| `A RuleApp name cannot be empty` / `Cannot load operation` | re-run `odm check`; it pinpoints the broken `.dep`/`.dop` link |
+| `A RuleApp name cannot be empty` / `Cannot load operation` | run `odm check`; it pinpoints the broken `.dep`/`.dop` link |
 
 ## References (read only what the current step needs)
 
 - `references/best-practices.md`: the 23 design best practices, what `odm check` detects, virtual BOM methods
-- `references/prerequisites.md`: where `odm` looks for `rules-compiler.jar`, `odm compiler` (from `$ODM_HOME`, else the Docker image), manual fallbacks, checking its JDK
+- `references/prerequisites.md`: where `odm` looks for `rules-compiler.jar`, `odm compiler`, manual fallbacks, checking the JDK
 - `references/xom.md`: Java class conventions, Jackson, computed properties
-- `references/bom-format.md`: BOM syntax and annotations, a full example, collections
-- `references/vocabulary-and-bal.md`: `.voc` syntax, the full BAL constraint list, and patterns from past builds
-- `references/decision-tables.md` + `assets/templates/decision-table.dta`
-- `references/ruleflow-design.md`: reading `odm deps`, choosing the task order and modes, applying it with `odm ruleflow`
-- `references/decision-center-deployment.md`: `odm export` archive layout, importing and deploying with the ODM Management MCP Server, fallbacks
-- `references/decision-server-console-deployment.md`: the RuleApp that `odm build` produces (embedded XOM), deploying it to the RES console with `deployRuleAppArchive`, fallbacks
-- `schemas/*.ecore`, `schemas/b2x.xsd`: exact ODM metamodels, useful only when a generated file is rejected for an unclear reason. They are large (model.ecore is 67 KB), so `grep` for the class or attribute you need instead of reading them whole.
+- `references/bom-format.md`: BOM syntax, annotations, a full example, collections
+- `references/vocabulary-and-bal.md`: `.voc` syntax, the full BAL constraint list, patterns from past builds
+- `references/decision-tables.md` + `assets/templates/decision-table.dta` (ranges) + `assets/templates/lookup-decision-table.dta` (exact values)
+- `references/ruleflow-design.md`: reading `odm deps`, choosing the task order, applying it with `odm ruleflow`
+- `references/decision-center-deployment.md`: `odm export`, importing and deploying with the ODM Management MCP Server, fallbacks
+- `references/decision-server-console-deployment.md`: the RuleApp from `odm build`, deploying it to the RES console, fallbacks
+- `schemas/*.ecore`, `schemas/b2x.xsd`: exact ODM metamodels, only for a generated file rejected for an unclear reason. Search them for the class or attribute you need; don't read them whole (`model.ecore` is 67 KB).
 
-`rules-compiler.jar` (project-local `buildcommand/rules-compiler/` or skill-wide `tools/`) and `schemas/` come from a licensed ODM install and are not committed. If `odm jdk` can't find the compiler, follow `references/prerequisites.md`. If `schemas/` is missing, ask the user for their ODM Rule Designer path.
+`rules-compiler.jar` and `schemas/` come from a licensed ODM install and are not committed. If `schemas/` is missing, ask the user for their ODM Rule Designer path.
