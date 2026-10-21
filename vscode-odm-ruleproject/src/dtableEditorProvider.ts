@@ -18,6 +18,10 @@ export interface DtColumn {
   template: string;
   /** Placeholder names, in order of appearance. */
   params: string[];
+  /** Column title from Resources `Definitions(<id>)#HeaderText`, if any. */
+  headerText?: string;
+  /** Per-placeholder titles from `Definitions(<id>)[i]#HeaderText`. */
+  paramHeaders?: string[];
 }
 
 export interface DtRow {
@@ -35,6 +39,8 @@ export interface DtableView {
   packagePath: string;
   documentation: string;
   uuid: string;
+  /** BAL text of the <Preconditions> block, empty if none. */
+  precondition: string;
   columns: DtColumn[];
   rows: DtRow[];
 }
@@ -77,6 +83,25 @@ function extractParams(exprBody: string): string[] {
     .map(p => stripCdata(p[1].trim()));
 }
 
+/**
+ * Read the `Definitions(<id>)#HeaderText` and `Definitions(<id>)[i]#HeaderText`
+ * entries from the <Resources> block, preferring the DefaultLocale set.
+ */
+function headerTexts(dt: string): Map<string, string> {
+  const map = new Map<string, string>();
+  const resources = /<Resources\b([^>]*)>([\s\S]*?)<\/Resources>/.exec(dt);
+  if (!resources) { return map; }
+  const defaultLocale = attrVal(resources[1], 'DefaultLocale');
+  const sets = Array.from(resources[2].matchAll(/<ResourceSet\b([^>]*)>([\s\S]*?)<\/ResourceSet>/g));
+  const set = sets.find(m => attrVal(m[1], 'Locale') === defaultLocale) ?? sets[0];
+  if (!set) { return map; }
+  for (const m of set[2].matchAll(/<Data\s+Name="Definitions\(([^)]+)\)(\[\d+\])?#HeaderText"[^>]*>([\s\S]*?)<\/Data>/g)) {
+    const text = stripCdata(m[3].trim());
+    if (text) { map.set(m[1] + (m[2] ?? ''), text); }
+  }
+  return map;
+}
+
 // ── Parser ─────────────────────────────────────────────────────────────────
 
 export function parseDtable(xml: string, uri: vscode.Uri): DtableView {
@@ -95,6 +120,9 @@ export function parseDtable(xml: string, uri: vscode.Uri): DtableView {
   const dtMatch = /<DT\b[\s\S]*<\/DT>/.exec(xml);
   const dt = dtMatch?.[0] ?? '';
 
+  const preMatch = /<Preconditions[^>]*>([\s\S]*?)<\/Preconditions>/.exec(dt);
+  const precondition = preMatch ? innerText(preMatch[1], 'Text') : '';
+
   // ── Columns ────────────────────────────────────────────────────────────
   const columns: DtColumn[] = [];
 
@@ -105,6 +133,12 @@ export function parseDtable(xml: string, uri: vscode.Uri): DtableView {
   for (const m of dt.matchAll(/<ActionDefinition\s+Id="([^"]+)"[^>]*>([\s\S]*?)<\/ActionDefinition>/g)) {
     const template = innerText(m[2], 'Text');
     columns.push({ id: m[1], kind: 'action', template, params: placeholders(template) });
+  }
+
+  const headers = headerTexts(dt);
+  for (const col of columns) {
+    col.headerText = headers.get(col.id);
+    col.paramHeaders = col.params.map((_, i) => headers.get(`${col.id}[${i}]`) ?? '');
   }
 
   const colIndexById = new Map(columns.map((c, i) => [c.id, i]));
@@ -143,7 +177,7 @@ export function parseDtable(xml: string, uri: vscode.Uri): DtableView {
     }
   }
 
-  return { name, project, packagePath, documentation: docText, uuid, columns, rows };
+  return { name, project, packagePath, documentation: docText, uuid, precondition, columns, rows };
 }
 
 // ── Editor Provider ────────────────────────────────────────────────────────
@@ -164,7 +198,7 @@ export class DtableEditorProvider implements vscode.CustomTextEditorProvider {
   public resolveCustomTextEditor(document: vscode.TextDocument, panel: vscode.WebviewPanel): void {
     const mediaRoot = vscode.Uri.joinPath(this.context.extensionUri, 'media');
     panel.webview.options = { enableScripts: true, localResourceRoots: [mediaRoot] };
-    panel.webview.html = webviewHtml(panel.webview, mediaRoot, 'dtableView', 'Decision Table');
+    panel.webview.html = webviewHtml(panel.webview, mediaRoot, 'dtableView', 'Decision Table', ['balHighlight']);
 
     const update = () =>
       panel.webview.postMessage({ type: 'update', view: parseDtable(document.getText(), document.uri) });

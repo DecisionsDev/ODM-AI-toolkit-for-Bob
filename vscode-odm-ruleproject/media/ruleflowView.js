@@ -63,53 +63,153 @@
 
     const transitions = children(first(doc, 'TransitionList')).map(t => {
       const cond = Array.from(t.getElementsByTagNameNS('*', '*')).find(c => c.children.length === 0 && c.textContent.trim());
-      return { id: t.getAttribute('Identifier'), from: t.getAttribute('Source'), to: t.getAttribute('Target'), condition: cond ? cond.textContent.trim() : '' };
+      const id = t.getAttribute('Identifier');
+      return { id, from: t.getAttribute('Source'), to: t.getAttribute('Target'), condition: cond ? cond.textContent.trim() : '', label: labels[id + '#label'] || '' };
     });
 
     return { nodes, transitions };
   }
 
-  /** Layers nodes by longest path from the start, ignoring edges that loop back. */
-  function layer(model) {
-    const out = {};
-    const incoming = {};
-    for (const n of model.nodes) { out[n.id] = []; incoming[n.id] = 0; }
-    for (const t of model.transitions) {
-      if (out[t.from] && t.to in incoming) { out[t.from].push(t.to); incoming[t.to]++; }
-    }
+  /**
+   * Places nodes on a grid. Rows follow the longest path from the start. Each node hands
+   * its column to the successor with the longest continuation; other branches open a new
+   * column beside it (left if declared before the main branch, right otherwise). Edges that
+   * cannot run down a free column get a narrow lane next to their source.
+   */
+  function layout(model) {
+    const out = {}, inc = {}, index = {};
+    model.nodes.forEach((n, i) => { out[n.id] = []; inc[n.id] = []; index[n.id] = i; });
+    const transitions = model.transitions.filter(t => out[t.from] && inc[t.to]);
+    transitions.forEach((t, i) => { t.order = i; out[t.from].push(t); inc[t.to].push(t); });
+
+    // Edges that loop back to an earlier node.
     const back = new Set();
     const state = {};
     const visit = id => {
       state[id] = 1;
-      for (const next of out[id]) {
-        if (state[next] === 1) back.add(id + '>' + next);
-        else if (!state[next]) visit(next);
+      for (const t of out[id]) {
+        if (state[t.to] === 1) back.add(t);
+        else if (!state[t.to]) visit(t.to);
       }
       state[id] = 2;
     };
-    const roots = model.nodes.filter(n => n.kind === 'StartTask' || incoming[n.id] === 0);
+    const roots = model.nodes.filter(n => n.kind === 'StartTask' || !inc[n.id].length);
     for (const r of roots) if (!state[r.id]) visit(r.id);
     for (const n of model.nodes) if (!state[n.id]) visit(n.id);
+    const fwdOut = id => out[id].filter(t => !back.has(t));
+    const fwdIn = id => inc[id].filter(t => !back.has(t));
 
-    const depth = {};
     const order = [];
     const seen = {};
     const topo = id => {
       if (seen[id]) return;
       seen[id] = true;
-      for (const next of out[id]) if (!back.has(id + '>' + next)) topo(next);
+      for (const t of fwdOut(id)) topo(t.to);
       order.unshift(id);
     };
     for (const n of model.nodes) topo(n.id);
-    for (const id of order) depth[id] = depth[id] || 0;
-    for (const id of order) {
-      for (const next of out[id]) {
-        if (!back.has(id + '>' + next)) depth[next] = Math.max(depth[next] || 0, depth[id] + 1);
+    const row = {}, rest = {};
+    for (const id of order) row[id] = 0;
+    for (const id of order) for (const t of fwdOut(id)) row[t.to] = Math.max(row[t.to], row[id] + 1);
+    for (const id of [...order].reverse()) rest[id] = Math.max(0, ...fwdOut(id).map(t => rest[t.to] + 1));
+
+    // Main branch of each node: longest continuation, then unconditional, then file order.
+    const heir = {};
+    for (const n of model.nodes) {
+      const tight = fwdOut(n.id).filter(t => row[t.to] === row[n.id] + 1);
+      tight.sort((a, b) => rest[b.to] - rest[a.to] || (a.condition ? 1 : 0) - (b.condition ? 1 : 0) || a.order - b.order);
+      if (tight.length) heir[n.id] = tight[0];
+    }
+
+    const cols = [];
+    let seq = 0;
+    const addColumn = (kind, beside, side) => {
+      const c = { kind, seq: seq++, rows: new Set(), segs: [], beside, side };
+      if (!beside) cols.push(c);
+      else {
+        let i = cols.indexOf(beside);
+        if (side > 0) {
+          i++;
+          if (kind === 'node') while (i < cols.length && cols[i].beside === beside && cols[i].side > 0) i++;
+        }
+        cols.splice(i, 0, c);
+      }
+      return c;
+    };
+
+    const colOf = {};
+    const byRow = [...order].sort((a, b) => row[a] - row[b] || index[a] - index[b]);
+    const bySeq = (a, b) => colOf[a.from].seq - colOf[b.from].seq;
+    for (const id of byRow) {
+      const preds = fwdIn(id).filter(t => row[t.from] === row[id] - 1 && colOf[t.from]).sort(bySeq);
+      const inherit = preds.find(t => heir[t.from] === t);
+      let c;
+      if (inherit) c = colOf[inherit.from];
+      else if (preds.length) {
+        const h = heir[preds[0].from];
+        c = addColumn('node', colOf[preds[0].from], h && preds[0].order < h.order ? -1 : 1);
+      } else c = addColumn('node');
+      colOf[id] = c;
+      c.rows.add(row[id]);
+    }
+
+    // Routing. Vertical segments sharing a target may overlap (they merge into one line).
+    const free = (c, r1, r2, target) => {
+      for (let r = r1; r <= r2; r++) if (c.rows.has(r)) return false;
+      return !c.segs.some(s => s.r1 <= r2 && r1 <= s.r2 && s.target !== target);
+    };
+    const use = (c, r1, r2, target) => { if (r1 <= r2) c.segs.push({ r1, r2, target }); };
+    const routes = new Map();
+    for (const t of transitions) {
+      if (back.has(t)) { routes.set(t, { kind: 'back' }); continue; }
+      const cs = colOf[t.from], cd = colOf[t.to], rs = row[t.from], rd = row[t.to];
+      if (cs === cd && free(cs, rs + 1, rd - 1, t.to)) {
+        use(cs, rs + 1, rd - 1, t.to);
+        routes.set(t, { kind: 'down' });
+      } else if (cs !== cd && free(cd, rs, rd - 1, t.to)) {
+        use(cd, rs, rd - 1, t.to);
+        routes.set(t, { kind: 'across', via: cd });
+      } else if (cs !== cd && free(cs, rs + 1, rd, t.to)) {
+        use(cs, rs + 1, rd, t.to);
+        routes.set(t, { kind: 'drop' });
+      } else {
+        const h = heir[t.from];
+        const side = cs !== cd ? (cols.indexOf(cd) < cols.indexOf(cs) ? -1 : 1) : h && t.order < h.order ? -1 : 1;
+        const lane = cols.find(c => c.kind === 'lane' && c.beside === cs && c.side === side && free(c, rs, rd, t.to)) || addColumn('lane', cs, side);
+        use(lane, rs, rd, t.to);
+        routes.set(t, { kind: 'lane', via: lane });
       }
     }
-    const layers = [];
-    for (const n of model.nodes) (layers[depth[n.id]] = layers[depth[n.id]] || []).push(n);
-    return { layers: layers.filter(Boolean), back };
+
+    return { row, cols, colOf, routes, transitions, back, fwdIn, fwdOut, rows: Math.max(0, ...Object.values(row)) + 1 };
+  }
+
+  /** Every node and edge on a path that goes through the given node or transition. */
+  function pathsThrough(L, fromId, toId, via) {
+    const reach = (id, step, end) => {
+      const s = new Set([id]);
+      const stack = [id];
+      while (stack.length) for (const t of step(stack.pop())) if (!s.has(t[end])) { s.add(t[end]); stack.push(t[end]); }
+      return s;
+    };
+    const up = reach(fromId, L.fwdIn, 'from');
+    const down = reach(toId, L.fwdOut, 'to');
+    const edges = new Set(L.transitions.filter(t => !L.back.has(t) && (up.has(t.to) || down.has(t.from))));
+    if (via) edges.add(via);
+    return { nodes: new Set([...up, ...down]), edges };
+  }
+
+  /** Orthogonal polyline with rounded corners. */
+  function orthPath(points, radius) {
+    const pts = points.filter((p, i) => i === 0 || p[0] !== points[i - 1][0] || p[1] !== points[i - 1][1]);
+    let d = `M${pts[0][0]},${pts[0][1]}`;
+    for (let i = 1; i < pts.length - 1; i++) {
+      const [px, py] = pts[i - 1], [x, y] = pts[i], [nx, ny] = pts[i + 1];
+      const r = Math.min(radius, Math.hypot(x - px, y - py) / 2, Math.hypot(nx - x, ny - y) / 2);
+      d += ` L${x - Math.sign(x - px) * r},${y - Math.sign(y - py) * r} Q${x},${y} ${x + Math.sign(nx - x) * r},${y + Math.sign(ny - y) * r}`;
+    }
+    const last = pts[pts.length - 1];
+    return d + ` L${last[0]},${last[1]}`;
   }
 
   // ── Catalog lookups ───────────────────────────────────────────────────
@@ -257,25 +357,76 @@
       top.appendChild(warn);
     }
 
-    // Diagram: one row per layer, arrows drawn on an SVG overlay.
-    const { layers, back } = layer(model);
+    // Diagram: nodes on a grid (one column per branch), arrows drawn on an SVG overlay.
+    const L = layout(model);
+    const scroller = el('div', 'diagram-scroll');
     const diagram = el('div', 'diagram');
+    if (L.back.size) diagram.classList.add('has-loops');
+    diagram.style.gridTemplateColumns = L.cols.map(c => c.kind === 'lane' ? 'var(--lane-width)' : 'minmax(180px, max-content)').join(' ');
+    diagram.style.gridTemplateRows = `repeat(${L.rows}, auto)`;
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.classList.add('edges');
     diagram.appendChild(svg);
+    const guides = new Map();
+    L.cols.forEach((c, i) => {
+      const g = el('div', 'col-guide');
+      g.style.gridColumn = String(i + 1);
+      g.style.gridRow = '1 / -1';
+      guides.set(c, g);
+      diagram.appendChild(g);
+    });
+
+    let trace = null;
+    const cellEls = {};
     const nodeEls = {};
-    let step = 0;
-    for (const row of layers) {
-      const rowEl = el('div', 'layer');
-      for (const n of row) {
-        const numbered = n.task && n.task.kind === 'RuleTask' ? ++step : 0;
-        const nodeEl = renderNode(n, numbered);
-        nodeEls[n.id] = nodeEl;
-        rowEl.appendChild(nodeEl);
+    const setTrace = t => {
+      trace = t;
+      diagram.classList.toggle('tracing', !!trace);
+      for (const id in cellEls) cellEls[id].classList.toggle('on', !!trace && trace.nodes.has(id));
+      for (const e of diagram.querySelectorAll('[data-edge]')) {
+        const on = !!trace && trace.edges.has(L.transitions[e.dataset.edge]);
+        e.classList.toggle('on', on);
+        if (e.localName === 'path') e.setAttribute('marker-end', on ? 'url(#arrow-on)' : 'url(#arrow)');
       }
-      diagram.appendChild(rowEl);
+    };
+
+    let step = 0;
+    const placed = model.nodes.filter(n => L.colOf[n.id])
+      .sort((a, b) => L.row[a.id] - L.row[b.id] || L.cols.indexOf(L.colOf[a.id]) - L.cols.indexOf(L.colOf[b.id]));
+    for (const n of placed) {
+      const numbered = n.task && n.task.kind === 'RuleTask' ? ++step : 0;
+      const nodeEl = renderNode(n, numbered);
+      const cell = el('div', 'cell');
+      cell.style.gridRow = String(L.row[n.id] + 1);
+      cell.style.gridColumn = String(L.cols.indexOf(L.colOf[n.id]) + 1);
+      cell.appendChild(nodeEl);
+      if (/Branch/.test(n.kind)) {
+        nodeEl.title = 'Highlight every path through this decision';
+        nodeEl.addEventListener('mouseenter', () => setTrace(pathsThrough(L, n.id, n.id)));
+        nodeEl.addEventListener('mouseleave', () => setTrace(null));
+      }
+      nodeEls[n.id] = nodeEl;
+      cellEls[n.id] = cell;
+      diagram.appendChild(cell);
     }
-    app.appendChild(diagram);
+    scroller.appendChild(diagram);
+    app.appendChild(scroller);
+
+    const marker = (id, cls) => {
+      const m = document.createElementNS(SVG_NS, 'marker');
+      m.setAttribute('id', id);
+      m.setAttribute('viewBox', '0 0 10 10');
+      m.setAttribute('refX', '9');
+      m.setAttribute('refY', '5');
+      m.setAttribute('markerWidth', '7');
+      m.setAttribute('markerHeight', '7');
+      m.setAttribute('orient', 'auto-start-reverse');
+      const tip = document.createElementNS(SVG_NS, 'path');
+      tip.setAttribute('d', 'M0,0 L10,5 L0,10 z');
+      tip.setAttribute('class', cls);
+      m.appendChild(tip);
+      return m;
+    };
 
     const labelEls = [];
     const drawEdges = () => {
@@ -285,65 +436,72 @@
       const box = diagram.getBoundingClientRect();
       svg.setAttribute('width', box.width);
       svg.setAttribute('height', box.height);
+      const rect = e => {
+        const r = e.getBoundingClientRect();
+        return { l: r.left - box.left, r: r.right - box.left, t: r.top - box.top, b: r.bottom - box.top, x: (r.left + r.right) / 2 - box.left, y: (r.top + r.bottom) / 2 - box.top };
+      };
+      const colX = c => rect(guides.get(c)).x;
 
       const defs = document.createElementNS(SVG_NS, 'defs');
-      const marker = document.createElementNS(SVG_NS, 'marker');
-      marker.setAttribute('id', 'arrow');
-      marker.setAttribute('viewBox', '0 0 10 10');
-      marker.setAttribute('refX', '9');
-      marker.setAttribute('refY', '5');
-      marker.setAttribute('markerWidth', '7');
-      marker.setAttribute('markerHeight', '7');
-      marker.setAttribute('orient', 'auto-start-reverse');
-      const tip = document.createElementNS(SVG_NS, 'path');
-      tip.setAttribute('d', 'M0,0 L10,5 L0,10 z');
-      tip.setAttribute('class', 'arrow-tip');
-      marker.appendChild(tip);
-      defs.appendChild(marker);
+      defs.appendChild(marker('arrow', 'arrow-tip'));
+      defs.appendChild(marker('arrow-on', 'arrow-tip on'));
       svg.appendChild(defs);
 
-      const outgoing = {};
-      for (const t of model.transitions) (outgoing[t.from] = outgoing[t.from] || []).push(t);
-
-      for (const t of model.transitions) {
-        const a = nodeEls[t.from];
-        const b = nodeEls[t.to];
-        if (!a || !b) continue;
-        const ra = a.getBoundingClientRect();
-        const rb = b.getBoundingClientRect();
-        const path = document.createElementNS(SVG_NS, 'path');
+      L.transitions.forEach((t, i) => {
+        const a = nodeEls[t.from] && rect(nodeEls[t.from]);
+        const b = nodeEls[t.to] && rect(nodeEls[t.to]);
+        if (!a || !b) return;
+        const route = L.routes.get(t);
+        const sideTo = (n, x) => x < n.x ? n.l : n.r;
+        let pts = null;
         let d;
-        let mid;
-        if (back.has(t.from + '>' + t.to)) {
+        if (route.kind === 'back') {
           // Loop back: leave on the right, travel up, enter on the right.
-          const x1 = ra.right - box.left, y1 = ra.top + ra.height / 2 - box.top;
-          const x2 = rb.right - box.left, y2 = rb.top + rb.height / 2 - box.top;
-          const xr = Math.max(x1, x2) + 40;
-          d = `M${x1},${y1} C${xr},${y1} ${xr},${y2} ${x2},${y2}`;
-          mid = { x: xr - 10, y: (y1 + y2) / 2 };
+          const xr = box.width - 12;
+          d = `M${a.r},${a.y} C${xr},${a.y} ${xr},${b.y} ${b.r},${b.y}`;
+        } else if (route.kind === 'down') {
+          pts = [[a.x, a.b], [a.x, b.t]];
+        } else if (route.kind === 'across') {
+          const vx = colX(route.via);
+          pts = [[sideTo(a, vx), a.y], [vx, a.y], [vx, b.t]];
+        } else if (route.kind === 'drop') {
+          pts = [[a.x, a.b], [a.x, b.y], [sideTo(b, a.x), b.y]];
         } else {
-          const x1 = ra.left + ra.width / 2 - box.left, y1 = ra.bottom - box.top;
-          const x2 = rb.left + rb.width / 2 - box.left, y2 = rb.top - box.top;
-          const dy = Math.max(24, (y2 - y1) / 2);
-          d = `M${x1},${y1} C${x1},${y1 + dy} ${x2},${y2 - dy} ${x2},${y2}`;
-          mid = { x: (x1 + x2) / 2, y: (y1 + y2) / 2 };
+          const lx = colX(route.via);
+          pts = [[sideTo(a, lx), a.y], [lx, a.y], [lx, b.y], [sideTo(b, lx), b.y]];
         }
-        path.setAttribute('d', d);
+        const path = document.createElementNS(SVG_NS, 'path');
+        path.setAttribute('d', pts ? orthPath(pts, 8) : d);
         path.setAttribute('class', 'edge');
         path.setAttribute('marker-end', 'url(#arrow)');
+        path.dataset.edge = String(i);
         svg.appendChild(path);
 
-        const siblings = outgoing[t.from] || [];
-        const label = t.condition ? 'when ' + t.condition : siblings.length > 1 && siblings.some(s => s.condition) ? 'otherwise' : '';
-        if (label) {
-          const tag = el('div', 'edge-label', label);
-          tag.title = label;
-          tag.style.left = mid.x + 'px';
-          tag.style.top = mid.y + 'px';
-          diagram.appendChild(tag);
-          labelEls.push(tag);
+        const siblings = L.fwdOut(t.from);
+        const name = t.label || (!t.condition && siblings.length > 1 && siblings.some(s => s.condition) ? 'otherwise' : '');
+        if (!name && !t.condition) return;
+        const tag = el('div', 'edge-label');
+        if (name) tag.appendChild(el('span', 'edge-name', name));
+        if (t.condition) tag.appendChild(el('span', 'edge-cond', (name ? '' : 'when ') + t.condition));
+        tag.title = (name ? name + '\n' : '') + (t.condition ? 'when ' + t.condition : '');
+        // Center on the first segment: along a horizontal run, or just below the source.
+        let x, y, width = 240;
+        if (!pts) { x = box.width - 12; y = (a.y + b.y) / 2; }
+        else {
+          const [[x1, y1], [x2, y2]] = pts;
+          if (y1 === y2) { x = (x1 + x2) / 2; y = y1; width = Math.max(110, Math.abs(x2 - x1) - 16); }
+          else { x = x1; y = Math.min((y1 + y2) / 2, y1 + 36); }
         }
-      }
+        tag.style.left = x + 'px';
+        tag.style.top = y + 'px';
+        tag.style.maxWidth = Math.min(width, 260) + 'px';
+        tag.dataset.edge = String(i);
+        tag.addEventListener('mouseenter', () => setTrace(pathsThrough(L, t.from, t.to, t)));
+        tag.addEventListener('mouseleave', () => setTrace(null));
+        diagram.appendChild(tag);
+        labelEls.push(tag);
+      });
+      setTrace(trace);
     };
 
     requestAnimationFrame(drawEdges);

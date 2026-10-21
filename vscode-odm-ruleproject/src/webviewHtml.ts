@@ -1,10 +1,16 @@
 import * as vscode from 'vscode';
 
-/** Page shell shared by the business views: one stylesheet and one script from media/. */
-export function webviewHtml(webview: vscode.Webview, mediaRoot: vscode.Uri, name: string, title: string): string {
+/**
+ * Page shell shared by the business views: one stylesheet and one script from media/,
+ * preceded by any shared helper scripts named in `libs` (e.g. 'balHighlight').
+ */
+export function webviewHtml(webview: vscode.Webview, mediaRoot: vscode.Uri, name: string, title: string, libs: string[] = []): string {
   const nonce = Array.from({ length: 32 }, () => Math.floor(Math.random() * 36).toString(36)).join('');
   const css = webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, `${name}.css`));
   const js = webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, `${name}.js`));
+  const libTags = libs
+    .map(lib => `<script nonce="${nonce}" src="${webview.asWebviewUri(vscode.Uri.joinPath(mediaRoot, `${lib}.js`))}"></script>\n  `)
+    .join('');
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +22,7 @@ export function webviewHtml(webview: vscode.Webview, mediaRoot: vscode.Uri, name
 </head>
 <body>
   <main id="app"></main>
-  <script nonce="${nonce}" src="${js}"></script>
+  ${libTags}<script nonce="${nonce}" src="${js}"></script>
 </body>
 </html>`;
 }

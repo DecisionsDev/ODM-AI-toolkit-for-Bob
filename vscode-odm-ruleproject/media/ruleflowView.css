@@ -21,9 +21,33 @@ main { max-width: 1140px; }
   border-bottom: 1px solid var(--border-subtle);
 }
 
-.diagram {
-  position: relative;
+/* Wide flows (many branches) scroll sideways instead of squeezing the cards. */
+.diagram-scroll {
+  overflow-x: auto;
   padding: var(--cds-spacing-03) 0 var(--cds-spacing-07);
+}
+
+/* One grid column per branch, plus narrow lanes for exits that skip steps. */
+.diagram {
+  --lane-width: 24px;
+  position: relative;
+  display: grid;
+  width: max-content;
+  margin: 0 auto;
+  column-gap: var(--cds-spacing-06);
+  row-gap: 72px;
+  padding: 0 var(--cds-spacing-03);
+}
+.diagram.has-loops { padding-right: 56px; }
+
+.col-guide { pointer-events: none; }
+
+.cell {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 1;
 }
 
 .edges {
@@ -36,41 +60,50 @@ main { max-width: 1140px; }
   fill: none;
   stroke: var(--muted);
   stroke-width: 1.5;
+  transition: opacity 120ms ease, stroke 120ms ease;
 }
 .arrow-tip { fill: var(--muted); }
+.arrow-tip.on { fill: var(--accent); }
 
-/* Carbon Tag-like Edge Label */
+/* Carbon Tag-like Edge Label: transition label, then its BAL condition */
 .edge-label {
   position: absolute;
   transform: translate(-50%, -50%);
   max-width: 260px;
-  height: 22px;
-  padding: 0 var(--cds-spacing-03);
-  display: inline-flex;
+  padding: 2px var(--cds-spacing-03);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  border-radius: 11px;
+  border-radius: 6px;
   border: 1px solid var(--border-subtle);
   background: var(--bg);
   color: var(--fg);
   font-size: 12px;
   letter-spacing: 0.32px;
+  line-height: 16px;
+  box-sizing: border-box;
+  cursor: default;
+  z-index: 2;
+  transition: opacity 120ms ease, border-color 120ms ease;
+}
+.edge-label > span {
+  max-width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  z-index: 1;
 }
-
-.layer {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: var(--cds-spacing-07);
-  margin-bottom: var(--cds-spacing-08);
-}
-.layer:last-child { margin-bottom: 0; }
+.edge-name { font-weight: 600; }
+.edge-cond { color: var(--muted); font-size: 11px; font-style: italic; }
 
 .node { position: relative; z-index: 1; }
+
+/* Hovering a decision or a branch label highlights every path through it. */
+.diagram.tracing .cell:not(.on),
+.diagram.tracing .edge:not(.on),
+.diagram.tracing .edge-label:not(.on) { opacity: 0.25; }
+.diagram.tracing .edge.on { stroke: var(--accent); stroke-width: 2; }
+.diagram.tracing .edge-label.on { border-color: var(--accent); }
+.cell { transition: opacity 120ms ease; }
 
 /* Start/End Terminals: Pill with bold uppercase text */
 .node-terminal {

@@ -133,7 +133,7 @@ export class BrlRuleEditorProvider implements vscode.CustomTextEditorProvider {
   ): void {
     const mediaRoot = vscode.Uri.joinPath(this.context.extensionUri, 'media');
     panel.webview.options = { enableScripts: true, localResourceRoots: [mediaRoot] };
-    panel.webview.html = webviewHtml(panel.webview, mediaRoot, 'ruleView', 'Rule');
+    panel.webview.html = webviewHtml(panel.webview, mediaRoot, 'ruleView', 'Rule', ['balHighlight']);
 
     const update = () =>
       panel.webview.postMessage({ type: 'update', rule: parseRule(document.getText(), document.uri) });

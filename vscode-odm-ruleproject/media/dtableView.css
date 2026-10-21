@@ -156,3 +156,42 @@
     padding: var(--cds-spacing-02) var(--cds-spacing-02);
   }
 }
+
+/* ── BAL tokens inside header cells ───────────────────────────────────── */
+.dt thead .tok-var { padding: 0 4px; font-weight: 600; }
+.dt thead tr.param-header-row th .tok-ph { font-size: 11px; }
+
+/* ── Titles / Expressions toggle ──────────────────────────────────────── */
+.seg-toggle {
+  margin-left: auto;
+  display: inline-flex;
+  border: 1px solid var(--border-subtle);
+  align-self: center;
+}
+.seg-btn {
+  font-family: var(--cds-font-sans);
+  font-size: 12px;
+  padding: 4px var(--cds-spacing-04);
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  cursor: pointer;
+}
+.seg-btn + .seg-btn { border-left: 1px solid var(--border-subtle); }
+.seg-btn:hover { color: var(--fg); background: rgba(128, 128, 128, 0.12); }
+.seg-btn.active {
+  background: var(--vscode-button-background, var(--cds-blue-60));
+  color: var(--vscode-button-foreground, #ffffff);
+}
+.seg-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+
+/* Expression mode: show the full BAL template, wrapped */
+.dt thead tr.col-header-row th.col-expr {
+  font-family: var(--cds-font-mono, monospace);
+  font-weight: 400;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  max-width: 360px;
+  vertical-align: top;
+}

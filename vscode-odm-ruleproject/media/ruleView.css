@@ -46,6 +46,7 @@
   --if: var(--vscode-charts-blue, var(--cds-blue-50));
   --then: var(--vscode-charts-green, var(--cds-green-40));
   --else: var(--vscode-charts-orange, var(--cds-orange-40));
+  --ph: var(--vscode-charts-purple, var(--cds-purple-40));
   --defs: var(--vscode-charts-purple, var(--cds-purple-40));
   --error: var(--vscode-errorForeground, var(--cds-red-50));
 }
@@ -290,6 +291,20 @@ h1 {
 .tok-kw {
   color: var(--muted);
   font-style: italic;
+}
+/* Decision table placeholder slot, e.g. <a number> */
+.tok-ph {
+  display: inline-block;
+  border: 1px dashed var(--ph);
+  border-radius: 8px;
+  padding: 0 6px;
+  color: var(--ph);
+  font-family: var(--cds-font-sans);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 0.92em;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 /* Carbon TextInput / Textarea */

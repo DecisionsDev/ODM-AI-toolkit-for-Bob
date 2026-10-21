@@ -12,48 +12,11 @@
     else: { label: 'Else', hint: 'Alternative actions' }
   };
 
-  // Longest phrases first so "is more than" wins over "is".
-  const OPERATORS = [
-    'it is not true that', 'make it true that', 'make it false that',
-    'is at least', 'is at most', 'is more than', 'is less than', 'is equal to',
-    'is not equal to', 'is not null', 'is null', 'is not one of', 'is one of',
-    'is between', 'is not', 'is', 'contains', 'does not contain'
-  ];
-  const KEYWORDS = ['set', 'to', 'add', 'remove', 'print', 'there is no', 'there is', 'there are', 'the number of', 'where'];
-
-  const escapeRe = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const phrase = list => list.map(p => escapeRe(p).replace(/ /g, '\\s+')).join('|');
-  const TOKEN_RE = new RegExp(
-    [
-      '("(?:[^"\\\\]|\\\\.)*")',                 // 1 string
-      "('[^']*')",                               // 2 variable
-      '\\b(true|false|null)\\b',                 // 3 literal
-      '(-?\\b\\d+(?:\\.\\d+)?\\b)',              // 4 number
-      '\\b(' + phrase(OPERATORS) + ')\\b',       // 5 operator
-      '\\b(' + phrase(KEYWORDS) + ')\\b'         // 6 keyword
-    ].join('|'),
-    'gi'
-  );
-
   function el(tag, cls, text) {
     const e = document.createElement(tag);
     if (cls) e.className = cls;
     if (text !== undefined) e.textContent = text;
     return e;
-  }
-
-  /** Appends a BAL phrase to `parent` as styled spans (textContent only, no HTML injection). */
-  function renderPhrase(parent, text) {
-    let last = 0;
-    TOKEN_RE.lastIndex = 0;
-    let m;
-    while ((m = TOKEN_RE.exec(text))) {
-      if (m.index > last) parent.appendChild(document.createTextNode(text.slice(last, m.index)));
-      const cls = m[1] ? 'tok-string' : m[2] ? 'tok-var' : m[3] ? 'tok-literal' : m[4] ? 'tok-number' : m[5] ? 'tok-op' : 'tok-kw';
-      parent.appendChild(el('span', cls, m[2] ? m[2].slice(1, -1) : m[0]));
-      last = m.index + m[0].length;
-    }
-    if (last < text.length) parent.appendChild(document.createTextNode(text.slice(last)));
   }
 
   /** Splits the BAL text into sections of statements. */
@@ -87,22 +50,7 @@
     header.appendChild(el('span', 'card-hint', meta.hint));
     card.appendChild(header);
 
-    const list = el('ol', 'statements');
-    for (const line of section.lines) {
-      const item = el('li', 'statement');
-      let body = line.replace(/\s*;\s*$/, '');
-      const conj = /^(and|or)\s+(.*)$/i.exec(body);
-      if (conj) {
-        item.appendChild(el('span', 'conj', conj[1].toLowerCase()));
-        body = conj[2];
-      } else if (section.kind === 'if' || section.kind === 'then' || section.kind === 'else') {
-        item.appendChild(el('span', 'conj conj-empty'));
-      }
-      const text = el('span', 'statement-text');
-      renderPhrase(text, body);
-      item.appendChild(text);
-      list.appendChild(item);
-    }
+    const list = Bal.renderStatements(section.lines, section.kind !== 'definitions');
     card.appendChild(list);
     return card;
   }
