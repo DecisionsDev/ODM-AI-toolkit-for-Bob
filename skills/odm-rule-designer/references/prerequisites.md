@@ -23,14 +23,14 @@ The project-local jar wins, even over `--jar`. To use another jar for one projec
 
 If a `build_ruleset` MCP tool is connected, you can use it instead and skip this setup.
 
-## 0. Check, then install with `odm compiler`
+## Check, then install with `odm compiler`
 
 ```
 cd <project-root>
 java -jar <skill>/scripts/odm.jar jdk             # prints the jar used, its ODM release, and the JDK
 ```
 
-If `odm jdk` prints a jar, an ODM 9.x release and a JDK, go to step 3. If it reports `no rules compiler found`, run the command it prints. Don't ask for permission, but first tell the user that it may pull the ODM Docker image (about 1 GB):
+`odm jdk` has no `--dir` option: it looks in the working directory only, so run it from the project root. If it prints a jar, an ODM 9.x release and a JDK, go to [Verify](#verify-the-install-and-the-jdk). If it reports `no rules compiler found`, run the command it prints. Don't ask for permission, but first tell the user that it may pull the ODM Docker image (about 1 GB):
 
 ```
 java -jar <skill>/scripts/odm.jar compiler --dir <project-root>
@@ -43,7 +43,7 @@ It installs `<project-root>/buildcommand/rules-compiler/rules-compiler.jar` from
 
 Then it prints the ODM release and the JDK it needs, like `odm jdk`. A jar already installed is kept (`--force` replaces it).
 
-**Pick the ODM release deliberately.** The compiler's release decides which JDK it must run on (9.0.x → 17, 9.5.x/9.6.x → 21, 9.7.x → 25), and the RuleApp it builds must be accepted by the target Decision Center / RES. **Image tag:** if the user asked for an ODM version, pass `--tag` with its release: `--tag 9.0`, `--tag 9.5` or `--tag 9.6` (a full version such as `9.5.0.1` is read as `9.5`). If the user named no version, leave `--tag` out: the default is `latest`, the newest release. Anything other than `latest` or 9.x is refused. Only ODM 9.x is supported.
+**Pick the ODM release deliberately.** The compiler's release decides which JDK it must run on (9.0.x → 17, 9.5.x/9.6.x → 21, 9.7.x → 25), and the RuleApp it builds must be accepted by the target Decision Center / RES. **Image tag:** if the user asked for an ODM version, pass `--tag` with its release: `--tag 9.0`, `--tag 9.5` or `--tag 9.6` (a full version such as `9.5.0.1` is read as `9.5`). There is no `9.7` image tag yet: for ODM 9.7, install from an ODM install with `--odm-home <dir>`. If the user named no version, leave `--tag` out: the default is `latest`, the newest release. Anything other than `latest` or 9.x is refused. Only ODM 9.x is supported.
 
 Ask the user only when `odm compiler` fails: no `ODM_HOME` and no working Docker/Podman. Then they either set `ODM_HOME` to their ODM install or start Docker, and you run `odm compiler` again.
 
@@ -87,7 +87,7 @@ set ODM_RULES_COMPILER=C:\path\to\rules-compiler.jar           # cmd
 
 This only applies when the project has no `buildcommand/rules-compiler/rules-compiler.jar`, because the project-local jar comes first.
 
-## 3. Verify the install and the JDK
+## Verify the install and the JDK
 
 ```
 cd <project-root>

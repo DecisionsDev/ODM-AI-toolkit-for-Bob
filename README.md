@@ -298,23 +298,23 @@ in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
 
 **Analyse rule dependencies and redesign the ruleflow**
 ```
-Why does the rule check-velocity never fire in projects/Fraud/FraudDetection?
+Why does the rule block-high-score never fire in projects/CrossBorder_Fraud_Detection/CrossBorderFraudDetection?
 Analyse the dependencies between the rules and fix the ruleflow.
 ```
 
 **Review against ODM best practices**
 ```
-Review the FraudDetection rule project against ODM design best practices.
+Review the CrossBorderFraudDetection rule project against ODM design best practices.
 ```
 
 **Deploy to Decision Center**
 ```
-Deploy the FraudDetection rule project to Decision Center.
+Deploy the CrossBorderFraudDetection rule project to Decision Center.
 ```
 
 **Deploy the RuleApp to the Rule Execution Server**
 ```
-Build the FraudDetection RuleApp and deploy it to the RES console.
+Build the CrossBorderFraudDetection RuleApp and deploy it to the RES console.
 ```
 
 The skill works in any language, for example: *"Analyse les dépendances entre les règles et propose un ruleflow."*
@@ -390,7 +390,7 @@ ODM-AI-toolkit-for-Bob/
 │       ├── references/            # Guides loaded on demand
 │       ├── scripts/               # odm CLI (odm.jar + Odm.java source)
 │       ├── assets/templates/      # File templates (decision tables…)
-│       └── schemas/               # ODM metamodels (from a licensed ODM install)
+│       └── schemas/               # Optional ODM metamodels, copied from a licensed ODM install (not committed)
 ├── projects/                      # Sample generated Decision Services
 ├── tools/                         # Utilities (rule project report generator)
 └── images/                        # Screenshots

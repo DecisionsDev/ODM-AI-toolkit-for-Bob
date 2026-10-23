@@ -6,7 +6,7 @@
 
 `loadGetterSetterAsProperties "true"` makes the BOM *bind* to XOM getters/setters. It does **not** create BOM members, because the rules compiler never introspects the XOM. Any property missing from the BOM is invisible to rules and to the vocabulary.
 
-Naming follows the setter without `set`:
+Naming follows the getter without `get`/`is`:
 
 | XOM | BOM |
 |---|---|

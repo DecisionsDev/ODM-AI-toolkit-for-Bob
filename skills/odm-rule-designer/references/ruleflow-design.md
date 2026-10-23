@@ -50,7 +50,7 @@ A value that the reader's own package also writes is treated as shared state (a 
 java -jar <skill>/scripts/odm.jar ruleflow <RuleProjectDir> --packages validation:Fastpath,scoring:Fastpath,decision:Fastpath
 java -jar <skill>/scripts/odm.jar deps <RuleProjectDir>     # expect: "the current ruleflow already follows the dependencies."
 java -jar <skill>/scripts/odm.jar check <RuleProjectDir>
-java -jar <skill>/scripts/odm.jar build <Name>.properties
+java -jar <skill>/scripts/odm.jar build <parent>/<Name>.properties
 ```
 
 `ruleflow` rewrites the `.rfl` used by the `.dop` and keeps its name and UUID, so the `.dop` link stays valid. `a+b` puts two packages in one task.

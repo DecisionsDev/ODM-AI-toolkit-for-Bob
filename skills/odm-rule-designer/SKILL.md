@@ -66,12 +66,12 @@ The rules compiler must run on the exact JDK of its ODM release (read from the `
      ```
      java -jar <skill>/scripts/odm.jar compiler --dir <project-root>
      ```
-     If the user named an ODM version, add `--tag 9.0`, `--tag 9.5` or `--tag 9.6`; otherwise the default is `latest`. **Never search the file system for the jar** (`find`, `mdfind`, `locate`, `dir /s`). Ask the user only if `odm compiler` fails (no `ODM_HOME` and no working Docker/Podman). Details and manual fallbacks: `references/prerequisites.md`.
+     If the user named an ODM version, add `--tag 9.0`, `--tag 9.5` or `--tag 9.6`; otherwise the default is `latest`. ODM 9.7 has no image tag yet: install it from `$ODM_HOME` (`--odm-home <dir>`). **Never search the file system for the jar** (`find`, `mdfind`, `locate`, `dir /s`). Ask the user only if `odm compiler` fails (no `ODM_HOME` and no working Docker/Podman). Details and manual fallbacks: `references/prerequisites.md`.
    - Continue without a compiler only if the user explicitly says so, and then say at the end that the rules were not validated.
 1. **Names.** camelCase rule project (`LoanApproval`), kebab XOM project (`loan-approval-xom`), kebab base name (`loan-approval`), locale `en_US` unless told otherwise. Kebab-case `verb-object` rule names (`check-age`), unique across packages.
 2. **Scaffold:**
    ```
-   java -jar <skill>/scripts/odm.jar init --dir <parent> --name LoanApproval --xom loan-approval-xom --base loan-approval --package com.example.loan --var request:LoanRequest:IN --var decision:LoanDecision:OUT --packages validation,scoring,decision --fetch-jackson
+   java -jar <skill>/scripts/odm.jar init --dir <parent> --name LoanApproval --xom loan-approval-xom --base loan-approval --package com.example.loan --var request:LoanRequest:IN --var decision:LoanDecision:OUT --packages validation,scoring,decision --ruleflow loan-approval-ruleflow --fetch-jackson
    ```
    `--var name:Type[:IN|OUT|IN_OUT]` is repeatable (default `IN_OUT`, verbalized `the <name>`). Use one input and one output object, or a single `IN_OUT` object. OUT variables get `initialValue="new <Type>()"`, so the XOM class needs a public no-arg constructor. Packages are ruleflow tasks, in order; every task uses **Fastpath** (any other mode is refused). Never use RetePlus: when rules chain inside a package, split it into sequential packages.
 3. **XOM** — read `references/xom.md`, write classes under `src/`, then `odm xom <xom-dir>`. It compiles with `--release 17` and packages the jar, and it fetches the Jackson jars if they're missing. Never use `mvn` for the XOM.
@@ -146,7 +146,7 @@ Read `references/best-practices.md` before you design or restructure a project. 
 
 ## References (read only what the current step needs)
 
-- `references/best-practices.md`: the 23 design best practices, what `odm check` detects, virtual BOM methods
+- `references/best-practices.md`: the design best practices, what `odm check` detects, virtual BOM methods
 - `references/prerequisites.md`: where `odm` looks for `rules-compiler.jar`, `odm compiler`, manual fallbacks, checking the JDK
 - `references/xom.md`: Java class conventions, Jackson, computed properties
 - `references/bom-format.md`: BOM syntax, annotations, a full example, collections
