@@ -179,13 +179,29 @@ main { max-width: 1140px; }
   color: var(--muted);
   font-size: 12px;
 }
+/* Algorithm tag: each mode gets a theme chart color as border, stripe and tint;
+   the text stays in the editor foreground so it reads on light, dark and high contrast. */
 .mode {
+  --mode-color: var(--else);
   font-size: 11px;
-  padding: 1px 6px;
+  font-weight: 600;
+  letter-spacing: 0.32px;
+  padding: 1px 6px 1px 4px;
   border-radius: 0px;
-  border: 1px solid var(--border-subtle);
-  background: var(--vscode-badge-background, rgba(128, 128, 128, 0.1));
+  border: 1px solid var(--mode-color);
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--mode-color) 18%, transparent);
+  color: var(--fg);
   cursor: help;
+}
+.mode-fastpath { --mode-color: var(--if); }
+.mode-sequential { --mode-color: var(--ph); }
+.mode-reteplus { --mode-color: var(--else); }
+body.vscode-high-contrast .mode,
+body.vscode-high-contrast-light .mode {
+  background: transparent;
+  border-color: var(--vscode-contrastBorder, var(--mode-color));
+  border-left-color: var(--mode-color);
 }
 
 .pkg + .pkg {

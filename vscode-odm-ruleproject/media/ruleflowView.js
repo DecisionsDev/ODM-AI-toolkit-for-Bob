@@ -301,7 +301,8 @@
     if (!task.entries.length) body.appendChild(el('p', 'warn', 'This step runs no rules.'));
 
     const meta = el('p', 'task-meta', total + ' rule' + (total === 1 ? '' : 's'));
-    const mode = el('span', 'mode', task.mode === 'Fastpath' ? 'Fastpath' : task.mode === 'Sequential' ? 'Sequential' : 'RetePlus');
+    const modeName = task.mode === 'Fastpath' ? 'Fastpath' : task.mode === 'Sequential' ? 'Sequential' : 'RetePlus';
+    const mode = el('span', 'mode mode-' + modeName.toLowerCase(), modeName);
     mode.title = task.mode === 'Fastpath' || task.mode === 'Sequential'
       ? 'Each rule is evaluated once, in order'
       : 'Rules are re-evaluated when other rules of this step change data';

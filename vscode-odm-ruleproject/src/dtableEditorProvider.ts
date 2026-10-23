@@ -120,8 +120,12 @@ export function parseDtable(xml: string, uri: vscode.Uri): DtableView {
   const dtMatch = /<DT\b[\s\S]*<\/DT>/.exec(xml);
   const dt = dtMatch?.[0] ?? '';
 
-  const preMatch = /<Preconditions[^>]*>([\s\S]*?)<\/Preconditions>/.exec(dt);
-  const precondition = preMatch ? innerText(preMatch[1], 'Text') : '';
+  // ODM writes <Preconditions><Text>…</Text></Preconditions>; also accept a
+  // bare <Precondition>…</Precondition> as produced by some generators.
+  const preMatch = /<Preconditions?\b[^>]*>([\s\S]*?)<\/Preconditions?>/.exec(dt);
+  const precondition = preMatch
+    ? (innerText(preMatch[1], 'Text') || stripCdata(preMatch[1].trim()))
+    : '';
 
   // ── Columns ────────────────────────────────────────────────────────────
   const columns: DtColumn[] = [];

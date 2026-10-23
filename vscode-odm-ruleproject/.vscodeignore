@@ -7,3 +7,5 @@ out/test/**
 .eslintrc.json
 **/*.map
 **/*.ts
+*.vsix
+tsconfig.json
