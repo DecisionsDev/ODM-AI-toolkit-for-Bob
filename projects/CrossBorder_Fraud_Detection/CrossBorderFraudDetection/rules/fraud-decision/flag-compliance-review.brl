@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>flag-compliance-review</name>
+
+  <uuid>12bfe1ce-1319-464e-bfdb-aece1e65353d</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Flag for Compliance Review
+    Package: fraud-decision
+    Description: Routes transactions with a composite risk score between 31 and 60 to
+    manual compliance review. Per policy Section 6: score 31-60 requires compliance review.
+    Also triggers for mandatory reporting threshold transactions.
+    Decision: REVIEW
+    Reason Code: CBF-101-COMPLIANCE-REVIEW-REQUIRED
+    Recommended Action: FLAG_FOR_MANUAL_REVIEW
+    Tags: fraud-decision, review, compliance, moderate-risk
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the total score of the risk score of 'the transaction' is at least 31
+    and the total score of the risk score of 'the transaction' is at most 60
+
+  then
+    set the fraud decision of 'the transaction' to "REVIEW" ;
+    set the decision reason code of 'the transaction' to "CBF-101-COMPLIANCE-REVIEW-REQUIRED" ;
+    set the recommended action of 'the transaction' to "FLAG_FOR_MANUAL_REVIEW" ;
+    add audit message "DECISION: REVIEW - Composite risk score in 31-60 range, manual compliance review required" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

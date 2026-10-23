@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>fraud-decision</name>
+  <uuid>3c49fcfe-c9de-415c-845b-eab6153cd9dd</uuid>
+  <documentation><![CDATA[Applies composite score thresholds and explicit override rules to produce a final APPROVE / REVIEW / BLOCK decision.]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

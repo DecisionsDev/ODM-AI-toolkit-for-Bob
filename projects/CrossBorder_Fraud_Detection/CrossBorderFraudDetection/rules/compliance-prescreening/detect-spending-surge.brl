@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-spending-surge</name>
+
+  <uuid>ebcd6188-e718-4ce6-b058-85c4d4b61105</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect Cross-Border Spending Surge (Rule 1.2)
+    Package: compliance-prescreening
+    Description: Flags when a customer performs 3 or more cross-border transactions within
+    24 hours across multiple currency zones and total spend exceeds EUR 1,000, unless travel
+    has been declared or supported by location data.
+    Risk Signal: SPENDING_SURGE
+    Tags: compliance, velocity, cross-border, spending-surge, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    'the transaction' is cross border
+    and the cross border transaction count in last 24 hours of 'the transaction' is at least 3
+    and the distinct currency zones in last 24 hours of 'the transaction' is at least 2
+    and the total cross border amount in last 24 hours of 'the transaction' is more than 1000
+    and it is not true that 'the transaction' is travel declared
+
+  then
+    make it true that the risk score of 'the transaction' has spending surge detected ;
+    add risk factor "Cross-border spending surge: 3+ transactions, multi-currency, over EUR 1000 in 24h" to the risk score of 'the transaction' ;
+    add audit message "SPENDING_SURGE detected - undeclared cross-border velocity spike" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

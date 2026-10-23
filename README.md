@@ -40,7 +40,7 @@ The toolkit can generate complete ODM Decision Services for any business domain:
 
 **See it in action:**
 
-https://github.com/user-attachments/assets/c7c9595b-2b05-4fde-aa51-673526783674
+https://github.com/user-attachments/assets/46028c2d-fd19-4944-9fbc-2f49e324b333
 
 ---
 
@@ -175,8 +175,7 @@ docker stop odm-buildcmd && docker rm odm-buildcmd
 
    **Option A: Use a Policy Document (Recommended)**
    ```
-   Generate an ODM rule project based on the Cross-Border Transaction Fraud Detection policy
-   in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
+   Generate an ODM rule project based on the Cross-Border Transaction Fraud Detection policy in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
    ```
 
    **Option B: Natural Language Description**

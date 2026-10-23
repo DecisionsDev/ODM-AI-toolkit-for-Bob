@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>score-exotic-currency</name>
+
+  <uuid>0e9ae483-ce27-45c4-871f-850e270576a9</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Score Exotic Currency
+    Package: risk-scoring
+    Description: Assigns 15 points when an exotic or rarely-used currency is detected
+    without a corresponding travel declaration or known business relationship.
+    Score: 15 points
+    Tags: risk-scoring, currency, exotic
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has exotic currency detected
+
+  then
+    record score 15 on the risk score of 'the transaction' ;
+    record triggered rule "EXOTIC_CURRENCY" on the risk score of 'the transaction' ;
+    add audit message "Risk score +15: Exotic or rarely-used currency without travel justification" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

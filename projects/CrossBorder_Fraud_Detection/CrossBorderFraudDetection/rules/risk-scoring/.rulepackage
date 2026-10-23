@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:RulePackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+  <name>risk-scoring</name>
+  <uuid>56539ea0-6003-4aaf-8723-637b8e335a23</uuid>
+  <documentation><![CDATA[Assigns weighted risk scores to each detected compliance signal and computes the overall confidence level.]]></documentation>
+</ilog.rules.studio.model.base:RulePackage>

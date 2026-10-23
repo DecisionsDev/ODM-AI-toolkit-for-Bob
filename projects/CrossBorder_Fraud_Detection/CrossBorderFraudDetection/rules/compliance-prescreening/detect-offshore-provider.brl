@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-offshore-provider</name>
+
+  <uuid>03680ea2-d20b-49d7-bb6d-030248cf52a7</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect Offshore Service Provider (Rule 2.3)
+    Package: compliance-prescreening
+    Description: Triggers Enhanced Due Diligence (EDD) when a retail customer with no
+    business profile transacts with a merchant registered in a known offshore finance center
+    (BVI, Seychelles, Cayman Islands, Panama, Marshall Islands, Bermuda).
+    Risk Signal: OFFSHORE_PROVIDER
+    Tags: compliance, offshore, EDD, AML, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    'the transaction' is merchant offshore
+    and the customer of 'the transaction' is not null
+    and it is not true that the customer of 'the transaction' has business profile
+    and it is not true that 'the transaction' is merchant on regulated whitelist
+
+  then
+    make it true that the risk score of 'the transaction' has offshore provider detected ;
+    add risk factor "Retail customer without business profile transacting with offshore-registered merchant" to the risk score of 'the transaction' ;
+    add audit message "OFFSHORE_PROVIDER detected - EDD triggered for retail customer with offshore merchant" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

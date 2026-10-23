@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>score-high-risk-aml-jurisdiction</name>
+
+  <uuid>5e05d458-fc5b-47ed-a4fc-9558b69c4b51</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Score High-Risk AML Jurisdiction
+    Package: risk-scoring
+    Description: Assigns 25 points when a FATF high-risk AML jurisdiction is detected.
+    Lower than sanctions because FATF-listed countries may still have some legitimate trade.
+    Score: 25 points
+    Tags: risk-scoring, AML, FATF, high-risk-jurisdiction
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has AML jurisdiction detected
+
+  then
+    record score 25 on the risk score of 'the transaction' ;
+    record triggered rule "AML_JURISDICTION" on the risk score of 'the transaction' ;
+    add audit message "Risk score +25: Transaction originates from FATF high-risk AML jurisdiction" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

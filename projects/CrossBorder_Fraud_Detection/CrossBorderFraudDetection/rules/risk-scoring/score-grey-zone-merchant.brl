@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>score-grey-zone-merchant</name>
+
+  <uuid>97d83ac2-cff3-4f6a-902a-85040a2ecf0f</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Score Grey-Zone Merchant
+    Package: risk-scoring
+    Description: Assigns 15 points when a cross-border grey-zone merchant category is detected.
+    These merchant categories carry elevated laundering and synthetic identity fraud risk.
+    Score: 15 points
+    Tags: risk-scoring, merchant-profiling, grey-zone, laundering
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has grey zone merchant detected
+
+  then
+    record score 15 on the risk score of 'the transaction' ;
+    record triggered rule "GREY_ZONE_MERCHANT" on the risk score of 'the transaction' ;
+    add audit message "Risk score +15: Cross-border grey-zone merchant category detected" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>score-sanctioned-country</name>
+
+  <uuid>8ed69b95-6208-4e5a-9cb9-12e900b84791</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Score Sanctioned Country
+    Package: risk-scoring
+    Description: Assigns 50 points when a sanctioned country is detected. This is the highest
+    single-signal score as sanctions violations are immediately reportable legal infractions.
+    Score: 50 points
+    Tags: risk-scoring, sanctions, OFAC, EU, UN
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' has sanctioned country detected
+
+  then
+    record score 50 on the risk score of 'the transaction' ;
+    record triggered rule "SANCTIONED_COUNTRY" on the risk score of 'the transaction' ;
+    add audit message "Risk score +50: Transaction involves sanctioned jurisdiction" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

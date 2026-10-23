@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.base:VariableSet xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.base="http://ilog.rules.studio/model/base.ecore">
+
+  <name>CrossBorderFraudDetectionParameters</name>
+
+  <uuid>4b38b2fc-ca93-4407-9538-4876cd6f14fb</uuid>
+
+  <documentation><![CDATA[Variables for the CrossBorderFraudDetection decision service.
+The transaction variable is the primary IN_OUT parameter containing all transaction data,
+customer profile, compliance flags, and the risk score output.]]></documentation>
+
+  <variables name="transaction"
+             type="com.fraud.crossborder.Transaction"
+             initialValue=""
+             verbalization="the transaction"/>
+
+</ilog.rules.studio.model.base:VariableSet>

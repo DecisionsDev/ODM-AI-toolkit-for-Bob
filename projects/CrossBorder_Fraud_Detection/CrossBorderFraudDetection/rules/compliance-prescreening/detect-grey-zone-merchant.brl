@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-grey-zone-merchant</name>
+
+  <uuid>baaf735e-3360-4e72-85f8-c9b5bf43ac04</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect Grey-Zone Merchant (Rule 4.1)
+    Package: compliance-prescreening
+    Description: Applies a risk multiplier signal when the cross-border merchant belongs to
+    a grey-zone merchant category often linked to laundering or synthetic ID fraud:
+    digital goods resale, gift cards, shell e-commerce, or unregulated crypto/FX.
+    Risk Signal: GREY_ZONE_MERCHANT
+    Tags: compliance, merchant-profiling, grey-zone, laundering, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    'the transaction' is cross border
+    and 'the transaction' is merchant on grey list
+    and the merchant category of 'the transaction' is one of { "DIGITAL_GOODS" , "GIFT_CARDS" , "SHELL_ECOMMERCE" , "CRYPTO_EXCHANGE" , "UNREGULATED_FX" , "DIGITAL_RESALE" }
+
+  then
+    make it true that the risk score of 'the transaction' has grey zone merchant detected ;
+    add risk factor "Cross-border merchant in grey-zone category associated with laundering or synthetic ID fraud" to the risk score of 'the transaction' ;
+    add audit message "GREY_ZONE_MERCHANT detected - cross-border transaction with high-risk merchant category" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

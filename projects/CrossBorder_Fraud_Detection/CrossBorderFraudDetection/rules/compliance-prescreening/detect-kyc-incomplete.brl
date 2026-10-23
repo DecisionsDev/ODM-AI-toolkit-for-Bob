@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>detect-kyc-incomplete</name>
+
+  <uuid>6355ff62-5463-4d4f-9cf4-7d0cf20244bf</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Detect KYC Profile Incomplete (Rule 3.1)
+    Package: compliance-prescreening
+    Description: Flags cross-border transactions from customers missing key KYC fields
+    (verified address or ID document). Triggers a hold for re-verification.
+    Risk Signal: KYC_INCOMPLETE
+    Tags: compliance, KYC, identity, cross-border, prescreening
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    'the transaction' is cross border
+    and the customer of 'the transaction' is not null
+    and it is not true that the customer of 'the transaction' is KYC complete
+    and it is not true that the customer of 'the transaction' has verified address
+
+  then
+    make it true that the risk score of 'the transaction' has KYC incomplete detected ;
+    add risk factor "Cross-border transaction from customer with incomplete KYC profile" to the risk score of 'the transaction' ;
+    add audit message "KYC_INCOMPLETE detected - cross-border transaction requires re-verification" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>

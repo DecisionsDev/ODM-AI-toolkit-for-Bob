@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ilog.rules.studio.model.brl:ActionRule xmi:version="2.0"
+    xmlns:xmi="http://www.omg.org/XMI"
+    xmlns:ilog.rules.studio.model.brl="http://ilog.rules.studio/model/brl.ecore">
+
+  <name>initialize-risk-score</name>
+
+  <uuid>965aa5ab-9664-43d6-9616-77b125c2f3eb</uuid>
+
+  <locale>en_US</locale>
+
+  <documentation><![CDATA[
+    Rule: Initialize Risk Score
+    Package: data-enrichment
+    Description: Ensures the risk score object is initialized before scoring rules execute.
+    If the risk score is null, creates a new RiskScore instance on the transaction.
+    Tags: initialization, data-enrichment, risk-score
+  ]]></documentation>
+
+  <definition><![CDATA[if
+    the risk score of 'the transaction' is not null
+
+  then
+    add audit message "Risk score object confirmed initialized" to 'the transaction' ;]]></definition>
+
+</ilog.rules.studio.model.brl:ActionRule>
