@@ -329,6 +329,64 @@ The skill works in any language, for example: *"Analyse les dépendances entre l
 
 The agent always asks before it imports or deploys anything. Without the MCP server, it gives you the archive path and the manual steps.
 
+### 🔌 Configure the ODM Management MCP Server for Deployment
+
+By default, the [ODM Management MCP Server](https://github.com/DecisionsDev/ibm-odm-management-mcp-server) publishes **every** Decision Center REST operation as a tool, plus every RES console operation when `--res-url` is set. That's more than 200 tools, and their schemas are sent to the model with every request. A deployment can then stop with:
+
+```
+Stopped: context limit reached and compaction was unable to reduce the context enough to continue.
+```
+
+Publish only the tools the deployment needs with `--tools`:
+
+| Deployment | Tools |
+|---|---|
+| Decision Center | `decisionServices` `branches` `decisionServicesImport` `branchImport` `deploymentConfigurations` `servers` `deploy` `DeploymentReport` |
+| RES console (needs `--res-url`) | `getRuleApps` `getRuleApp` `deployRuleAppArchive` `getRulesets` `getRuleset` |
+
+**IBM Bob** (`~/.bob/settings/mcp.json`, or `.bob/mcp.json` in the project):
+
+```json
+{
+  "mcpServers": {
+    "ibm-odm-management-mcp-server": {
+      "command": "uvx",
+      "args": [
+        "--from", "git+https://github.com/DecisionsDev/ibm-odm-management-mcp-server",
+        "ibm-odm-management-mcp-server",
+        "--url", "http://localhost:9060/decisioncenter-api",
+        "--res-url", "http://localhost:9060/res",
+        "--username", "odmAdmin",
+        "--tools",
+          "decisionServices", "branches", "decisionServicesImport", "branchImport",
+          "deploymentConfigurations", "servers", "deploy", "DeploymentReport",
+          "getRuleApps", "getRuleApp", "deployRuleAppArchive", "getRulesets", "getRuleset"
+      ],
+      "env": { "ODM_PASSWORD": "<password>" }
+    }
+  }
+}
+```
+
+**Claude Code**:
+
+```bash
+claude mcp add ibm-odm-management-mcp-server -e ODM_PASSWORD=<password> -- \
+  uvx --from git+https://github.com/DecisionsDev/ibm-odm-management-mcp-server \
+  ibm-odm-management-mcp-server \
+  --url http://localhost:9060/decisioncenter-api --res-url http://localhost:9060/res \
+  --username odmAdmin \
+  --tools decisionServices branches decisionServicesImport branchImport \
+          deploymentConfigurations servers deploy DeploymentReport \
+          getRuleApps getRuleApp deployRuleAppArchive getRulesets getRuleset
+```
+
+Restart the MCP server after you change its configuration. More tips:
+- If you deploy to only one target, keep only that target's row of tools. For Decision Center only, also drop `--res-url`.
+- Disable the MCP servers you don't need for ODM work: each one adds its own tool schemas.
+- Deploy in a new conversation rather than at the end of a long authoring session.
+- To see what the server sends to the agent, add `"--trace", "CONFIGURATION"`. The server writes the tool list to `parsing.json` under `~/.ibm-odm-management-mcp-server/traces`.
+
 ### 📚 Skill Reference Guides
 
 | Guide | Covers |
