@@ -5,12 +5,12 @@
 Build production-ready IBM ODM Decision Services in minutes, not days. This toolkit turns natural language descriptions and policy documents into complete, deployable ODM rule projects. It comes in two forms:
 
 - 🔵 **ODM Rule Designer Bob mode**: a custom mode for [IBM Bob](https://bob.ibm.com)
-- 🛠️ **ODM Rule Designer agent skill**: the [`odm-rule-designer`](skills/odm-rule-designer/SKILL.md) skill for Claude, IBM Bob, and any agent that supports the open [Agent Skills](https://agentskills.io) format. It creates new projects and also **modifies, reviews existing ones**
+- 🛠️ **ODM Designer skill**: the [`odm-builder`](skills/odm-builder/SKILL.md) skill for Claude, IBM Bob, and any agent that supports the open [Agent Skills](https://agentskills.io) format. It creates new projects and also **modifies, reviews existing ones**
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![ODM](https://img.shields.io/badge/ODM-9.x-green.svg)](https://www.ibm.com/products/operational-decision-manager)
 [![Bob](https://img.shields.io/badge/IBM%20Bob-Custom%20Mode-0f62fe.svg)](https://bob.ibm.com)
-[![Agent Skill](https://img.shields.io/badge/Agent%20Skill-odm--rule--designer-orange.svg)](skills/odm-rule-designer/SKILL.md)
+[![Agent Skill](https://img.shields.io/badge/Agent%20Skill-odm--builder-orange.svg)](skills/odm-builder/SKILL.md)
 
 ---
 
@@ -48,10 +48,10 @@ https://github.com/user-attachments/assets/46028c2d-fd19-4944-9fbc-2f49e324b333
 
 Both paths produce the same kind of ODM project. They differ in where they run, how much of the work is done by a tool instead of the LLM, and what happens after the first build.
 
-| | 🔵 ODM Rule Designer Bob mode | 🛠️ ODM Rule Designer agent skill (`odm-rule-designer`) |
+| | 🔵 ODM Rule Designer Bob mode | 🛠️ ODM Builder skill  |
 |---|---|---|
 | **Where it runs** | IBM Bob only | IBM Bob, Claude, any [Agent Skills](https://agentskills.io) agent |
-| **Install** | Import `files/custom_modes.yaml` in Bob settings | Copy or symlink the `skills/odm-rule-designer` folder |
+| **Install** | Import `files/custom_modes.yaml` in Bob settings | Copy or symlink the `skills/odm-builder` folder |
 | **How the instructions load** | One large prompt, always in context while the mode is selected | `SKILL.md` first, then reference guides on demand |
 | **Activation** | You select the mode | Automatic, from what you ask (any language) |
 | **Generate XOM, BOM, vocabulary, BAL rules, decision tables, ruleflow** | ✅ | ✅ |
@@ -69,18 +69,18 @@ Both paths produce the same kind of ODM project. They differ in where they run, 
 | If you… | Pick |
 |---|---|
 | Only use IBM Bob and want the quickest start: import one file, select the mode, describe your rules | 🔵 **ODM Rule Designer Bob mode** |
-| Use Claude or another agent, or want the same behavior in several tools | 🛠️ **ODM Rule Designer agent skill** |
-| Need to modify an existing project: add or change rules, extend the model, fix a failing build | 🛠️ **ODM Rule Designer agent skill** |
-| Need to review an existing project, find why a rule never fires, or design the ruleflow | 🛠️ **ODM Rule Designer agent skill** |
-| Need to deploy to Decision Center or the Rule Execution Server | 🛠️ **ODM Rule Designer agent skill** |
-| Work on ODM 9.0 to latest version | 🛠️ **ODM Rule Designer agent skill** (the mode builds with JDK 21 only) |
-| Want a team to share the same ODM guidance by committing it with the project | 🛠️ **ODM Rule Designer agent skill** (per-project install) |
+| Use Claude or another agent, or want the same behavior in several tools | 🛠️ **ODM Designer skill** |
+| Need to modify an existing project: add or change rules, extend the model, fix a failing build | 🛠️ **ODM Designer skill** |
+| Need to review an existing project, find why a rule never fires, or design the ruleflow | 🛠️ **ODM Designer skill** |
+| Need to deploy to Decision Center or the Rule Execution Server | 🛠️ **ODM Designer skill** |
+| Work on ODM 9.0 to latest version | 🛠️ **ODM Designer skill** (the mode builds with JDK 21 only) |
+| Want a team to share the same ODM guidance by committing it with the project | 🛠️ **ODM Designer skill** (per-project install) |
 
-New to the toolkit and unsure? Start with the ODM Rule Designer Bob mode if you use Bob, or with the ODM Rule Designer agent skill if you don't. You can add the other later: both write the same project layout.
+New to the toolkit and unsure? Start with the ODM Rule Designer Bob mode if you use Bob, or with the ODM Designer skill if you don't. You can add the other later: both write the same project layout.
 
 > **Using both in Bob:** this repository's [`.bob/rules-*/AGENTS.md`](.bob/rules-agent/AGENTS.md) files already tell Bob's Agent, Plan and Ask modes to follow the skill. The 🎯 ODM Rule Designer mode works from its own built-in instructions.
 
-➡️ [Quick Start: ODM Rule Designer Bob mode](#-quick-start-odm-rule-designer-bob-mode) · [Quick Start: ODM Rule Designer agent skill](#-quick-start-odm-rule-designer-agent-skill)
+➡️ [Quick Start: ODM Rule Designer Bob mode](#-quick-start-odm-rule-designer-bob-mode) · [Quick Start: ODM Designer skill](#-quick-start-odm-designer-skill)
 
 ---
 
@@ -96,7 +96,7 @@ New to the toolkit and unsure? Start with the ODM Rule Designer Bob mode if you 
   | 9.5.x, 9.6.x | 21 | 17 |
 
 
-  Set `ODM_JAVA_HOME` if that JDK isn't your default. IBM Semeru OpenJ9 is recommended. The ODM Rule Designer agent skill picks the JDK for you from the compiler's ODM release; the ODM Rule Designer Bob mode always builds with JDK 21.
+  Set `ODM_JAVA_HOME` if that JDK isn't your default. IBM Semeru OpenJ9 is recommended. The ODM Designer skill picks the JDK for you from the compiler's ODM release; the ODM Rule Designer Bob mode always builds with JDK 21.
 - **Docker or Podman** (optional): to fetch the rules compiler when you have no local ODM installation
 
 ---
@@ -129,7 +129,7 @@ Change the LLM attribution mode to avoid the following message at the end of gen
 
 ### 2️⃣ Set Up the ODM Build Command (One-Time Setup)
 
-Before creating or modifying ODM projects, put the ODM Build Command compiler in your workspace directory. The mode uses it to validate and build Decision Services. (The ODM Rule Designer agent skill does this step for you.)
+Before creating or modifying ODM projects, put the ODM Build Command compiler in your workspace directory. The mode uses it to validate and build Decision Services. (The ODM Designer skill does this step for you.)
 
 **Choose one of the following methods:**
 
@@ -204,15 +204,15 @@ Then [import the generated project into Rule Designer](#️-import-a-generated-p
 
 ---
 
-## 🛠️ Quick Start: ODM Rule Designer agent skill
+## 🛠️ Quick Start: ODM Designer skill
 
-The [`odm-rule-designer`](skills/odm-rule-designer/SKILL.md) skill packages the ODM expertise as an [Agent Skill](https://agentskills.io): instructions, reference guides and a small Java CLI (`odm.jar`, JDK only, no Python or Maven). The CLI generates all XML boilerplate (`.ruleproject`, `.rfl`, `.dop`, `.var`, build `.properties`…) with consistent UUIDs and cross-links, so the agent only writes the Java classes, the BOM and vocabulary, and the BAL rule bodies.
+The [`odm-builder`](skills/odm-builder/SKILL.md) skill packages the ODM expertise as an [Agent Skill](https://agentskills.io): instructions, reference guides and a small Java CLI (`odm.jar`, JDK only, no Python or Maven). The CLI generates all XML boilerplate (`.ruleproject`, `.rfl`, `.dop`, `.var`, build `.properties`…) with consistent UUIDs and cross-links, so the agent only writes the Java classes, the BOM and vocabulary, and the BAL rule bodies.
 
 The skill is not only for starting from scratch. Point it at an **existing rule project** to add or change rules, extend the XOM and BOM, review the design, find out why a rule never fires, fix a failing build, or redesign the ruleflow. It reads what is already there and keeps your project's structure and conventions.
 
 ### 1️⃣ Install the Skill
 
-A skill is a folder with a `SKILL.md` file. To install it, copy (or symlink) the `skills/odm-rule-designer` folder into your agent's skills directory. You can install it:
+A skill is a folder with a `SKILL.md` file. To install it, copy (or symlink) the `skills/odm-builder` folder into your agent's skills directory. You can install it:
 
 - **per project**: only available in that project, and can be committed with it so your team gets it too
 - **for all projects**: available in every project on your machine
@@ -233,20 +233,20 @@ git clone https://github.com/DecisionsDev/ODM-AI-toolkit-for-Bob.git
 ```bash
 # For all projects
 mkdir -p ~/.claude/skills
-cp -R ODM-AI-toolkit-for-Bob/skills/odm-rule-designer ~/.claude/skills/
+cp -R ODM-AI-toolkit-for-Bob/skills/odm-builder ~/.claude/skills/
 
 # Or for one project only
 mkdir -p <project>/.claude/skills
-cp -R ODM-AI-toolkit-for-Bob/skills/odm-rule-designer <project>/.claude/skills/
+cp -R ODM-AI-toolkit-for-Bob/skills/odm-builder <project>/.claude/skills/
 ```
 
 To use a symlink instead of a copy, so that a `git pull` of the toolkit updates the skill:
 
 ```bash
-ln -s "$(pwd)/ODM-AI-toolkit-for-Bob/skills/odm-rule-designer" ~/.claude/skills/odm-rule-designer
+ln -s "$(pwd)/ODM-AI-toolkit-for-Bob/skills/odm-builder" ~/.claude/skills/odm-builder
 ```
 
-**Check that it loaded:** start a new Claude session (skills are discovered at startup) and run `/skills`, or ask *"What skills do you have?"*. `odm-rule-designer` should be listed.
+**Check that it loaded:** start a new Claude session (skills are discovered at startup) and run `/skills`, or ask *"What skills do you have?"*. `odm-builder` should be listed.
 
 #### Install in IBM Bob
 
@@ -258,20 +258,20 @@ ln -s "$(pwd)/ODM-AI-toolkit-for-Bob/skills/odm-rule-designer" ~/.claude/skills/
 ```bash
 # For all projects
 mkdir -p ~/.bob/skills
-cp -R ODM-AI-toolkit-for-Bob/skills/odm-rule-designer ~/.bob/skills/
+cp -R ODM-AI-toolkit-for-Bob/skills/odm-builder ~/.bob/skills/
 
 # Or for one project only
 mkdir -p <project>/.bob/skills
-cp -R ODM-AI-toolkit-for-Bob/skills/odm-rule-designer <project>/.bob/skills/
+cp -R ODM-AI-toolkit-for-Bob/skills/odm-builder <project>/.bob/skills/
 ```
 
-**Check that it loaded:** reload the Bob window, then ask *"What skills do you have?"*. `odm-rule-designer` should be listed. See the [Bob documentation](https://bob.ibm.com/docs) for more about skills in Bob.
+**Check that it loaded:** reload the Bob window, then ask *"What skills do you have?"*. `odm-builder` should be listed. See the [Bob documentation](https://bob.ibm.com/docs) for more about skills in Bob.
 
 > **Tip**: As with the ODM Rule Designer Bob mode, set **LLM attribution** to **Git Notes** (see [ODM Rule Designer Bob mode step 1](#1️⃣-import-the-odm-rule-designer-bob-mode)) so Bob doesn't add `<!-- Made with Bob -->` to the generated XML files.
 
 #### Install in Other Agents
 
-Any agent that supports the open [Agent Skills](https://agentskills.io) format can use the skill. Copy the `odm-rule-designer` folder into the skills directory given in your agent's documentation.
+Any agent that supports the open [Agent Skills](https://agentskills.io) format can use the skill. Copy the `odm-builder` folder into the skills directory given in your agent's documentation.
 
 #### Using the Skill
 
@@ -284,11 +284,11 @@ The skill checks for the rules compiler before it writes any code. If none is fo
 You can also run the check yourself:
 
 ```bash
-java -jar skills/odm-rule-designer/scripts/odm.jar jdk        # the jar used, its ODM release, and the JDK
-java -jar skills/odm-rule-designer/scripts/odm.jar compiler --dir <project-root> [--tag 9.5]
+java -jar skills/odm-builder/scripts/odm.jar jdk        # the jar used, its ODM release, and the JDK
+java -jar skills/odm-builder/scripts/odm.jar compiler --dir <project-root> [--tag 9.5]
 ```
 
-Details and manual fallbacks: [`references/prerequisites.md`](skills/odm-rule-designer/references/prerequisites.md).
+Details and manual fallbacks: [`references/prerequisites.md`](skills/odm-builder/references/prerequisites.md).
 
 ### 3️⃣ Ask Your Agent
 
@@ -324,10 +324,10 @@ The skill works in any language, for example: *"Analyse les dépendances entre l
 ### ✨ What the Skill Adds
 
 - **Guaranteed build**: a task is done only when `odm build` prints `BUILD SUCCESS`. The RuleApp embeds the XOM, and the XOM is compiled for `--release 17` so it runs on any ODM 9.x RES.
-- **Best-practice review**: `odm check` validates UUIDs, links and file names, lints BAL, and reports design best-practice violations (rule layout, one action per rule, no `else`/`or`/priorities, Fastpath-only ruleflows, decision table size…). See [`best-practices.md`](skills/odm-rule-designer/references/best-practices.md).
-- **Rule dependencies → ruleflow**: `odm deps` finds which rules write what others read and flags rules that read a value before it is written. `odm ruleflow` rewrites the `.rfl` in the right order. See [`ruleflow-design.md`](skills/odm-rule-designer/references/ruleflow-design.md).
-- **Decision Center deployment**: `odm export` packages the rule project and its managed XOM library as a zip, which is then imported and deployed through the ODM Management MCP Server. See [`decision-center-deployment.md`](skills/odm-rule-designer/references/decision-center-deployment.md).
-- **RES deployment**: deploys the RuleApp built by `odm build` to the Rule Execution Server console through the ODM Management MCP Server. See [`decision-server-console-deployment.md`](skills/odm-rule-designer/references/decision-server-console-deployment.md).
+- **Best-practice review**: `odm check` validates UUIDs, links and file names, lints BAL, and reports design best-practice violations (rule layout, one action per rule, no `else`/`or`/priorities, Fastpath-only ruleflows, decision table size…). See [`best-practices.md`](skills/odm-builder/references/best-practices.md).
+- **Rule dependencies → ruleflow**: `odm deps` finds which rules write what others read and flags rules that read a value before it is written. `odm ruleflow` rewrites the `.rfl` in the right order. See [`ruleflow-design.md`](skills/odm-builder/references/ruleflow-design.md).
+- **Decision Center deployment**: `odm export` packages the rule project and its managed XOM library as a zip, which is then imported and deployed through the ODM Management MCP Server. See [`decision-center-deployment.md`](skills/odm-builder/references/decision-center-deployment.md).
+- **RES deployment**: deploys the RuleApp built by `odm build` to the Rule Execution Server console through the ODM Management MCP Server. See [`decision-server-console-deployment.md`](skills/odm-builder/references/decision-server-console-deployment.md).
 
 The agent always asks before it imports or deploys anything. Without the MCP server, it gives you the archive path and the manual steps.
 
@@ -393,16 +393,16 @@ Restart the MCP server after you change its configuration. More tips:
 
 | Guide | Covers |
 |---|---|
-| [`SKILL.md`](skills/odm-rule-designer/SKILL.md) | Workflow, build-breaking rules, error → fix table |
-| [`prerequisites.md`](skills/odm-rule-designer/references/prerequisites.md) | Installing and locating the rules compiler, JDK alignment |
-| [`xom.md`](skills/odm-rule-designer/references/xom.md) | Java XOM conventions, Jackson, computed properties |
-| [`bom-format.md`](skills/odm-rule-designer/references/bom-format.md) | BOM syntax and annotations |
-| [`vocabulary-and-bal.md`](skills/odm-rule-designer/references/vocabulary-and-bal.md) | Vocabulary syntax and BAL constraints |
-| [`decision-tables.md`](skills/odm-rule-designer/references/decision-tables.md) | Decision tables |
-| [`ruleflow-design.md`](skills/odm-rule-designer/references/ruleflow-design.md) | Rule dependencies and ruleflow design |
-| [`best-practices.md`](skills/odm-rule-designer/references/best-practices.md) | The design best practices checked by `odm check` |
-| [`decision-center-deployment.md`](skills/odm-rule-designer/references/decision-center-deployment.md) | Export and deploy to Decision Center |
-| [`decision-server-console-deployment.md`](skills/odm-rule-designer/references/decision-server-console-deployment.md) | Deploy a RuleApp to the RES console |
+| [`SKILL.md`](skills/odm-builder/SKILL.md) | Workflow, build-breaking rules, error → fix table |
+| [`prerequisites.md`](skills/odm-builder/references/prerequisites.md) | Installing and locating the rules compiler, JDK alignment |
+| [`xom.md`](skills/odm-builder/references/xom.md) | Java XOM conventions, Jackson, computed properties |
+| [`bom-format.md`](skills/odm-builder/references/bom-format.md) | BOM syntax and annotations |
+| [`vocabulary-and-bal.md`](skills/odm-builder/references/vocabulary-and-bal.md) | Vocabulary syntax and BAL constraints |
+| [`decision-tables.md`](skills/odm-builder/references/decision-tables.md) | Decision tables |
+| [`ruleflow-design.md`](skills/odm-builder/references/ruleflow-design.md) | Rule dependencies and ruleflow design |
+| [`best-practices.md`](skills/odm-builder/references/best-practices.md) | The design best practices checked by `odm check` |
+| [`decision-center-deployment.md`](skills/odm-builder/references/decision-center-deployment.md) | Export and deploy to Decision Center |
+| [`decision-server-console-deployment.md`](skills/odm-builder/references/decision-server-console-deployment.md) | Deploy a RuleApp to the RES console |
 
 ---
 
@@ -445,7 +445,7 @@ ODM-AI-toolkit-for-Bob/
 ├── .bob/                          # Bob rules (ask, plan, agent) that point to the skill
 ├── buildcommand/                  # Rules compiler, installed locally (licensed, not committed)
 ├── skills/
-│   └── odm-rule-designer/         # ODM Rule Designer agent skill
+│   └── odm-builder/         # ODM Designer skill
 │       ├── SKILL.md               # Skill entry point
 │       ├── references/            # Guides loaded on demand
 │       ├── scripts/               # odm CLI (odm.jar + Odm.java source)
@@ -461,7 +461,7 @@ ODM-AI-toolkit-for-Bob/
 ## 🎓 Learn More
 
 - **[Bob Documentation](https://bob.ibm.com/docs)**: official IBM Bob documentation
-- **[Agent Skills](https://agentskills.io)**: the open skill format used by `odm-rule-designer`
+- **[Agent Skills](https://agentskills.io)**: the open skill format used by `odm-builder`
 - **[Claude Skills](https://docs.claude.com/en/docs/claude-code/skills)**: using skills in Claude
 - **[ODM Report Generator](tools/README-ODM-REPORT-GENERATOR.md)**: generate a Markdown report of a rule project
 
@@ -498,7 +498,7 @@ For general ODM questions, visit the [ODM Community](https://community.ibm.com/c
 
 **Current**:
 - [x] ODM Rule Designer Bob mode
-- [x] ODM Rule Designer agent skill (`odm-rule-designer`; Claude, IBM Bob, other agents) with the `odm` CLI
+- [x] ODM Designer skill (`odm-builder`; Claude, IBM Bob, other agents) with the `odm` CLI
 - [x] Decision Center deployment
 - [x] RuleApp deployment to the Rule Execution Server
 
