@@ -1,0 +1,63 @@
+# Vocabulary and BAL
+
+## Vocabulary (`bom/<base>_<locale>.voc`, properties format)
+
+`init` writes the header (`# Vocabulary Properties`, `uuid = ...`). Append one block per class:
+
+```
+com.example.loan.LoanRequest#concept.label = loan request
+com.example.loan.LoanRequest.amount#phrase.navigation = {amount} of {this}
+com.example.loan.LoanRequest.amount#phrase.action = set the amount of {this} to {amount}
+com.example.loan.LoanRequest.approved#phrase.navigation = {this} is approved
+com.example.loan.LoanRequest.approved#phrase.action = make it {approved} that {this} is approved
+com.example.loan.LoanRequest.highRisk#phrase.navigation = {this} is flagged
+com.example.loan.LoanRequest.messages#phrase.navigation = {messages} of {this}
+com.example.loan.LoanRequest.addMessage(java.lang.String)#phrase.action = add {0} to the messages of {this}
+com.example.loan.Location.distanceTo(com.example.loan.Location)#phrase.navigation = gap from {this} to {0}
+```
+
+- Property navigation can be placeholder-first (`{amount} of {this}`, Rule Designer's default) or label-first (`the amount of {this}`). Both build (verified on ODM 9.6), and rules write `the amount of 'the request'` either way. Use one form throughout a vocabulary.
+- `navigation` is used for reads and `action` for writes. Method parameters are `{0}`, `{1}`, and method keys use fully qualified Java parameter types.
+- The phrase key must match a BOM member exactly (`approved`, not `isApproved`).
+- Rules reference variables by verbalization in quotes: `'the request'`. `init` gives every variable the verbalization `the <name>`.
+
+## BAL constraints (validated against rules-compiler.jar)
+
+1. **Comparisons:** `is more than`, `is less than`, `is at least`, `is at most`. **Equality:** plain `is` / `is not`, which works for strings, numbers, and objects. `is equal to` does not mean equality: `equal` triggers a date grammar and fails with `'January' expected`. This holds even though older IBM docs show `is equal to`.
+2. **Sets:** `is one of { "A", "B" }`, never `is in`.
+3. **Negation:** `it is not true that <condition>`. `is not` takes a literal or `null`. Never `is not defined` or `not (...)`, including `X is not (<expression>)`. To compare two navigated values, bind one in `definitions` (`set 'v' to <expr> ;`) and write `it is not true that X is 'v'`.
+4. **`then` statements** each end with ` ;`.
+5. **Null-safe navigation:** before navigating through an object, check it in its own `and` line:
+   ```
+   the borrower of 'the request' is not null
+   and the credit score of the borrower of 'the request' is less than 500
+   ```
+6. **No `or`, no `else`, no `print`:** use only `and` conditions, and write one rule per alternative instead of `or`. Instead of `else`, write a positive rule and a negative rule. `print` is for temporary debugging only. `odm check` warns about all three (see `best-practices.md`). If a user explicitly wants an `or`, remember that `and`/`or` precedence isn't standard: put each condition on its own line and add explicit parentheses.
+7. **Numeric computed values:** never use `{x} of {this}` navigation (it clashes with the length operator). Use a method phrase such as `gap from {this} to {0}`. Wrap navigation arguments in parentheses: `gap from (the origin of 'the trip') to (the destination of 'the trip')`.
+8. **Method phrase start:** if a phrase starts with a label token, rules write `the ...`. If it starts with `{this}`, rules don't write `the`.
+9. **Multi-argument methods / reserved tokens:** in method phrases, don't use these as label words: `elapsed, km, distance, travel, speed, minutes, velocity, span, geolocation, location, increase, decrease, by, points, notifications` (the list `odm check` applies). Safe substitutes: `prior, gap, offset, delta, measure, count, tally, record, log`. If a multi-argument method can't be phrased safely, add single-argument XOM overloads for BAL (then run `odm xom` and update the BOM and vocabulary). `odm check` reports these as `WARN … reserved token(s) ['X'] in method phrase`; fix them before building. Example: `tally {0} points to the risk score of {this}` → `tally {0} to the risk score of {this}` (drop `points`).
+10. **Boolean adjectives:** use one safe word (`flagged, blocked, active, inactive, approved, rejected, whitelisted`). Avoid `known, present, detected, valid, complete, open, new`.
+11. **Distinct phrase openings:** two phrases starting with the same tokens give `Ambiguous sentence`. `add {0} to the violations of {this}` and `add {0} to the messages of {this}` can coexist only because the full phrases differ; when in doubt, use a different verb (`record message {0} on {this}`). Also avoid generic words that collide easily (`overall`, `total`, `count`, `compliance`).
+12. **Misleading parse errors:** `The word '<x>' is missing` / `is expected` is reported on the first rule of the first failing package (alphabetical order), even when that rule looks correct. Compare each phrase the rule uses with the `.voc` word for word, and check that every property it reads is declared in the BOM, before you rewrite the rule.
+
+## Patterns from past builds
+
+```
+if
+  the flight of 'the request' is not null
+  and the aircraft of 'the request' is not null
+  and the aircraft of 'the request' is certified after 2025
+  and the status of 'the request' is not "CLOSED"
+  and the region of 'the request' is one of { "EU", "UK" }
+  and it is not true that 'the request' has violations
+then
+  add ( the offset deficit of the airline operator of 'the request' * 100 ) to the penalty amount of the airline operator of 'the request' ;
+```
+
+Arithmetic needs parentheses, and strings are concatenated with `+`.
+
+Keep one action phrase per rule. If the penalty always comes with a violation message and the `flagged` status, don't chain three actions. Declare a virtual BOM method (for example `penalize {this} with {0} because {1}`) whose B2X body does all three, and use that single phrase. See `best-practices.md`.
+
+## Rule packages
+
+A package is a directory `rules/<pkg>/` with a `.rulepackage`. `odm rule` creates both. The package name must match a `<Package Name="...">` in the `.rfl`. In Fastpath tasks, rule order affects execution.
