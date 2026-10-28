@@ -3,18 +3,18 @@
 This document is written to be **self-contained**. It explains how an IBM Operational Decision Manager
 (ODM) Decision Service project is laid out on disk, what every file type contains, how the files
 reference each other, and which mistakes break the build. Every code excerpt below is copied from a
-project committed under [projects/](projects/) that was compiled successfully with IBM's Build Command
+project committed under [sample_projects/](sample_projects/) that was compiled successfully with IBM's Build Command
 (`rules-compiler.jar`). Companion files:
 
 - [AGENTS.md](AGENTS.md): short do/don't rules and build commands for coding agents.
-- `projects/<Project>/AI_Context.md`: a file-by-file walkthrough of one project.
+- `sample_projects/<Project>/AI_Context.md`: a file-by-file walkthrough of one project.
 
 ## 1. Mental model
 
 A Decision Service is a stack of five layers. A name must stay identical across all five:
 
 ```
-XOM  Java classes (execution object model)       projects/<X>/<x>-xom/src/**/*.java
+XOM  Java classes (execution object model)       sample_projects/<X>/<x>-xom/src/**/*.java
  ↓ mapped by
 BOM  Business Object Model, plain text            <Project>/bom/<base>.bom
  ↓ verbalized by
@@ -36,11 +36,11 @@ Rule                    : the airline operator of 'the request'
 
 ## 2. Project layout on disk
 
-Each directory under `projects/` holds one Decision Service. Two sibling folders matter: the Rule
+Each directory under `sample_projects/` holds one Decision Service. Two sibling folders matter: the Rule
 Project (name may contain spaces) and the XOM Java project.
 
 ```
-projects/Loan_Compliance_Service/
+sample_projects/Loan_Compliance_Service/
 ├── Loan Compliance Service/            <- the Rule Project (contains .ruleproject)
 │   ├── .ruleproject                    XML: project identity, XOM/BOM paths, folders
 │   ├── bom/
@@ -446,14 +446,14 @@ Each project's folder has its own `AI_Context.md` with a file-by-file tour.
 
 | Project | Domain / decision | Root object | Ruleflow (mode) | Features shown |
 |---|---|---|---|---|
-| [Mineral_Classification](projects/Mineral_Classification/AI_Context.md) | Classify a mineral specimen by chemistry, then silicate subtype | `MineralSpecimen` | 2 packages (Fastpath) | One rule per class, two-stage classification, Jackson XOM |
-| [Cardiovascular_Risk_Assessment](projects/Cardiovascular_Risk_Assessment/AI_Context.md) | Patient risk tier: high, medium, low | `Patient` | validation, high-risk (RetePlus), medium, low | Severity-tiered packages, default rule last |
-| [Luggage_Compliance_Service](projects/Luggage_Compliance_Service/AI_Context.md) | Airline baggage limits and fees | `LuggageRequest` | 5 packages (Fastpath/RetePlus) | `definitions` iteration over collection, fee calculation |
-| [Aviation_Pollution_Compliance](projects/Aviation_Pollution_Compliance/AI_Context.md) | Emissions limits, CORSIA offsets, penalties | `ComplianceRequest` | 7 packages | Arithmetic, null-safe navigation, computed boolean |
-| [AML_Detection_service](projects/AML_Detection_service/AI_Context.md) | Anti-money-laundering alerts and escalation | `AMLRequest` | 5 packages (RetePlus + Fastpath) | Alert creation methods, cumulative amounts |
-| [CrossBorder_Fraud_Detection](projects/CrossBorder_Fraud_Detection/AI_Context.md) | Cross-border transaction risk scoring | `Transaction` | 4 packages (Fastpath + RetePlus) | Score accumulation, compliance pre-screening, audit trail |
-| [Geolocation_Fraud_Detection](projects/Geolocation_Fraud_Detection/AI_Context.md) | Geolocation and velocity-based fraud risk scoring | `Transaction` | 4 packages (Fastpath + RetePlus) | Pre-screening anomaly detection, risk scoring, confidence levels |
-| [Loan_Compliance_Service](projects/Loan_Compliance_Service/AI_Context.md) | Loan eligibility and interest pricing | `LoanRequest` | validation (Fastpath), pricing (RetePlus) | Decision table `.dta`; **does not build yet** |
+| [Mineral_Classification](sample_projects/Mineral_Classification/AI_Context.md) | Classify a mineral specimen by chemistry, then silicate subtype | `MineralSpecimen` | 2 packages (Fastpath) | One rule per class, two-stage classification, Jackson XOM |
+| [Cardiovascular_Risk_Assessment](sample_projects/Cardiovascular_Risk_Assessment/AI_Context.md) | Patient risk tier: high, medium, low | `Patient` | validation, high-risk (RetePlus), medium, low | Severity-tiered packages, default rule last |
+| [Luggage_Compliance_Service](sample_projects/Luggage_Compliance_Service/AI_Context.md) | Airline baggage limits and fees | `LuggageRequest` | 5 packages (Fastpath/RetePlus) | `definitions` iteration over collection, fee calculation |
+| [Aviation_Pollution_Compliance](sample_projects/Aviation_Pollution_Compliance/AI_Context.md) | Emissions limits, CORSIA offsets, penalties | `ComplianceRequest` | 7 packages | Arithmetic, null-safe navigation, computed boolean |
+| [AML_Detection_service](sample_projects/AML_Detection_service/AI_Context.md) | Anti-money-laundering alerts and escalation | `AMLRequest` | 5 packages (RetePlus + Fastpath) | Alert creation methods, cumulative amounts |
+| [CrossBorder_Fraud_Detection](sample_projects/CrossBorder_Fraud_Detection/AI_Context.md) | Cross-border transaction risk scoring | `Transaction` | 4 packages (Fastpath + RetePlus) | Score accumulation, compliance pre-screening, audit trail |
+| [Geolocation_Fraud_Detection](sample_projects/Geolocation_Fraud_Detection/AI_Context.md) | Geolocation and velocity-based fraud risk scoring | `Transaction` | 4 packages (Fastpath + RetePlus) | Pre-screening anomaly detection, risk scoring, confidence levels |
+| [Loan_Compliance_Service](sample_projects/Loan_Compliance_Service/AI_Context.md) | Loan eligibility and interest pricing | `LoanRequest` | validation (Fastpath), pricing (RetePlus) | Decision table `.dta`; **does not build yet** |
 
 ## 9. Recipe: building a new project
 
