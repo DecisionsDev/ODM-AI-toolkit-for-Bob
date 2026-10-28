@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<model.dt:DecisionTable xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:model.dt="http://ilog.rules.studio/model/dt.ecore">
+  <name>lookup-table-name</name>
+  <uuid>unique-decision-table-uuid</uuid>
+  <categories>any</categories>
+  <locale>en_US</locale>
+  <definition>
+<DT xmlns="http://schemas.ilog.com/Rules/7.0/DecisionTable" Version="7.0">
+  <Body>
+    <Properties>
+      <Property Name="Check.Overlap.ErrorLevel">Error</Property>
+      <Property Name="Lock.ApplyLocking" Type="xs:boolean"><![CDATA[false]]></Property>
+      <Property Name="UI.ShowInvisibleColumns" Type="xs:boolean"><![CDATA[true]]></Property>
+      <Property Name="UI.ShowRuleView" Type="xs:boolean"><![CDATA[false]]></Property>
+    </Properties>
+    <Structure>
+      <ConditionDefinitions>
+        <ConditionDefinition Id="C0">
+          <ExpressionDefinition>
+            <Text><![CDATA[the [key property] of 'the [input variable]' is <a number>]]></Text>
+          </ExpressionDefinition>
+        </ConditionDefinition>
+      </ConditionDefinitions>
+      <ActionDefinitions>
+        <ActionDefinition Id="A0">
+          <ExpressionDefinition>
+            <Text><![CDATA[set the [result property] of 'the [output variable]' to <a number>]]></Text>
+          </ExpressionDefinition>
+        </ActionDefinition>
+      </ActionDefinitions>
+    </Structure>
+    <Contents>
+      <Partition DefId="C0">
+        <Condition>
+          <Expression>
+            <Param><![CDATA[1]]></Param>
+          </Expression>
+          <ActionSet>
+            <Action DefId="A0">
+              <Expression>
+                <Param><![CDATA[20]]></Param>
+              </Expression>
+            </Action>
+          </ActionSet>
+        </Condition>
+        <Condition>
+          <Expression>
+            <Param><![CDATA[2]]></Param>
+          </Expression>
+          <ActionSet>
+            <Action DefId="A0">
+              <Expression>
+                <Param><![CDATA[15]]></Param>
+              </Expression>
+            </Action>
+          </ActionSet>
+        </Condition>
+        <Condition>
+          <Expression>
+            <Param><![CDATA[3]]></Param>
+          </Expression>
+          <ActionSet>
+            <Action DefId="A0">
+              <Expression>
+                <Param><![CDATA[10]]></Param>
+              </Expression>
+            </Action>
+          </ActionSet>
+        </Condition>
+      </Partition>
+    </Contents>
+  </Body>
+  <Resources DefaultLocale="en_US">
+    <ResourceSet Locale="en_US">
+      <Data Name="Definitions(C0)#HeaderText"><![CDATA[Key]]></Data>
+      <Data Name="Definitions(C0)#Width"><![CDATA[200]]></Data>
+      <Data Name="Definitions(A0)#HeaderText"><![CDATA[Result]]></Data>
+      <Data Name="Definitions(A0)#Width"><![CDATA[300]]></Data>
+    </ResourceSet>
+  </Resources>
+</DT></definition>
+</model.dt:DecisionTable>

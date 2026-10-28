@@ -2,31 +2,18 @@
 
 This file provides guidance to agents when working with code in this repository.
 
+## ODM work: use the skill
+
+For anything about IBM ODM (XOM, BOM, vocabulary, BAL rules, decision tables, ruleflows, build, deployment), use the **odm-builder** skill in [`skills/odm-builder/`](skills/odm-builder/SKILL.md). It is the single source of truth for ODM conventions and build gotchas, and its `odm` CLI (`skills/odm-builder/scripts/odm.jar`) scaffolds, checks, compiles and exports projects. Don't restate or override its rules here.
+
+If your agent doesn't load skills automatically, read `skills/odm-builder/SKILL.md` before you change an ODM project.
+
 ## Repository layout
 
-```
-/
-├── sample_projects/                        # Sample ODM Decision Service projects (reference)
-│   ├── <Project_Dir>/               # One directory per project
-│   │   ├── <Rule Project Name>/     # Rule project (contains .ruleproject)
-│   │   ├── <domain>-xom/            # XOM Java project
-│   │   ├── <ProjectName>.properties # Build Command properties for this project
-│   │   ├── AI_Context.md            # File-by-file tour of this project
-│   │   └── README.md
-│   └── README.md
-├── tools/
-│   ├── odm-report-generator.py      # Markdown report + quality assessment generator
-│   └── README-ODM-REPORT-GENERATOR.md
-├── odm.sh                           # Container manager: start|stop|restart|status
-├── AGENTS.md                        # ← this file
-└── AI_Context.md                    # ODM file-format reference
-```
-
-## Where to learn the formats
-
-- [AI_Context.md](AI_Context.md): what every ODM file type is (`.bom`, `.voc`, `.brl`, `.dta`, `.rfl`, `.dop`, `.dep`, …), verified excerpts, cross-file linkage, build status per project, and the error table. Read it before writing or editing any rule project file.
-- `sample_projects/<Project_Dir>/AI_Context.md`: file-by-file tour of one project. Use the projects that build (all except `Loan_Compliance_Service`) as the reference for new work.
-- This file keeps only commands and do/don't rules; explanations live in `AI_Context.md`.
+- `projects/<Domain>/<Project Name>/`: rule projects, each next to its XOM project `<domain>-xom/`
+- `skills/odm-builder/`: the skill (instructions, references, `odm` CLI)
+- `buildcommand/rules-compiler/`: the IBM rules compiler, installed with `odm compiler` (licensed: never commit it)
+- `tools/odm-report-generator.py`: Markdown report of a rule project
 
 ---
 
