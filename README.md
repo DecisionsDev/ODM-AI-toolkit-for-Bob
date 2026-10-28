@@ -300,7 +300,7 @@ in files/Cross-Border-Transaction-Fraud-Detection-Compliance-Policy.txt
 
 **Analyse rule dependencies and redesign the ruleflow**
 ```
-Why does the rule block-high-score never fire in projects/CrossBorder_Fraud_Detection/CrossBorderFraudDetection?
+Why does the rule block-high-score never fire in sample_projects/CrossBorder_Fraud_Detection/CrossBorderFraudDetection?
 Analyse the dependencies between the rules and fix the ruleflow.
 ```
 
@@ -451,7 +451,7 @@ ODM-AI-toolkit-for-Bob/
 │       ├── scripts/               # odm CLI (odm.jar + Odm.java source)
 │       ├── assets/templates/      # File templates (decision tables…)
 │       └── schemas/               # Optional ODM metamodels, copied from a licensed ODM install (not committed)
-├── projects/                      # Sample generated Decision Services
+├── sample_projects/               # Sample generated Decision Services
 ├── tools/                         # Utilities (rule project report generator)
 └── images/                        # Screenshots
 ```

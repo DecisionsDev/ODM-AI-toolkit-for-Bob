@@ -10,7 +10,7 @@ If your agent doesn't load skills automatically, read `skills/odm-builder/SKILL.
 
 ## Repository layout
 
-- `projects/<Domain>/<Project Name>/`: rule projects, each next to its XOM project `<domain>-xom/`
+- `sample_projects/<Domain>/<Project Name>/`: rule projects, each next to its XOM project `<domain>-xom/`
 - `skills/odm-builder/`: the skill (instructions, references, `odm` CLI)
 - `buildcommand/rules-compiler/`: the IBM rules compiler, installed with `odm compiler` (licensed: never commit it)
 - `tools/odm-report-generator.py`: Markdown report of a rule project
@@ -18,4 +18,4 @@ If your agent doesn't load skills automatically, read `skills/odm-builder/SKILL.
 ## Commands
 
 - **Generate a rule project Markdown report**:
-  `python3 tools/odm-report-generator.py "projects/<Domain>/<Project Name>" [output.md]`
+  `python3 tools/odm-report-generator.py "sample_projects/<Domain>/<Project Name>" [output.md]`
